@@ -186,20 +186,19 @@ make_source_note <- function() {
     "Para los proyectos aprobados, se utilizó la información del Boletín Oficial y las empresas inferidas por ",
     htmltools::a(
       "Globaris",
-      href = "https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708",
-      target = "_blank"
+      href = globaris_source_url,
+      target = "_blank",
+      rel = "noopener noreferrer"
     ),
-    ". Para los proyectos en evaluación, se utilizó la información del dashboard de ",
-    htmltools::a(
-      "Globaris",
-      href = "https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708",
-      target = "_blank"
-    ),
-    ". Los datos de empleos directos e indirectos se obtuvieron de la página web del ",
+    ". Para los proyectos en evaluación, se utilizó como fuente base la información del dashboard de ",
+    htmltools::a("Globaris", href = globaris_source_url, target = "_blank", rel = "noopener noreferrer"),
+    ", complementada, cuando estuvo disponible, con fuentes públicas adicionales —incluidos medios periodísticos, comunicaciones empresariales e institucionales— que se identifican individualmente en la ficha de cada proyecto. ",
+    "Los datos de empleos directos e indirectos se obtuvieron de la página web del ",
     htmltools::a(
       "Ministerio de Economía",
       href = "https://www.argentina.gob.ar/economia/rigi",
-      target = "_blank"
+      target = "_blank",
+      rel = "noopener noreferrer"
     ),
     "."
   )
@@ -1158,7 +1157,14 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
 }
 
 make_datatable <- function(data, caption = NULL) {
+  source_html <- if ("fuentes_lista" %in% names(data)) {
+    vapply(data$fuentes_lista, render_project_sources_html, character(1))
+  } else {
+    htmltools::htmlEscape(dplyr::coalesce(as.character(data$fuentes), ""))
+  }
+
   data_display <- data |>
+    dplyr::mutate(fuentes_web = source_html) |>
     dplyr::select(
       proyecto,
       proyecto_de_exportacion_estrategia_largo_plazo,
@@ -1176,7 +1182,7 @@ make_datatable <- function(data, caption = NULL) {
       fecha_aprobacion,
       norma_aprobacion,
       link_norma,
-      fuentes
+      fuentes_web
     ) |>
     dplyr::rename(
       Proyecto = proyecto,
@@ -1195,13 +1201,14 @@ make_datatable <- function(data, caption = NULL) {
       `Fecha de aprobación` = fecha_aprobacion,
       `Norma de aprobación` = norma_aprobacion,
       `Link norma` = link_norma,
-      Fuentes = fuentes
+      Fuentes = fuentes_web
     )
 
   DT::datatable(
     data_display,
     caption = caption,
     rownames = FALSE,
+    escape = setdiff(names(data_display), "Fuentes"),
     filter = "top",
     extensions = c("Buttons"),
     class = "stripe hover order-column compact",
@@ -1250,13 +1257,8 @@ rigi_card_field <- function(label, value, class = NULL) {
 }
 
 rigi_card_link <- function(url, label) {
-  value <- as.character(url)
-  valid <- length(value) > 0 &&
-    !is.na(value[[1]]) &&
-    trimws(value[[1]]) != "" &&
-    stringr::str_detect(value[[1]], "^https?://")
-
-  if (!valid) return(NULL)
+  value <- safe_http_url(url)
+  if (length(value) == 0 || is.na(value[[1]])) return(NULL)
 
   htmltools::tags$a(
     class = "rigi-project-card__link",
@@ -1265,6 +1267,70 @@ rigi_card_link <- function(url, label) {
     rel = "noopener noreferrer",
     label
   )
+}
+
+render_project_sources <- function(sources, fallback = NA_character_) {
+  if (!is.data.frame(sources) || nrow(sources) == 0) {
+    fallback_value <- empty_to_na(as.character(fallback))
+    if (length(fallback_value) == 0 || is.na(fallback_value[[1]])) return(NULL)
+    return(htmltools::tags$span(class = "rigi-project-card__source-text", fallback_value[[1]]))
+  }
+
+  source_names <- dplyr::coalesce(
+    empty_to_na(as.character(sources$fuente)),
+    infer_source_name_from_url(sources$url),
+    "Fuente"
+  )
+  source_keys <- normalize_source_key(source_names)
+  repeated <- ave(source_keys, source_keys, FUN = length) > 1
+  occurrence <- ave(seq_along(source_keys), source_keys, FUN = seq_along)
+  labels <- source_names
+
+  has_date <- !is.na(sources$fecha_publicacion)
+  labels[repeated & has_date] <- paste0(
+    labels[repeated & has_date],
+    " (", format(sources$fecha_publicacion[repeated & has_date], "%d/%m/%Y"), ")"
+  )
+  labels[repeated & !has_date] <- paste0(
+    labels[repeated & !has_date],
+    " (", occurrence[repeated & !has_date], ")"
+  )
+
+  nodes <- list()
+  for (i in seq_len(nrow(sources))) {
+    if (length(nodes) > 0) {
+      nodes[[length(nodes) + 1L]] <- htmltools::tags$span(
+        class = "rigi-project-card__source-separator",
+        `aria-hidden` = "true",
+        "·"
+      )
+    }
+
+    url <- safe_http_url(sources$url[[i]])
+    title <- empty_to_na(as.character(sources$titulo_fuente[[i]]))
+    title <- if (length(title) > 0 && !is.na(title[[1]])) title[[1]] else NULL
+
+    nodes[[length(nodes) + 1L]] <- if (length(url) > 0 && !is.na(url[[1]])) {
+      htmltools::tags$a(
+        class = "rigi-project-card__source-link",
+        href = url[[1]],
+        target = "_blank",
+        rel = "noopener noreferrer",
+        title = title,
+        labels[[i]]
+      )
+    } else {
+      htmltools::tags$span(class = "rigi-project-card__source-text", labels[[i]])
+    }
+  }
+
+  htmltools::tagList(nodes)
+}
+
+render_project_sources_html <- function(sources) {
+  rendered <- render_project_sources(sources)
+  if (is.null(rendered)) return("")
+  as.character(htmltools::tags$span(class = "rigi-project-card__source-list", rendered))
 }
 
 rigi_filter_values <- function(x, split = FALSE) {
@@ -1348,6 +1414,16 @@ make_rigi_project_card <- function(row, table_type, index) {
   province <- rigi_card_value(value("provincia_original"))
   company <- rigi_card_value(value("empresa"))
   holder <- rigi_card_value(value("titular_proyecto"))
+  project_sources <- value("fuentes_lista")
+  rendered_sources <- render_project_sources(
+    project_sources,
+    fallback = value("fuentes_original")
+  )
+  source_search_text <- if (is.data.frame(project_sources) && nrow(project_sources) > 0) {
+    paste(project_sources$fuente, collapse = " ")
+  } else {
+    rigi_card_value(value("fuentes_original"))
+  }
   peelp_label <- if (is.na(peelp_raw)) {
     "s/d"
   } else if (peelp) {
@@ -1371,6 +1447,7 @@ make_rigi_project_card <- function(row, table_type, index) {
     holder,
     rigi_card_value(value("norma_aprobacion")),
     rigi_card_value(value("descripcion_del_proyecto")),
+    source_search_text,
     collapse = " "
   )
 
@@ -1452,10 +1529,16 @@ make_rigi_project_card <- function(row, table_type, index) {
         htmltools::tags$div(
           class = "rigi-project-card__sources",
           rigi_card_link(value("link_norma"), "Ver norma de aprobación"),
-          htmltools::tags$p(
-            htmltools::tags$strong("Fuentes: "),
-            rigi_card_value(value("fuentes"))
-          )
+          if (!is.null(rendered_sources)) {
+            htmltools::tags$div(
+              class = "rigi-project-card__source-group",
+              htmltools::tags$strong("Fuentes"),
+              htmltools::tags$span(
+                class = "rigi-project-card__source-list",
+                rendered_sources
+              )
+            )
+          }
         )
       )
     )

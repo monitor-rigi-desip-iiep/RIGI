@@ -20,12 +20,16 @@ source("R/03_indicators.R")
 source("R/04_plots.R")
 
 raw_data <- load_proyectos()
-proyectos <- clean_proyectos(raw_data)
+raw_sources <- load_fuentes_proyectos()
+project_sources <- build_project_sources(raw_data, raw_sources)
+proyectos <- clean_proyectos(raw_data) |>
+  attach_project_sources(project_sources)
 proyectos_prov <- expand_provincias(proyectos)
 file_update_time <- get_file_update_time()
 indicadores <- make_indicators(proyectos, proyectos_prov, file_update_time)
 tablas <- make_tables(proyectos, proyectos_prov)
 downloads <- create_download_files(proyectos)
+auditoria_fuentes <- make_source_audit(proyectos)
 resumen_ejecutivo <- make_summary_text(indicadores, tablas)
 ```
 
@@ -385,15 +389,15 @@ make_rigi_project_cards(
 # 5. Notas metodológicas
 
 ::: {.method-box}
-- El informe usa exclusivamente la solapa `Proyectos` del archivo Excel fuente.
+- La solapa `Proyectos` es la base maestra del informe. Cuando existe una hoja larga de fuentes en el mismo Excel, se utiliza para asociar cada fuente y URL con su proyecto sin modificar los datos originales.
 - El foco principal está puesto en los proyectos **aprobados**; luego se presentan proyectos **pendientes de aprobación / en evaluación**.
 - Los montos están expresados en **millones de USD**.
 - Los activos computables están expresados en **millones de USD**.
 - Los empleos están expresados como cantidad de empleos directos e indirectos.
 - No se imputan datos faltantes de monto, activos, empleo ni fechas.
-- Para los proyectos aprobados, se utilizó la información del Boletín Oficial y las empresas inferidas por [Globaris](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708).
-- Para los proyectos en evaluación, se utilizó la información del dashboard de [Globaris](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708).
-- Los datos de empleos directos e indirectos se obtuvieron de la página web del [Ministerio de Economía](https://www.argentina.gob.ar/economia/rigi).
+- Para los proyectos aprobados, la información administrativa y del proyecto se basa fundamentalmente en las resoluciones, el Boletín Oficial y la información oficial disponible. Las empresas fueron inferidas por <a href="https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708" target="_blank" rel="noopener noreferrer">Globaris</a>, según la metodología utilizada por el dashboard.
+- Para los proyectos en evaluación, se utilizó como fuente base la información del dashboard de <a href="https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708" target="_blank" rel="noopener noreferrer">Globaris</a>. Cuando estuvo disponible, esa información se complementó con medios periodísticos, comunicaciones empresariales, fuentes institucionales y otras fuentes públicas identificadas individualmente en cada ficha. Estas fuentes complementarias no constituyen por sí mismas una validación oficial del estado administrativo del proyecto.
+- Los datos de empleos directos e indirectos se obtuvieron de la página web del <a href="https://www.argentina.gob.ar/economia/rigi" target="_blank" rel="noopener noreferrer">Ministerio de Economía</a>.
 - Cuando un proyecto tiene más de una provincia separada por `;`, el monto, los activos computables y el empleo se asignan proporcionalmente entre las provincias informadas para evitar doble conteo.
 - Informe generado el: **`r indicadores$fecha_actualizacion_fmt`**.
 - Archivo fuente modificado por última vez: **`r indicadores$fecha_modificacion_archivo_fmt`**.

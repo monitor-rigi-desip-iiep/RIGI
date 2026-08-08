@@ -32,6 +32,10 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
   recuadros blancos ni títulos internos repetidos.
 - Se utiliza una paleta semántica: azul para inversión aprobada, naranja para
   pendientes, verde petróleo para empleo y violeta para PEELP.
+- Las fichas de proyectos en evaluación muestran fuentes individuales con
+  enlaces seguros construidos automáticamente desde el Excel.
+- Las descargas conservan una representación trazable `Fuente [URL]` y también
+  las columnas originales de fuentes y enlaces.
 - El empleo se organiza en pestañas por proyecto, sector y provincia.
 - PEELP incorpora una barra de composición del monto aprobado y un ranking
   específico.
@@ -42,7 +46,14 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
 
 ## Fuentes y aclaración metodológica
 
-Para los proyectos aprobados, se utilizó la información del Boletín Oficial y las empresas inferidas por Globaris. Para los proyectos en evaluación, se utilizó la información del dashboard de Globaris. Los datos de empleos directos e indirectos se obtuvieron de la página web del Ministerio de Economía.
+Para los proyectos aprobados, la información administrativa se basa en el
+Boletín Oficial y en otras fuentes oficiales disponibles; las empresas fueron
+inferidas por Globaris según la metodología utilizada. Para los proyectos en
+evaluación, Globaris funciona como fuente base y la información se complementa,
+cuando está disponible, con medios periodísticos, comunicaciones empresariales,
+fuentes institucionales y otras fuentes públicas identificadas en cada ficha.
+Estas fuentes complementarias no equivalen a una validación oficial. Los datos
+de empleos directos e indirectos se obtuvieron del Ministerio de Economía.
 
 ## Cómo correr localmente
 

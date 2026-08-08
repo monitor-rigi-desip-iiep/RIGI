@@ -111,6 +111,429 @@ convert_excel_date <- function(x) {
   out
 }
 
+# Fuentes y enlaces ----------------------------------------------------------
+
+globaris_source_url <- paste0(
+  "https://app.powerbi.com/view?r=",
+  "eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6",
+  "IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9",
+  "&pageName=d1ee75596a51a9bde708"
+)
+
+safe_http_url <- function(x) {
+  value <- empty_to_na(as.character(x))
+  valid <- !is.na(value) & stringr::str_detect(
+    value,
+    stringr::regex("^https?://[^\\s<>\\\"']+$", ignore_case = TRUE)
+  )
+  value[!valid] <- NA_character_
+  value
+}
+
+infer_source_name_from_url <- function(url) {
+  url <- safe_http_url(url)
+  domain <- stringr::str_match(
+    dplyr::coalesce(url, ""),
+    stringr::regex("^https?://(?:www\\.)?([^/:?#]+)", ignore_case = TRUE)
+  )[, 2]
+  domain <- stringr::str_to_lower(domain)
+
+  dplyr::case_when(
+    stringr::str_detect(domain, "(^|\\.)lanacion\\.com\\.ar$") ~ "La Nación",
+    stringr::str_detect(domain, "(^|\\.)clarin\\.com$") ~ "Clarín",
+    stringr::str_detect(domain, "(^|\\.)cronista\\.com$") ~ "El Cronista",
+    stringr::str_detect(domain, "(^|\\.)econojournal\\.com\\.ar$") ~ "EconoJournal",
+    stringr::str_detect(domain, "(^|\\.)boletinoficial\\.gob\\.ar$") ~ "Boletín Oficial",
+    stringr::str_detect(domain, "(^|\\.)argentina\\.gob\\.ar$") ~ "Argentina.gob.ar",
+    stringr::str_detect(domain, "(^|\\.)x\\.com$") ~ "X",
+    stringr::str_detect(domain, "(^|\\.)instagram\\.com$") ~ "Instagram",
+    is.na(url) | is.na(domain) | domain == "" ~ NA_character_,
+    TRUE ~ domain
+  )
+}
+
+normalize_source_key <- function(x) {
+  out <- normalize_text(x)
+  out[is.na(out)] <- ""
+  out
+}
+
+first_non_missing <- function(x) {
+  x <- x[!is.na(x) & trimws(as.character(x)) != ""]
+  if (length(x) == 0) return(NA_character_)
+  as.character(x[[1]])
+}
+
+empty_sources_table <- function() {
+  tibble::tibble(
+    id_proyecto = character(),
+    proyecto = character(),
+    fuente = character(),
+    url = character(),
+    fecha_publicacion = as.Date(character()),
+    titulo_fuente = character(),
+    origen_fuente = character(),
+    orden_fuente = integer()
+  )
+}
+
+split_source_names <- function(x) {
+  value <- empty_to_na(as.character(x))
+  if (length(value) == 0 || is.na(value[[1]])) return(character(0))
+
+  value <- stringr::str_replace_all(
+    value[[1]],
+    stringr::regex(",\\s*(Globaris)\\b", ignore_case = TRUE),
+    "; \\1"
+  )
+  out <- unlist(strsplit(value, "[;|\\n]+"), use.names = FALSE)
+  out <- stringr::str_squish(out)
+  out <- out[!is.na(out) & out != ""]
+  out[!stringr::str_detect(
+    normalize_text(out),
+    "^auditoria($|\\s)|^fecha de auditoria($|\\s)"
+  )]
+}
+
+extract_source_urls <- function(x) {
+  value <- empty_to_na(as.character(x))
+  if (length(value) == 0 || is.na(value[[1]])) return(character(0))
+  urls <- stringr::str_extract_all(value[[1]], "https?://[^;\\s]+")[[1]]
+  urls <- stringr::str_remove(urls, "[,;]+$")
+  unique(stats::na.omit(safe_http_url(urls)))
+}
+
+parse_project_source_cells <- function(raw_data) {
+  if (nrow(raw_data) == 0) return(empty_sources_table())
+
+  data <- raw_data |>
+    janitor::clean_names() |>
+    dplyr::mutate(dplyr::across(where(is.character), empty_to_na))
+
+  ids <- coalesce_text_cols(data, c("id_proyecto", "project_id", "id"))
+  projects <- coalesce_text_cols(data, c("proyecto", "vpu", "nombre_proyecto_matcheado"))
+  source_cells <- coalesce_text_cols(data, c("fuentes", "fuente"))
+  url_cells <- coalesce_text_cols(data, c(
+    "links_fuentes", "links_de_fuentes", "urls_fuentes", "url_fuentes",
+    "enlaces_fuentes", "links", "urls"
+  ))
+
+  records <- vector("list", nrow(data))
+  for (i in seq_len(nrow(data))) {
+    source_names <- split_source_names(source_cells[[i]])
+    urls <- extract_source_urls(url_cells[[i]])
+    row_records <- list()
+    order_value <- 1L
+
+    is_globaris <- normalize_source_key(source_names) == "globaris"
+    if (any(is_globaris)) {
+      row_records[[length(row_records) + 1L]] <- tibble::tibble(
+        id_proyecto = ids[[i]],
+        proyecto = projects[[i]],
+        fuente = "Globaris",
+        url = globaris_source_url,
+        fecha_publicacion = as.Date(NA),
+        titulo_fuente = NA_character_,
+        origen_fuente = "Proyectos:Fuentes",
+        orden_fuente = order_value
+      )
+      order_value <- order_value + 1L
+      source_names <- source_names[!is_globaris]
+    }
+
+    pair_count <- min(length(source_names), length(urls))
+    if (pair_count > 0) {
+      for (j in seq_len(pair_count)) {
+        row_records[[length(row_records) + 1L]] <- tibble::tibble(
+          id_proyecto = ids[[i]],
+          proyecto = projects[[i]],
+          fuente = source_names[[j]],
+          url = urls[[j]],
+          fecha_publicacion = as.Date(NA),
+          titulo_fuente = NA_character_,
+          origen_fuente = "Proyectos:Fuentes+Links",
+          orden_fuente = order_value
+        )
+        order_value <- order_value + 1L
+      }
+    }
+
+    if (length(source_names) > pair_count) {
+      for (j in seq.int(pair_count + 1L, length(source_names))) {
+        row_records[[length(row_records) + 1L]] <- tibble::tibble(
+          id_proyecto = ids[[i]],
+          proyecto = projects[[i]],
+          fuente = source_names[[j]],
+          url = NA_character_,
+          fecha_publicacion = as.Date(NA),
+          titulo_fuente = NA_character_,
+          origen_fuente = "Proyectos:Fuentes",
+          orden_fuente = order_value
+        )
+        order_value <- order_value + 1L
+      }
+    }
+
+    if (length(urls) > pair_count) {
+      for (j in seq.int(pair_count + 1L, length(urls))) {
+        row_records[[length(row_records) + 1L]] <- tibble::tibble(
+          id_proyecto = ids[[i]],
+          proyecto = projects[[i]],
+          fuente = infer_source_name_from_url(urls[[j]]),
+          url = urls[[j]],
+          fecha_publicacion = as.Date(NA),
+          titulo_fuente = NA_character_,
+          origen_fuente = "Proyectos:Links",
+          orden_fuente = order_value
+        )
+        order_value <- order_value + 1L
+      }
+    }
+
+    records[[i]] <- dplyr::bind_rows(row_records)
+  }
+
+  cell_sources <- dplyr::bind_rows(records)
+
+  # Compatibilidad futura con pares numerados como fuente_1/link_fuente_1.
+  source_columns <- names(data)[stringr::str_detect(
+    names(data),
+    "^(fuente|nombre_fuente|source|medio)_?[0-9]+$"
+  )]
+  paired_records <- list()
+  if (length(source_columns) > 0) {
+    for (source_column in source_columns) {
+      suffix <- stringr::str_extract(source_column, "[0-9]+$")
+      url_candidates <- c(
+        paste0("url_fuente_", suffix), paste0("link_fuente_", suffix),
+        paste0("enlace_fuente_", suffix), paste0("url_", suffix),
+        paste0("link_", suffix), paste0("enlace_", suffix)
+      )
+      date_candidates <- c(paste0("fecha_fuente_", suffix), paste0("fecha_", suffix))
+      title_candidates <- c(paste0("titulo_fuente_", suffix), paste0("titulo_", suffix))
+      url_column <- url_candidates[url_candidates %in% names(data)][1]
+      date_column <- date_candidates[date_candidates %in% names(data)][1]
+      title_column <- title_candidates[title_candidates %in% names(data)][1]
+
+      source_values <- empty_to_na(as.character(data[[source_column]]))
+      url_values <- if (!is.na(url_column)) safe_http_url(data[[url_column]]) else rep(NA_character_, nrow(data))
+      date_values <- if (!is.na(date_column)) convert_excel_date(data[[date_column]]) else rep(as.Date(NA), nrow(data))
+      title_values <- if (!is.na(title_column)) empty_to_na(as.character(data[[title_column]])) else rep(NA_character_, nrow(data))
+
+      paired_records[[length(paired_records) + 1L]] <- tibble::tibble(
+        id_proyecto = ids,
+        proyecto = projects,
+        fuente = dplyr::coalesce(source_values, infer_source_name_from_url(url_values)),
+        url = url_values,
+        fecha_publicacion = date_values,
+        titulo_fuente = title_values,
+        origen_fuente = paste0("Proyectos:", source_column),
+        orden_fuente = as.integer(suffix) + 1000L
+      ) |>
+        dplyr::filter(!is.na(fuente) | !is.na(url))
+    }
+  }
+
+  dplyr::bind_rows(cell_sources, paired_records)
+}
+
+parse_long_source_table <- function(raw_sources) {
+  if (is.null(raw_sources) || nrow(raw_sources) == 0) return(empty_sources_table())
+
+  data <- raw_sources |>
+    janitor::clean_names() |>
+    dplyr::mutate(dplyr::across(where(is.character), empty_to_na))
+
+  sources <- tibble::tibble(
+    id_proyecto = coalesce_text_cols(data, c("id_proyecto", "project_id", "id")),
+    proyecto = coalesce_text_cols(data, c("nombre_proyecto", "proyecto", "vpu")),
+    fuente = coalesce_text_cols(data, c("fuente", "nombre_fuente", "source", "medio")),
+    url = coalesce_text_cols(data, c("url", "url_fuente", "link_fuente", "link", "enlace")),
+    fecha_publicacion = convert_excel_date(coalesce_raw_cols(
+      data,
+      c("fecha_publicacion", "fecha_fuente", "fecha", "date")
+    )),
+    titulo_fuente = coalesce_text_cols(data, c(
+      "titulo_fuente", "titulo", "articulo", "titulo_articulo", "title"
+    )),
+    origen_fuente = coalesce_text_cols(data, c("hoja_origen_fuentes")),
+    orden_fuente = seq_len(nrow(data))
+  ) |>
+    dplyr::mutate(
+      url = safe_http_url(url),
+      fuente = dplyr::coalesce(fuente, infer_source_name_from_url(url)),
+      origen_fuente = dplyr::coalesce(origen_fuente, "Hoja de fuentes")
+    ) |>
+    dplyr::filter(!is.na(fuente) | !is.na(url))
+
+  sources
+}
+
+build_project_sources <- function(raw_data, raw_sources = tibble::tibble()) {
+  cell_sources <- parse_project_source_cells(raw_data)
+  long_sources <- parse_long_source_table(raw_sources)
+
+  # Cuando existe una hoja larga para un proyecto, esa estructura prevalece
+  # sobre la alineación posicional de las celdas Fuentes/Links_fuentes. De las
+  # celdas se conserva Globaris y cualquier par fuente-URL confirmado también
+  # en la hoja larga. Esto evita asociar por error una segunda URL a la fuente
+  # siguiente cuando un mismo medio tiene más de un artículo.
+  if (nrow(long_sources) > 0 && nrow(cell_sources) > 0) {
+    project_match_key <- function(id, project) {
+      id <- empty_to_na(as.character(id))
+      project <- normalize_source_key(project)
+      ifelse(!is.na(id), paste0("id:", id), paste0("project:", project))
+    }
+    long_project_keys <- project_match_key(long_sources$id_proyecto, long_sources$proyecto)
+    cell_project_keys <- project_match_key(cell_sources$id_proyecto, cell_sources$proyecto)
+    long_exact_keys <- paste(
+      long_project_keys,
+      normalize_source_key(long_sources$fuente),
+      dplyr::coalesce(safe_http_url(long_sources$url), ""),
+      sep = "\r"
+    )
+    cell_exact_keys <- paste(
+      cell_project_keys,
+      normalize_source_key(cell_sources$fuente),
+      dplyr::coalesce(safe_http_url(cell_sources$url), ""),
+      sep = "\r"
+    )
+    cell_sources <- cell_sources[
+      !cell_project_keys %in% long_project_keys |
+        normalize_source_key(cell_sources$fuente) == "globaris" |
+        cell_exact_keys %in% long_exact_keys,
+      ,
+      drop = FALSE
+    ]
+  }
+
+  sources <- dplyr::bind_rows(cell_sources, long_sources) |>
+    dplyr::mutate(
+      id_proyecto = empty_to_na(as.character(id_proyecto)),
+      proyecto = empty_to_na(as.character(proyecto)),
+      fuente = empty_to_na(as.character(fuente)),
+      url = safe_http_url(url),
+      fuente = dplyr::coalesce(fuente, infer_source_name_from_url(url)),
+      id_key = dplyr::coalesce(id_proyecto, ""),
+      project_key = normalize_source_key(proyecto),
+      source_key = normalize_source_key(fuente),
+      url_key = dplyr::coalesce(url, "")
+    ) |>
+    dplyr::filter(fuente != "" | url_key != "") |>
+    dplyr::group_by(id_key, project_key, source_key, url_key) |>
+    dplyr::summarise(
+      id_proyecto = first_non_missing(id_proyecto),
+      proyecto = first_non_missing(proyecto),
+      fuente = first_non_missing(fuente),
+      url = first_non_missing(url),
+      fecha_publicacion = {
+        value <- fecha_publicacion[!is.na(fecha_publicacion)]
+        if (length(value) == 0) as.Date(NA) else value[[1]]
+      },
+      titulo_fuente = first_non_missing(titulo_fuente),
+      origen_fuente = paste(unique(stats::na.omit(origen_fuente)), collapse = "; "),
+      orden_fuente = min(orden_fuente, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    dplyr::mutate(
+      source_priority = dplyr::if_else(source_key == "globaris", 0L, 1L)
+    ) |>
+    dplyr::arrange(id_key, project_key, source_priority, orden_fuente, fuente)
+
+  sources |>
+    dplyr::select(
+      id_proyecto, proyecto, fuente, url, fecha_publicacion,
+      titulo_fuente, origen_fuente, orden_fuente
+    )
+}
+
+format_sources_download <- function(sources) {
+  if (is.null(sources) || nrow(sources) == 0) return(NA_character_)
+
+  source_keys <- normalize_source_key(sources$fuente)
+  repeated <- ave(source_keys, source_keys, FUN = length) > 1
+  labels <- dplyr::coalesce(sources$fuente, infer_source_name_from_url(sources$url), "Fuente")
+  has_date <- !is.na(sources$fecha_publicacion)
+  labels[repeated & has_date] <- paste0(
+    labels[repeated & has_date],
+    " (", format(sources$fecha_publicacion[repeated & has_date], "%d/%m/%Y"), ")"
+  )
+
+  values <- ifelse(
+    !is.na(sources$url),
+    paste0(labels, " [", sources$url, "]"),
+    labels
+  )
+  paste(values, collapse = "; ")
+}
+
+attach_project_sources <- function(data, sources) {
+  source_ids <- empty_to_na(as.character(sources$id_proyecto))
+  source_projects <- normalize_source_key(sources$proyecto)
+
+  source_lists <- lapply(seq_len(nrow(data)), function(i) {
+    id_value <- empty_to_na(as.character(data$id_proyecto[[i]]))
+    project_value <- normalize_source_key(data$proyecto[[i]])
+    matches <- (!is.na(id_value) & source_ids == id_value) |
+      (project_value != "" & source_projects == project_value)
+    matches[is.na(matches)] <- FALSE
+    project_sources <- sources[matches, , drop = FALSE]
+
+    if (isTRUE(data$pendiente_aprobacion[[i]]) &&
+        !any(normalize_source_key(project_sources$fuente) == "globaris")) {
+      project_sources <- dplyr::bind_rows(
+        tibble::tibble(
+          id_proyecto = id_value,
+          proyecto = data$proyecto[[i]],
+          fuente = "Globaris",
+          url = globaris_source_url,
+          fecha_publicacion = as.Date(NA),
+          titulo_fuente = NA_character_,
+          origen_fuente = "Metodología del dashboard",
+          orden_fuente = 0L
+        ),
+        project_sources
+      )
+    }
+
+    project_sources |>
+      dplyr::mutate(
+        source_priority = dplyr::if_else(normalize_source_key(fuente) == "globaris", 0L, 1L)
+      ) |>
+      dplyr::arrange(source_priority, orden_fuente, fuente) |>
+      dplyr::select(-source_priority)
+  })
+
+  data |>
+    dplyr::mutate(
+      fuentes_lista = source_lists,
+      fuentes_descarga = vapply(source_lists, format_sources_download, character(1))
+    )
+}
+
+make_source_audit <- function(data) {
+  pending <- data |> dplyr::filter(pendiente_aprobacion)
+  if (nrow(pending) == 0) return(tibble::tibble())
+
+  purrr::map_dfr(seq_len(nrow(pending)), function(i) {
+    sources <- pending$fuentes_lista[[i]]
+    complementary <- sources[normalize_source_key(sources$fuente) != "globaris", , drop = FALSE]
+    tibble::tibble(
+      id_proyecto = pending$id_proyecto[[i]],
+      Proyecto = pending$proyecto[[i]],
+      `Fuentes encontradas` = nrow(sources),
+      `URLs encontradas` = sum(!is.na(sources$url)),
+      `Fuentes complementarias` = nrow(complementary),
+      `Fuentes mostradas en ficha` = format_sources_download(sources),
+      Estado = dplyr::case_when(
+        nrow(sources) == 0 ~ "Sin fuentes",
+        any(is.na(sources$fuente) & !is.na(sources$url)) ~ "Revisar nombre de fuente",
+        TRUE ~ "OK"
+      )
+    )
+  })
+}
+
 clean_proyectos <- function(raw_data) {
   data <- raw_data |>
     janitor::clean_names() |>
@@ -130,6 +553,10 @@ clean_proyectos <- function(raw_data) {
   norma <- coalesce_text_cols(data, c("norma_aprobacion", "norma"))
   link_norma <- coalesce_text_cols(data, c("link_norma", "url_norma", "enlace_norma"))
   fuentes <- coalesce_text_cols(data, c("fuentes", "fuente"))
+  links_fuentes <- coalesce_text_cols(data, c(
+    "links_fuentes", "links_de_fuentes", "urls_fuentes", "url_fuentes",
+    "enlaces_fuentes", "links", "urls"
+  ))
   preexistencia <- coalesce_text_cols(data, c("clasificacion_preexistencia_boletin_oficial", "clasificacion_preexistencia"))
   justificacion_preexistencia <- coalesce_text_cols(data, c("justificacion_preexistencia_boletin_oficial", "justificacion_preexistencia"))
   proyecto_exportacion <- coalesce_text_cols(data, c(
@@ -199,6 +626,8 @@ clean_proyectos <- function(raw_data) {
     justificacion_preexistencia_boletin_oficial = justificacion_preexistencia,
     link_norma = link_norma,
     fuentes = fuentes,
+    fuentes_original = fuentes,
+    links_fuentes_original = links_fuentes,
     estado_simplificado = dplyr::case_when(
       aprobado ~ "Aprobado",
       pendiente ~ "Pendiente de aprobación",
@@ -271,7 +700,9 @@ make_download_table <- function(data) {
       fecha_aprobacion = fecha_aprobacion,
       norma_aprobacion = norma_aprobacion,
       link_norma = link_norma,
-      Fuentes = fuentes,
+      Fuentes = fuentes_descarga,
+      `Fuentes (original)` = fuentes_original,
+      `Links fuentes (original)` = links_fuentes_original,
       `Clasificación preexistencia BO` = clasificacion_preexistencia_boletin_oficial,
       `Justificación preexistencia BO` = justificacion_preexistencia_boletin_oficial
     )

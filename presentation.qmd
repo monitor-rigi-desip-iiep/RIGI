@@ -22,7 +22,10 @@ source("R/03_indicators.R")
 source("R/04_plots.R")
 
 raw_data <- load_proyectos()
-proyectos <- clean_proyectos(raw_data)
+raw_sources <- load_fuentes_proyectos()
+project_sources <- build_project_sources(raw_data, raw_sources)
+proyectos <- clean_proyectos(raw_data) |>
+  attach_project_sources(project_sources)
 proyectos_prov <- expand_provincias(proyectos)
 file_update_time <- get_file_update_time()
 indicadores <- make_indicators(proyectos, proyectos_prov, file_update_time)
@@ -169,9 +172,11 @@ htmltools::div(class = "summary-box", htmltools::p(resumen_ejecutivo))
 
 ## Notas metodológicas
 
-- Se usa exclusivamente la solapa `Proyectos`.
+- La solapa `Proyectos` es la base maestra y la hoja larga de fuentes aporta la trazabilidad de los enlaces cuando está disponible.
 - Primero se presentan proyectos aprobados; luego pendientes / en evaluación.
 - Montos y activos computables se expresan en millones de USD.
 - Los empleos son directos e indirectos.
 - En proyectos multiprovinciales, monto, activos y empleo se asignan proporcionalmente entre provincias para evitar doble conteo.
-- Fuentes: Boletín Oficial, Globaris y Ministerio de Economía.
+- Para aprobados, la información administrativa se basa en el Boletín Oficial y otras fuentes oficiales; Globaris complementa la identificación empresarial.
+- Para proyectos en evaluación, Globaris es la fuente base y se complementa con fuentes públicas adicionales identificadas en cada ficha. Estas fuentes no equivalen por sí mismas a una validación oficial.
+- Los datos de empleo provienen del Ministerio de Economía.

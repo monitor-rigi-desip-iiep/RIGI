@@ -9,7 +9,7 @@ website:
   title: "Monitor de Proyectos RIGI"
   page-footer:
     left: "Generado automáticamente con R y Quarto."
-    right: "Fuente: solapa Proyectos del archivo Excel del tracker RIGI."
+    right: "Fuente: archivo Excel del tracker RIGI."
   navbar:
     background: "#0B132B"
     foreground: "#FFFFFF"
