@@ -1298,19 +1298,21 @@ render_project_sources <- function(sources, fallback = NA_character_) {
 
   nodes <- list()
   for (i in seq_len(nrow(sources))) {
-    if (length(nodes) > 0) {
-      nodes[[length(nodes) + 1L]] <- htmltools::tags$span(
+    separator <- if (i > 1L) {
+      htmltools::tags$span(
         class = "rigi-project-card__source-separator",
         `aria-hidden` = "true",
         "·"
       )
+    } else {
+      NULL
     }
 
     url <- safe_http_url(sources$url[[i]])
     title <- empty_to_na(as.character(sources$titulo_fuente[[i]]))
     title <- if (length(title) > 0 && !is.na(title[[1]])) title[[1]] else NULL
 
-    nodes[[length(nodes) + 1L]] <- if (length(url) > 0 && !is.na(url[[1]])) {
+    source_node <- if (length(url) > 0 && !is.na(url[[1]])) {
       htmltools::tags$a(
         class = "rigi-project-card__source-link",
         href = url[[1]],
@@ -1322,6 +1324,12 @@ render_project_sources <- function(sources, fallback = NA_character_) {
     } else {
       htmltools::tags$span(class = "rigi-project-card__source-text", labels[[i]])
     }
+
+    nodes[[length(nodes) + 1L]] <- htmltools::tags$span(
+      class = "rigi-project-card__source-item",
+      separator,
+      source_node
+    )
   }
 
   htmltools::tagList(nodes)

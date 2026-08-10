@@ -1063,10 +1063,20 @@ h3 {
   color: #475569;
   font-size: 0.82rem;
   line-height: 1.55;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.rigi-project-card__source-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.36rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .rigi-project-card__source-link {
+  min-width: 0;
   padding: 0.04rem 0.13rem;
   border-radius: 4px;
   color: #0E7490;
@@ -1075,6 +1085,9 @@ h3 {
   text-decoration-color: rgba(14, 116, 144, 0.35);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: normal;
 }
 
 .rigi-project-card__source-link:hover,
@@ -1095,7 +1108,11 @@ h3 {
 }
 
 .rigi-project-card__source-text {
+  min-width: 0;
   color: #64748B;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: normal;
 }
 
 .dataTables_wrapper .rigi-project-card__source-list {

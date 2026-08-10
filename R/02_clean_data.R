@@ -158,6 +158,68 @@ normalize_source_key <- function(x) {
   out
 }
 
+compact_source_token <- function(x) {
+  out <- as.character(x)
+  out <- stringi::stri_trans_general(out, "Latin-ASCII")
+  out <- stringr::str_to_lower(out)
+  out <- stringr::str_replace_all(out, "[^a-z0-9]", "")
+  out[is.na(out)] <- ""
+  out
+}
+
+url_host_tokens <- function(url) {
+  value <- safe_http_url(url)
+  if (length(value) == 0 || is.na(value[[1]])) return(character(0))
+
+  host <- stringr::str_match(
+    value[[1]],
+    stringr::regex("^https?://(?:www\\.)?([^/:?#]+)", ignore_case = TRUE)
+  )[, 2]
+  if (is.na(host) || host == "") return(character(0))
+
+  labels <- stringr::str_split(host, stringr::fixed("."))[[1]]
+  labels <- labels[!labels %in% c(
+    "www", "com", "org", "net", "gov", "gob", "edu", "ar", "latam", "amp"
+  )]
+  tokens <- compact_source_token(labels)
+  unique(tokens[nchar(tokens) >= 3L])
+}
+
+match_source_name_to_url <- function(url, source_names) {
+  host_tokens <- url_host_tokens(url)
+  if (length(host_tokens) == 0 || length(source_names) == 0) return(NA_character_)
+
+  source_tokens <- compact_source_token(source_names)
+  matches <- vapply(source_tokens, function(source_token) {
+    if (source_token == "") return(FALSE)
+    any(vapply(host_tokens, function(host_token) {
+      stringr::str_detect(source_token, stringr::fixed(host_token)) ||
+        stringr::str_detect(host_token, stringr::fixed(source_token))
+    }, logical(1)))
+  }, logical(1))
+
+  if (sum(matches) != 1L) return(NA_character_)
+  source_names[[which(matches)]]
+}
+
+expand_source_names_for_urls <- function(source_names, urls) {
+  if (length(urls) <= length(source_names) || length(source_names) == 0) {
+    return(source_names)
+  }
+
+  matched_names <- unname(vapply(
+    urls,
+    match_source_name_to_url,
+    character(1),
+    source_names = source_names
+  ))
+  all_sources_represented <- all(
+    normalize_source_key(source_names) %in% normalize_source_key(matched_names)
+  )
+
+  if (all(!is.na(matched_names)) && all_sources_represented) matched_names else source_names
+}
+
 first_non_missing <- function(x) {
   x <- x[!is.na(x) & trimws(as.character(x)) != ""]
   if (length(x) == 0) return(NA_character_)
@@ -177,30 +239,44 @@ empty_sources_table <- function() {
   )
 }
 
+is_source_audit_metadata <- function(x) {
+  normalized <- as.character(x)
+  normalized <- stringi::stri_trans_general(normalized, "Latin-ASCII")
+  normalized <- stringr::str_to_lower(stringr::str_squish(normalized))
+  detected <- stringr::str_detect(
+    normalized,
+    "^(auditoria|fecha\\s+de\\s+auditoria)(?:\\s|$)"
+  )
+  detected[is.na(detected)] <- FALSE
+  detected
+}
+
 split_source_names <- function(x) {
-  value <- empty_to_na(as.character(x))
+  value <- as.character(x)
   if (length(value) == 0 || is.na(value[[1]])) return(character(0))
+  if (empty_to_na(value[[1]]) |> is.na()) return(character(0))
 
   value <- stringr::str_replace_all(
     value[[1]],
     stringr::regex(",\\s*(Globaris)\\b", ignore_case = TRUE),
     "; \\1"
   )
-  out <- unlist(strsplit(value, "[;|\\n]+"), use.names = FALSE)
+  value <- stringr::str_replace_all(value, stringr::fixed("\r\n"), ";")
+  value <- stringr::str_replace_all(value, stringr::fixed("\n"), ";")
+  value <- stringr::str_replace_all(value, stringr::fixed("\r"), ";")
+  value <- stringr::str_replace_all(value, stringr::fixed("|"), ";")
+  out <- stringr::str_split(value, stringr::fixed(";"))[[1]]
   out <- stringr::str_squish(out)
   out <- out[!is.na(out) & out != ""]
-  out[!stringr::str_detect(
-    normalize_text(out),
-    "^auditoria($|\\s)|^fecha de auditoria($|\\s)"
-  )]
+  out[!is_source_audit_metadata(out)]
 }
 
 extract_source_urls <- function(x) {
   value <- empty_to_na(as.character(x))
   if (length(value) == 0 || is.na(value[[1]])) return(character(0))
-  urls <- stringr::str_extract_all(value[[1]], "https?://[^;\\s]+")[[1]]
+  urls <- stringr::str_extract_all(value[[1]], "https?://[^;|\\s]+")[[1]]
   urls <- stringr::str_remove(urls, "[,;]+$")
-  unique(stats::na.omit(safe_http_url(urls)))
+  as.character(stats::na.omit(safe_http_url(urls)))
 }
 
 parse_project_source_cells <- function(raw_data) {
@@ -240,6 +316,11 @@ parse_project_source_cells <- function(raw_data) {
       order_value <- order_value + 1L
       source_names <- source_names[!is_globaris]
     }
+
+    # Si un mismo medio aporta más de un enlace, la celda de nombres puede
+    # mencionarlo una sola vez. Sólo en ese caso se expande el nombre mediante
+    # una coincidencia inequívoca con el dominio, preservando el orden de URLs.
+    source_names <- expand_source_names_for_urls(source_names, urls)
 
     pair_count <- min(length(source_names), length(urls))
     if (pair_count > 0) {
@@ -364,7 +445,10 @@ parse_long_source_table <- function(raw_sources) {
       fuente = dplyr::coalesce(fuente, infer_source_name_from_url(url)),
       origen_fuente = dplyr::coalesce(origen_fuente, "Hoja de fuentes")
     ) |>
-    dplyr::filter(!is.na(fuente) | !is.na(url))
+    dplyr::filter(
+      !is_source_audit_metadata(fuente),
+      !is.na(fuente) | !is.na(url)
+    )
 
   sources
 }
@@ -419,7 +503,10 @@ build_project_sources <- function(raw_data, raw_sources = tibble::tibble()) {
       source_key = normalize_source_key(fuente),
       url_key = dplyr::coalesce(url, "")
     ) |>
-    dplyr::filter(fuente != "" | url_key != "") |>
+    dplyr::filter(
+      !is_source_audit_metadata(fuente),
+      fuente != "" | url_key != ""
+    ) |>
     dplyr::group_by(id_key, project_key, source_key, url_key) |>
     dplyr::summarise(
       id_proyecto = first_non_missing(id_proyecto),
