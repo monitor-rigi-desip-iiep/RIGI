@@ -83,7 +83,7 @@ quarto preview
 El sitio publicado debería actualizarse en:
 
 ```text
-https://lucassebaord29.github.io/RIGI/
+https://monitor-rigi-desip-iiep.github.io/RIGI/
 ```
 
 - Se incorpora la columna `Proyectos de exportación estratégica de largo plazo (PEELP)` en aprobados, pendientes y base completa.

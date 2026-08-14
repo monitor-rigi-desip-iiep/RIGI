@@ -7,6 +7,8 @@ project:
 
 website:
   title: "Monitor de Proyectos RIGI"
+  site-url: "https://monitor-rigi-desip-iiep.github.io/RIGI/"
+  repo-url: "https://github.com/monitor-rigi-desip-iiep/RIGI"
   page-footer:
     left: "Generado automáticamente con R y Quarto."
     right: "Fuente: archivo Excel del tracker RIGI."
