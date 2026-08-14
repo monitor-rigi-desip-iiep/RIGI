@@ -114,7 +114,7 @@ theme_rigi_chart <- function(base_size = 12) {
 
 style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom = 65,
                          margin_top = 30, height = NULL, showlegend = NULL,
-                         text_position = NULL) {
+                         text_position = NULL, mobile_min_width = NULL) {
   out <- plotly::ggplotly(p, tooltip = "text") |>
     plotly::layout(
       margin = list(l = margin_left, r = margin_right, b = margin_bottom, t = margin_top),
@@ -145,32 +145,99 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
 
   out <- out |> plotly::config(displayModeBar = FALSE, responsive = TRUE)
 
+  if (is.null(mobile_min_width)) {
+    mobile_min_width <- if (
+      !is.null(text_position) && identical(text_position, "middle right")
+    ) 520 else 0
+  }
+
   responsive_js <- sprintf(
     "function(el, x) {
+      var host = el.closest('.cell-output-display') || el.parentElement;
+      var originalTextSizes = (x.data || []).map(function(trace) {
+        return trace.textfont && trace.textfont.size ? trace.textfont.size : 11;
+      });
+      var resizeTimer = null;
+      var lastHostWidth = -1;
+
+      if (host) host.classList.add('rigi-static-plot-host');
+
+      function getHint() {
+        if (!host) return null;
+        var hint = host.querySelector('.rigi-static-plot-hint');
+        if (!hint) {
+          hint = document.createElement('p');
+          hint.className = 'rigi-scroll-hint rigi-static-plot-hint';
+          hint.textContent = 'Deslizá el gráfico para ver todo el contenido →';
+          hint.hidden = true;
+          host.appendChild(hint);
+        }
+        return hint;
+      }
+
       function resizeRigiChart() {
-        var width = el.getBoundingClientRect().width;
-        var compact = width < 620;
-        var nextLeft = compact ? Math.max(82, Math.min(%s, Math.round(width * 0.35))) : %s;
-        var nextRight = compact ? 12 : %s;
+        var compact = window.matchMedia('(max-width: 640px)').matches;
+        var tablet = !compact && window.matchMedia('(max-width: 900px)').matches;
+        var hostWidth = host ? host.clientWidth : el.getBoundingClientRect().width;
+        lastHostWidth = hostWidth;
+        var mobileMinWidth = %s;
+        var useScroll = compact && mobileMinWidth > 0 && hostWidth < mobileMinWidth - 2;
+
+        el.style.width = useScroll ? mobileMinWidth + 'px' : '100%%';
+        el.style.minWidth = useScroll ? mobileMinWidth + 'px' : '0';
+        el.style.maxWidth = 'none';
+
+        var plotWidth = useScroll ? mobileMinWidth : Math.max(1, hostWidth);
+        var nextLeft = compact
+          ? (useScroll ? %s : Math.max(68, Math.min(%s, Math.round(plotWidth * 0.34))))
+          : %s;
+        var nextRight = compact ? 12 : (tablet ? Math.min(%s, 24) : %s);
         var nextBottom = compact ? Math.min(%s, 54) : %s;
+        var hint = getHint();
+        if (host) host.classList.toggle('is-overflowing', useScroll);
+        if (hint) hint.hidden = !useScroll;
+
+        Plotly.Plots.resize(el);
         Plotly.relayout(el, {
           'margin.l': nextLeft,
           'margin.r': nextRight,
           'margin.b': nextBottom,
-          'font.size': compact ? 10 : 12,
-          'yaxis.tickfont.size': compact ? 9.5 : 10.5,
-          'xaxis.tickfont.size': compact ? 9 : 10
+          'font.size': compact ? 10 : (tablet ? 11 : 12),
+          'yaxis.tickfont.size': compact ? 9.5 : (tablet ? 10 : 10.5),
+          'xaxis.tickfont.size': compact ? 9 : (tablet ? 9.5 : 10)
+        });
+
+        (x.data || []).forEach(function(trace, index) {
+          if (trace.type === 'scatter' && String(trace.mode || '').indexOf('text') !== -1) {
+            Plotly.restyle(el, { 'textfont.size': compact ? 10 : originalTextSizes[index] }, [index]);
+          }
         });
       }
-      window.setTimeout(resizeRigiChart, 0);
-      if (el._rigiResizeHandler) {
-        window.removeEventListener('resize', el._rigiResizeHandler);
+
+      function scheduleResize() {
+        var nextWidth = host ? host.clientWidth : el.getBoundingClientRect().width;
+        if (Math.abs(nextWidth - lastHostWidth) < 1) return;
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resizeRigiChart, 140);
       }
-      el._rigiResizeHandler = resizeRigiChart;
-      window.addEventListener('resize', resizeRigiChart);
+
+      window.setTimeout(resizeRigiChart, 0);
+
+      if (el._rigiResizeObserver) el._rigiResizeObserver.disconnect();
+      if (typeof ResizeObserver !== 'undefined' && host) {
+        el._rigiResizeObserver = new ResizeObserver(scheduleResize);
+        el._rigiResizeObserver.observe(host);
+      } else {
+        if (el._rigiResizeHandler) window.removeEventListener('resize', el._rigiResizeHandler);
+        el._rigiResizeHandler = scheduleResize;
+        window.addEventListener('resize', scheduleResize, { passive: true });
+      }
     }",
+    mobile_min_width,
     margin_left,
     margin_left,
+    margin_left,
+    margin_right,
     margin_right,
     margin_bottom,
     margin_bottom

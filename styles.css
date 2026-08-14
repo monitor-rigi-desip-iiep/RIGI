@@ -15,6 +15,19 @@
   --rigi-card: #FFFFFF;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background:
     radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 28rem),
@@ -26,10 +39,24 @@ body {
 
 #quarto-content {
   background: transparent;
+  min-width: 0;
 }
 
 main.content {
   padding-top: 1.2rem;
+  min-width: 0;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
 }
 
 a {
@@ -45,15 +72,23 @@ h1, h2, h3 {
   color: #0F172A;
   font-weight: 800;
   letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+main.content > section > h1,
+main.content > h1 {
+  font-size: clamp(1.85rem, 3.2vw, 2.55rem);
 }
 
 h2 {
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
   margin-top: 2.6rem;
   padding-bottom: 0.45rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
 }
 
 h3 {
+  font-size: clamp(1.12rem, 1.8vw, 1.45rem);
   margin-top: 1.8rem;
   color: #1E293B;
 }
@@ -263,7 +298,10 @@ input {
 }
 
 .download-button {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   margin-left: 10px;
   margin-top: 6px;
   padding: 8px 14px;
@@ -589,6 +627,7 @@ input {
   padding: 19px 19px;
   box-shadow: 0 14px 28px rgba(15, 23, 42, 0.075);
   min-height: 132px;
+  min-width: 0;
 }
 
 .kpi-card::after {
@@ -623,6 +662,7 @@ input {
   min-height: 30px;
   position: relative;
   z-index: 1;
+  overflow-wrap: anywhere;
 }
 
 .kpi-value {
@@ -633,6 +673,7 @@ input {
   line-height: 1.12;
   position: relative;
   z-index: 1;
+  overflow-wrap: anywhere;
 }
 
 .kpi-sublabel {
@@ -653,6 +694,27 @@ input {
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
   margin-bottom: 24px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.cell,
+.cell-output,
+.cell-output-display {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.dataTables_wrapper,
+.table-responsive,
+main.content table:not(.dataTable) {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+main.content table:not(.dataTable) {
+  display: block;
 }
 
 .plotly:hover, .html-widget:hover {
@@ -796,7 +858,7 @@ input {
 .rigi-card-search input,
 .rigi-card-filter select {
   width: 100%;
-  min-height: 2.55rem;
+  min-height: 44px;
   border: 1px solid #CBD5E1;
   border-radius: 10px;
   background: #FFFFFF;
@@ -820,7 +882,7 @@ input {
 }
 
 .rigi-card-clear {
-  min-height: 2.55rem;
+  min-height: 44px;
   padding: 0.48rem 0.85rem;
   border: 1px solid #CBD5E1;
   border-radius: 10px;
@@ -1170,7 +1232,7 @@ input {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  min-height: 2.35rem;
+  min-height: 44px;
   padding: 0.48rem 0.72rem;
   border-radius: 9px;
   background: #DBEAFE;
@@ -1513,6 +1575,55 @@ input {
 }
 
 /* Planes de inversión ------------------------------------------------------ */
+.rigi-plot-scroll,
+.rigi-static-plot-host {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #94A3B8 transparent;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+.rigi-plot-scroll::-webkit-scrollbar,
+.rigi-static-plot-host::-webkit-scrollbar,
+.impo-project-chips::-webkit-scrollbar,
+.impo-project-legend::-webkit-scrollbar {
+  height: 7px;
+}
+
+.rigi-plot-scroll::-webkit-scrollbar-thumb,
+.rigi-static-plot-host::-webkit-scrollbar-thumb,
+.impo-project-chips::-webkit-scrollbar-thumb,
+.impo-project-legend::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #94A3B8;
+}
+
+.rigi-plot-scroll .js-plotly-plot,
+.rigi-plot-scroll .plot-container,
+.rigi-plot-scroll .svg-container {
+  touch-action: pan-x pan-y !important;
+}
+
+.rigi-scroll-hint {
+  margin: 0.42rem 0 0.25rem;
+  color: #64748B;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: right !important;
+  word-spacing: normal !important;
+}
+
+.rigi-scroll-hint[hidden] {
+  display: none !important;
+}
+
 .plans-module {
   margin: 0.35rem 0 1.75rem;
 }
@@ -1628,6 +1739,7 @@ input {
   word-spacing: normal !important;
   text-transform: none !important;
   letter-spacing: normal !important;
+  min-height: 44px;
 }
 
 .plans-check-option:hover {
@@ -1682,6 +1794,8 @@ input {
 .plans-chart {
   width: 100%;
   min-height: 470px;
+  max-width: none;
+  flex: 0 0 auto;
 }
 
 .plans-loading {
@@ -1714,7 +1828,7 @@ input {
   font-size: 0.92rem;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1100px) {
   .plans-filter-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1746,7 +1860,7 @@ input {
     padding: 0.8rem 0.5rem 0.65rem;
   }
   .plans-chart {
-    min-height: 430px;
+    min-height: 400px;
   }
 }
 
@@ -1866,6 +1980,7 @@ input {
   word-spacing: normal !important;
   text-transform: none !important;
   letter-spacing: normal !important;
+  min-height: 44px;
 }
 
 .impo-check-option:hover {
@@ -1925,6 +2040,8 @@ input {
 .impo-chart {
   width: 100%;
   min-height: 470px;
+  max-width: none;
+  flex: 0 0 auto;
 }
 
 .impo-chart-note,
@@ -1956,7 +2073,7 @@ input {
   font-size: 0.92rem;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1100px) {
   .impo-filter-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1988,7 +2105,7 @@ input {
     padding: 0.8rem 0.5rem 0.65rem;
   }
   .impo-chart {
-    min-height: 430px;
+    min-height: 400px;
   }
 }
 
@@ -2250,7 +2367,7 @@ input {
 
 .impo-secondary-button,
 .impo-project-card-button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 0.5rem 0.75rem;
   border: 1px solid #CBD5E1;
   border-radius: 10px;
@@ -2297,6 +2414,7 @@ input {
   word-spacing: normal !important;
   box-shadow: 0 3px 8px rgba(15, 23, 42, 0.035);
   transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+  min-height: 44px;
 }
 
 .impo-project-chip:hover,
@@ -2333,6 +2451,7 @@ input {
 .impo-project-chip__label {
   overflow: hidden;
   text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .impo-project-card-controls {
@@ -2435,146 +2554,66 @@ input {
   }
 }
 
+/* Responsive integral · reglas consolidadas ------------------------------- */
 
-/* Responsive audit 2026-08 -------------------------------------------------
-   Consolidated overrides for phone/tablet layouts. Desktop rules above stay
-   unchanged; these overrides only activate at narrower viewports. */
-
-html,
-body {
-  max-width: 100%;
+:where(a, button, input, select, summary, [tabindex]):focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.38);
+  outline-offset: 2px;
 }
 
-main.content,
-#quarto-content,
-.page-columns,
-.column-page,
-.column-body {
+.navbar-toggler,
+.nav-link,
+.impo-multiselect > summary,
+.plans-multiselect > summary {
+  min-height: 44px;
+}
+
+.nav-footer,
+.nav-footer-left,
+.nav-footer-center,
+.nav-footer-right {
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-img,
-video,
-canvas {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Dedicated internal scrolling for dense Plotly timelines. */
-.rigi-chart-scroll {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-inline: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #CBD5E1 transparent;
-}
-
-.rigi-chart-scroll::-webkit-scrollbar {
-  height: 7px;
-}
-
-.rigi-chart-scroll::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 999px;
-}
-
-.rigi-chart-scroll > .plans-chart,
-.rigi-chart-scroll > .impo-chart {
-  flex: 0 0 auto;
-}
-
-.rigi-chart-scroll-hint {
-  display: none;
-  margin: 0.25rem 0 0.15rem;
-  color: #64748B;
-  font-size: 0.78rem;
-  line-height: 1.35;
-  text-align: left !important;
-  word-spacing: normal !important;
-}
-
-.rigi-chart-scroll-hint.is-visible {
-  display: block;
-}
-
-/* Generic tables stay inside their own component instead of widening BODY. */
-main.content .table-responsive,
-main.content .dataTables_wrapper,
-main.content .datatables,
-main.content .cell-output-display {
-  max-width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .hero-meta-grid,
-  .kpi-grid {
-    gap: 0.8rem;
-  }
-
-  .plans-chart-card,
-  .impo-chart-card {
-    border-radius: 16px;
-  }
-}
-
-@media (max-width: 768px) {
-  h1 {
-    font-size: clamp(1.85rem, 5.8vw, 2.35rem);
-  }
-
-  h2 {
-    font-size: clamp(1.5rem, 4.8vw, 1.85rem);
-  }
-
-  h3,
-  .impo-view-title {
-    font-size: clamp(1.2rem, 4vw, 1.5rem);
-  }
-
-  .hero-section {
-    padding: 28px 22px;
-    border-radius: 22px;
-  }
-
-  .download-box {
+@media (max-width: 700px) {
+  .impo-project-chips,
+  .impo-project-legend {
+    display: flex;
+    flex-wrap: nowrap;
     gap: 0.55rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.18rem 0.1rem 0.58rem;
+    scroll-padding-inline: 0.1rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .plans-filter-control,
-  .plans-reset-button,
-  .impo-input,
-  .impo-multiselect > summary,
-  .impo-reset-button,
-  .impo-secondary-button,
-  .impo-project-card-button,
-  .download-button,
-  .rigi-card-clear,
-  .rigi-project-card__details summary {
+  .impo-project-chip,
+  .impo-project-legend__item {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 11rem;
+    max-width: min(18rem, calc(100vw - 3.5rem));
     min-height: 44px;
+    border-radius: 12px;
+    scroll-snap-align: start;
   }
 
-  .rigi-project-card__title,
-  .rigi-project-card__value,
-  .impo-project-mini-card__title {
+  .impo-project-chip__label,
+  .impo-project-legend__label {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
     overflow-wrap: anywhere;
-    hyphens: auto;
   }
 }
 
 @media (max-width: 640px) {
-  html,
-  body {
-    overflow-x: clip;
-  }
-
-  main.content {
-    padding-top: 0.85rem;
-  }
-
-  /* Justification is attractive on desktop but creates large word gaps on phones. */
   main.content p,
   .hero-subtitle,
   .source-note-box,
@@ -2592,69 +2631,91 @@ main.content .cell-output-display {
   .impo-view-subtitle,
   .rigi-project-card__description p,
   .rigi-project-card__sources p {
-    text-align: left !important;
-    text-justify: auto !important;
-    word-spacing: normal !important;
+    text-align: left;
+    text-justify: auto;
+    word-spacing: normal;
   }
 
-  h1 {
-    font-size: clamp(1.72rem, 8.2vw, 2.05rem);
-    line-height: 1.08;
+  #quarto-margin-sidebar {
+    display: none !important;
+  }
+
+  main.content {
+    padding-top: 0.75rem;
   }
 
   h2 {
     margin-top: 2.05rem;
-    font-size: clamp(1.42rem, 6.6vw, 1.72rem);
-    line-height: 1.14;
   }
 
-  h3,
-  .impo-view-title {
-    font-size: clamp(1.15rem, 5.2vw, 1.38rem);
-    line-height: 1.18;
+  h3 {
+    margin-top: 1.45rem;
   }
 
   .hero-section {
     padding: 22px 16px;
-    border-radius: 19px;
-    margin-bottom: 1.15rem;
+    margin-bottom: 20px;
+    border-radius: 20px;
   }
 
   .hero-section h1 {
-    font-size: clamp(1.85rem, 9vw, 2.25rem);
+    font-size: clamp(1.75rem, 9vw, 2.25rem);
+    line-height: 1.08;
   }
 
   .hero-subtitle {
-    font-size: 0.98rem;
-    line-height: 1.52;
+    font-size: 0.96rem;
+    line-height: 1.56;
   }
 
-  .hero-meta-grid > div,
-  .kpi-card {
-    padding: 0.8rem 0.9rem;
+  .hero-meta-grid {
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .hero-meta-grid > div {
     min-width: 0;
+    padding: 13px 14px;
+    border-radius: 15px;
   }
 
-  .meta-label,
-  .kpi-label,
-  .kpi-sublabel,
-  .meta-value,
-  .kpi-value {
-    text-align: left !important;
-    word-spacing: normal !important;
+  .meta-label {
+    font-size: 0.75rem;
+  }
+
+  .meta-value {
+    font-size: 1rem;
     overflow-wrap: anywhere;
   }
 
-  .navbar-brand {
-    max-width: calc(100vw - 7.3rem);
+  .kpi-grid {
+    gap: 12px;
+    margin-bottom: 24px;
   }
 
-  .navbar-title {
-    display: block;
-    max-width: 100%;
-    font-size: 0.92rem;
-    line-height: 1.12;
-    white-space: normal;
+  .kpi-card {
+    min-height: 122px;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .kpi-label {
+    min-height: 0;
+    font-size: 0.75rem;
+  }
+
+  .rigi-card-search > span,
+  .rigi-card-filter > span,
+  .rigi-project-card__amount span,
+  .rigi-card-field dt,
+  .rigi-project-card__description h4,
+  .rigi-badge,
+  .impo-project-mini-card__grid dt {
+    font-size: 0.75rem;
+  }
+
+  .kpi-value {
+    font-size: clamp(1.2rem, 6vw, 1.48rem);
   }
 
   .source-note-box,
@@ -2663,86 +2724,83 @@ main.content .cell-output-display {
   .method-box,
   .section-intro,
   .download-box {
-    padding: 0.85rem 0.9rem;
+    border-radius: 16px;
+  }
+
+  .download-box {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .download-box > strong {
+    grid-column: 1 / -1;
+  }
+
+  .download-button {
+    width: 100%;
+    margin: 0;
+    padding: 0.65rem 0.8rem;
+  }
+
+  .rigi-card-search input,
+  .rigi-card-filter select,
+  .plans-select,
+  .plans-multiselect > summary,
+  .impo-input,
+  .impo-multiselect > summary {
+    font-size: 1rem;
+  }
+
+  .rigi-card-clear {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .rigi-project-card__holder {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: initial;
+  }
+
+  .rigi-badge {
+    white-space: normal;
+  }
+
+  .plans-filter-panel,
+  .impo-filter-panel,
+  .impo-project-selector {
+    gap: 0.75rem;
     border-radius: 15px;
   }
 
-  input,
-  select,
-  textarea,
-  .plans-filter-control,
-  .impo-input,
-  .plans-multiselect > summary,
-  .impo-multiselect > summary {
+  .plans-multiselect-menu,
+  .impo-multiselect-menu {
+    right: 0;
+    left: 0;
+    width: 100%;
     max-width: 100%;
-    font-size: 16px !important;
-  }
-
-  button,
-  .btn,
-  .download-button,
-  .plans-reset-button,
-  .impo-reset-button,
-  .impo-secondary-button,
-  .impo-project-card-button {
-    min-height: 44px;
+    max-height: min(60vh, 310px);
   }
 
   .plans-chart-card,
   .impo-chart-card {
-    margin: 0.9rem 0 1.15rem;
-    padding: 0.72rem 0.45rem 0.62rem;
+    margin-right: -0.1rem;
+    margin-left: -0.1rem;
     border-radius: 15px;
-    overflow: hidden;
   }
 
   .plans-chart-card h3,
   .impo-chart-card h3,
-  .impo-chart-card h4 {
-    padding: 0 0.25rem;
-    font-size: 1.05rem;
-    line-height: 1.25;
+  .impo-chart-card h4,
+  .impo-view-title {
+    font-size: clamp(1.05rem, 5vw, 1.25rem);
+    line-height: 1.28;
   }
 
-  .plans-chart,
-  .impo-chart {
-    min-height: 390px;
-    height: 390px;
-  }
-
-  .rigi-chart-scroll-hint {
-    padding: 0 0.3rem;
-  }
-
-  /* Project chips become a horizontal, touch-friendly strip instead of a tall list. */
-  .impo-project-chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    gap: 0.5rem;
-    margin-right: -0.15rem;
-    margin-left: -0.15rem;
-    padding: 0.15rem 0.15rem 0.45rem;
-    overscroll-behavior-inline: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scroll-snap-type: x proximity;
-  }
-
-  .impo-project-chip {
-    width: auto !important;
-    min-height: 44px;
-    flex: 0 0 auto;
-    max-width: min(82vw, 310px);
-    border-radius: 999px !important;
-    scroll-snap-align: start;
-  }
-
-  .impo-project-chip__label {
-    max-width: 245px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .rigi-scroll-hint {
+    font-size: 0.78rem;
+    text-align: left !important;
   }
 
   .impo-project-selector__actions {
@@ -2751,102 +2809,85 @@ main.content .cell-output-display {
     width: 100%;
   }
 
-  .impo-secondary-button {
-    width: 100%;
-  }
-
-  .impo-project-card-controls {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
+  .impo-secondary-button,
   .impo-project-card-button {
     width: 100%;
   }
 
-  .impo-project-mini-card__grid {
-    grid-template-columns: 1fr !important;
+  .impo-project-mini-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.95rem;
+    border-radius: 16px;
   }
 
-  main.content table {
-    display: block;
-    width: max-content;
-    min-width: 100%;
-    max-width: none;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .download-box {
-    display: flex;
-    align-items: stretch;
-    flex-wrap: wrap;
-  }
-
-  .download-box strong {
-    flex: 1 0 100%;
-  }
-
-  .download-button {
-    flex: 1 1 8rem;
-    justify-content: center;
-    text-align: center !important;
+  .impo-project-mini-card__title {
+    font-size: 1.08rem;
+    overflow-wrap: anywhere;
   }
 
   .nav-footer {
-    gap: 0.35rem;
+    display: flex;
     align-items: flex-start;
     flex-direction: column;
+    gap: 0.45rem;
+    padding: 1rem;
+    text-align: left;
   }
 
   .nav-footer-left,
-  .nav-footer-right,
-  .nav-footer-center {
+  .nav-footer-center,
+  .nav-footer-right {
     width: 100%;
-    text-align: left !important;
+    margin: 0;
+    text-align: left;
   }
 }
 
-@media (max-width: 430px) {
+@media (min-width: 375px) and (max-width: 640px) {
   .hero-meta-grid,
   .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .impo-subsection {
-    margin-right: 0;
-    margin-left: 0;
-    padding: 0.8rem 0.55rem 0.9rem;
-  }
-
-  .impo-filter-panel,
-  .plans-filter-panel,
-  .impo-project-selector {
-    border-radius: 14px;
-  }
-
-  .impo-project-selector__actions {
-    grid-template-columns: 1fr;
-  }
-
-  .download-button {
-    flex-basis: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 360px) {
+  .hero-meta-grid,
+  .kpi-grid,
+  .download-box,
+  .impo-project-selector__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .download-box > strong {
+    grid-column: auto;
+  }
+
+  .impo-subsection {
+    padding-right: 0.55rem;
+    padding-left: 0.55rem;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
   .hero-section {
-    padding-right: 14px;
-    padding-left: 14px;
+    padding-top: 22px;
+    padding-bottom: 22px;
   }
 
-  .plans-chart,
-  .impo-chart {
-    min-height: 370px;
-    height: 370px;
+  .hero-meta-grid,
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .impo-project-chip {
-    max-width: 86vw;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

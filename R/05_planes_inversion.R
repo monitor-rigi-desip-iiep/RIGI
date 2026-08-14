@@ -364,8 +364,18 @@ make_planes_inversion_module <- function(data) {
         class = "plans-chart-card",
         htmltools::tags$h3("Planes de inversión por año"),
         htmltools::div(
-          id = "planes-annual-chart",
-          class = "plans-chart"
+          class = "rigi-plot-scroll",
+          `data-scroll-hint` = "planes-annual-scroll-hint",
+          htmltools::div(
+            id = "planes-annual-chart",
+            class = "plans-chart"
+          )
+        ),
+        htmltools::tags$p(
+          id = "planes-annual-scroll-hint",
+          class = "rigi-scroll-hint",
+          hidden = "hidden",
+          "Deslizá el gráfico para ver más años →"
         )
       ),
 
@@ -373,8 +383,18 @@ make_planes_inversion_module <- function(data) {
         class = "plans-chart-card",
         htmltools::tags$h3("Planes de inversión acumulados"),
         htmltools::div(
-          id = "planes-cumulative-chart",
-          class = "plans-chart"
+          class = "rigi-plot-scroll",
+          `data-scroll-hint` = "planes-cumulative-scroll-hint",
+          htmltools::div(
+            id = "planes-cumulative-chart",
+            class = "plans-chart"
+          )
+        ),
+        htmltools::tags$p(
+          id = "planes-cumulative-scroll-hint",
+          class = "rigi-scroll-hint",
+          hidden = "hidden",
+          "Deslizá el gráfico para ver más años →"
         ),
         htmltools::tags$p(
           class = "plans-chart-note",

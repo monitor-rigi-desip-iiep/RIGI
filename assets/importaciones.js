@@ -5,7 +5,7 @@
     const root = document.getElementById("importaciones-module");
     if (!root || root.dataset.initialized === "true") return;
 
-    if (typeof window.Plotly === "undefined") {
+    if (typeof window.Plotly === "undefined" || typeof window.RigiResponsive === "undefined") {
       window.setTimeout(initImportaciones, 100);
       return;
     }
@@ -22,6 +22,7 @@
     const projectColors = JSON.parse(document.getElementById("importaciones-project-colors").textContent || "{}");
     const projectMetadataRows = JSON.parse(document.getElementById("importaciones-project-metadata").textContent || "[]");
     const projectMetadata = new Map(projectMetadataRows.map((d) => [String(d.project), d]));
+    const responsive = window.RigiResponsive;
 
     const charts = {
       sectorMonthly: document.getElementById("impo-sector-monthly-chart"),
@@ -76,82 +77,6 @@
     let syncingSectorCumulative = false;
     let projectCardOpen = false;
 
-
-    function viewportProfile() {
-      const width = window.innerWidth || document.documentElement.clientWidth || 1440;
-      return {
-        mobile: width <= 640,
-        tablet: width > 640 && width <= 900
-      };
-    }
-
-    function ensureChartScroller(chart) {
-      let wrapper = chart.parentElement && chart.parentElement.classList.contains("rigi-chart-scroll")
-        ? chart.parentElement
-        : null;
-      let hint = null;
-
-      if (!wrapper) {
-        wrapper = document.createElement("div");
-        wrapper.className = "rigi-chart-scroll";
-        chart.parentNode.insertBefore(wrapper, chart);
-        wrapper.appendChild(chart);
-
-        hint = document.createElement("p");
-        hint.className = "rigi-chart-scroll-hint";
-        hint.textContent = "Deslizá el gráfico horizontalmente para ver más períodos →";
-        wrapper.insertAdjacentElement("afterend", hint);
-      } else {
-        hint = wrapper.nextElementSibling && wrapper.nextElementSibling.classList.contains("rigi-chart-scroll-hint")
-          ? wrapper.nextElementSibling
-          : null;
-      }
-      return { wrapper, hint };
-    }
-
-    function prepareChartWidth(chart, periodCount) {
-      const parts = ensureChartScroller(chart);
-      const profile = viewportProfile();
-      const available = Math.max(parts.wrapper.clientWidth || chart.parentElement.clientWidth || 320, 280);
-      let target = available;
-
-      if (profile.mobile) target = Math.max(available, periodCount * 62 + 88);
-      else if (profile.tablet) target = Math.max(available, periodCount * 42 + 80);
-
-      const scrolling = target > available + 8;
-      chart.style.width = scrolling ? Math.ceil(target) + "px" : "100%";
-      chart.style.minWidth = scrolling ? Math.ceil(target) + "px" : "0";
-      if (parts.hint) parts.hint.classList.toggle("is-visible", scrolling);
-      return { profile, scrolling };
-    }
-
-    function responsiveLayoutParts(showLegend, bottomMargin) {
-      const profile = viewportProfile();
-      const mobile = profile.mobile;
-      const tablet = profile.tablet;
-      const legendBottom = showLegend ? (mobile ? 96 : tablet ? 100 : (bottomMargin || 105)) : (mobile ? 64 : tablet ? 70 : (bottomMargin || 76));
-      return {
-        margin: mobile
-          ? { l: 52, r: 12, t: 30, b: legendBottom }
-          : tablet
-            ? { l: 62, r: 18, t: 32, b: legendBottom }
-            : { l: 72, r: 24, t: 36, b: bottomMargin || 105 },
-        fontSize: mobile ? 10.5 : tablet ? 11 : 12,
-        tickSize: mobile ? 9.5 : tablet ? 10 : 11,
-        titleSize: mobile ? 10.5 : tablet ? 11 : 12,
-        labelSize: mobile ? 9.5 : 11,
-        height: mobile ? 390 : tablet ? 440 : 470,
-        legend: {
-          orientation: "h",
-          x: mobile ? 0 : 0.5,
-          xanchor: mobile ? "left" : "center",
-          y: mobile ? -0.22 : -0.22,
-          yanchor: "top",
-          font: { size: mobile ? 9.5 : tablet ? 10 : 11 }
-        }
-      };
-    }
-
     function monthSequence(start, end) {
       if (!start || !end) return [];
       const out = [];
@@ -184,6 +109,12 @@
       const monthNumber = Number(month.slice(5, 7));
       const date = new Date(Date.UTC(year, monthNumber - 1, 1));
       return monthFormatter.format(date).replace(/^./, (x) => x.toUpperCase());
+    }
+
+    function formatMonthTick(month, compact) {
+      if (!compact) return formatMonth(month);
+      const label = formatMonth(month).replace(/\s+de\s+/gi, " ");
+      return label.replace(/(\d{4})$/, (year) => year.slice(2));
     }
 
     function visibleMonths(start, end) {
@@ -226,16 +157,6 @@
     }
 
     function tickStep(count) {
-      const profile = viewportProfile();
-      if (profile.mobile) {
-        if (count <= 24) return 1;
-        if (count <= 48) return 2;
-        return 3;
-      }
-      if (profile.tablet) {
-        if (count <= 18) return 1;
-        if (count <= 36) return 2;
-      }
       if (count <= 12) return 1;
       if (count <= 24) return 2;
       if (count <= 36) return 3;
@@ -243,64 +164,99 @@
       return 12;
     }
 
-    function buildTicks(months) {
-      const step = tickStep(months.length);
+    function buildTicks(months, profile) {
+      const step = profile && profile.compact
+        ? Math.max(1, Math.ceil(months.length / 24))
+        : tickStep(months.length);
       const selected = months.filter((month, i) => i % step === 0 || i === months.length - 1);
       return {
         vals: selected.map(monthToDate),
-        text: selected.map(formatMonth)
+        text: selected.map((month) => formatMonthTick(month, profile && profile.compact))
       };
     }
 
     function buildBaseLayout(months, options) {
       const opts = options || {};
-      const ticks = buildTicks(months);
-      const responsive = responsiveLayoutParts(opts.showLegend !== false, opts.bottomMargin || 105);
+      const profile = opts.profile || responsive.getResponsivePlotConfig();
+      const ticks = buildTicks(months, profile);
+      const hasLegend = opts.showLegend !== false;
       return {
         autosize: true,
-        height: responsive.height,
-        margin: responsive.margin,
+        height: profile.height,
+        margin: {
+          l: profile.leftMargin,
+          r: profile.rightMargin,
+          t: profile.topMargin,
+          b: opts.bottomMargin || (hasLegend ? (profile.compact ? 112 : 105) : (profile.compact ? 72 : 76))
+        },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
         font: {
           family: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           color: "#334155",
-          size: responsive.fontSize
+          size: profile.fontSize
         },
         hoverlabel: {
           bgcolor: "#FFFFFF",
           bordercolor: "#CBD5E1",
           font: { color: "#0F172A" }
         },
-        legend: responsive.legend,
-        showlegend: opts.showLegend !== false,
+        legend: {
+          orientation: "h",
+          x: 0.5,
+          xanchor: "center",
+          y: profile.compact ? -0.20 : -0.22,
+          yanchor: "top",
+          font: { size: profile.legendFontSize }
+        },
+        showlegend: hasLegend,
+        uniformtext: { mode: "hide", minsize: 9 },
         xaxis: {
           type: "date",
           tickmode: "array",
           tickvals: ticks.vals,
           ticktext: ticks.text,
-          title: { text: "Período", standoff: 10, font: { size: responsive.titleSize } },
+          title: { text: "Período", standoff: 10, font: { size: profile.titleFontSize } },
+          tickfont: { size: profile.tickFontSize },
           showgrid: false,
           automargin: true,
-          fixedrange: true,
-          tickfont: { size: responsive.tickSize }
+          fixedrange: true
         },
         yaxis: {
-          title: { text: "Millones de USD", standoff: 8, font: { size: responsive.titleSize } },
+          title: { text: "Millones de USD", standoff: profile.mobile ? 4 : 8, font: { size: profile.titleFontSize } },
+          tickfont: { size: profile.tickFontSize },
           gridcolor: "#E5E7EB",
           zerolinecolor: "#CBD5E1",
           rangemode: "tozero",
           automargin: true,
           fixedrange: true,
-          tickformat: ",.1f",
-          tickfont: { size: responsive.tickSize }
+          tickformat: ",.1f"
         }
       };
     }
 
+    function prepareImportChart(chart, months) {
+      return responsive.prepareScrollablePlot(chart, months.length, {
+        mobilePixelsPerPeriod: 62,
+        tabletPixelsPerPeriod: 58,
+        scrollThreshold: 10,
+        mobileHeight: 400,
+        tabletHeight: 440,
+        desktopHeight: 470
+      });
+    }
+
+    function labelHeadroom() {
+      if (responsive.isMobile()) return 1.22;
+      if (responsive.isTablet()) return 1.19;
+      return 1.17;
+    }
+
     function renderEmpty(chart, message) {
+      const profile = prepareImportChart(chart, []);
       const layout = {
         autosize: true,
+        height: profile.height,
         margin: { l: 20, r: 20, t: 20, b: 20 },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
@@ -350,7 +306,7 @@
       );
     }
 
-    function totalTextTrace(months, totals, name) {
+    function totalTextTrace(months, totals, name, profile) {
       return {
         type: "scatter",
         mode: "text",
@@ -360,7 +316,7 @@
         y: totals,
         text: totals.map(barLabel),
         textposition: "top center",
-        textfont: { color: "#334155", size: responsiveLayoutParts(false, 76).labelSize },
+        textfont: { color: "#334155", size: profile ? profile.textFontSize : 11 },
         cliponaxis: false,
         hoverinfo: "skip"
       };
@@ -390,8 +346,6 @@
     function renderSectorCharts() {
       const selectedSectors = selectedSectorFilters();
       const months = visibleMonths(controls.sector.start.value, controls.sector.end.value);
-      prepareChartWidth(charts.sectorMonthly, months.length);
-      prepareChartWidth(charts.sectorCumulative, months.length);
 
       if (!selectedSectors.length || !months.length) {
         renderEmpty(charts.sectorMonthly, "Seleccioná al menos un sector y un período válido.");
@@ -401,6 +355,8 @@
 
       const rows = rawData.filter((d) => selectedSectors.includes(d.sector));
       const bySectorMonth = aggregate(rows, "sector");
+      const monthlyProfile = prepareImportChart(charts.sectorMonthly, months);
+      const cumulativeProfile = prepareImportChart(charts.sectorCumulative, months);
 
       const monthlyTraces = selectedSectors.map((sector) => {
         const y = months.map((month) => bySectorMonth.get(sector + "|||" + month) || 0);
@@ -427,14 +383,15 @@
           );
         });
       });
-      monthlyTraces.push(totalTextTrace(months, monthlyTotals, "Total"));
+      monthlyTraces.push(totalTextTrace(months, monthlyTotals, "Total", monthlyProfile));
 
       const maxMonthly = Math.max.apply(null, monthlyTotals.concat([0]));
-      const monthlyLayout = Object.assign({}, buildBaseLayout(months), {
+      const monthlyBaseLayout = buildBaseLayout(months, { profile: monthlyProfile });
+      const monthlyLayout = Object.assign({}, monthlyBaseLayout, {
         barmode: "stack",
         bargap: 0.30,
-        yaxis: Object.assign({}, buildBaseLayout(months).yaxis, {
-          range: maxMonthly > 0 ? [0, maxMonthly * 1.17] : [0, 1]
+        yaxis: Object.assign({}, monthlyBaseLayout.yaxis, {
+          range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
       });
       Plotly.react(charts.sectorMonthly, monthlyTraces, monthlyLayout, {
@@ -467,14 +424,15 @@
           );
         });
       });
-      cumulativeTraces.push(totalTextTrace(months, cumulativeTotals, "Total acumulado"));
+      cumulativeTraces.push(totalTextTrace(months, cumulativeTotals, "Total acumulado", cumulativeProfile));
 
       const maxCumulative = Math.max.apply(null, cumulativeTotals.concat([0]));
-      const cumulativeLayout = Object.assign({}, buildBaseLayout(months), {
+      const cumulativeBaseLayout = buildBaseLayout(months, { profile: cumulativeProfile });
+      const cumulativeLayout = Object.assign({}, cumulativeBaseLayout, {
         barmode: "stack",
         bargap: 0.30,
-        yaxis: Object.assign({}, buildBaseLayout(months).yaxis, {
-          range: maxCumulative > 0 ? [0, maxCumulative * 1.17] : [0, 1]
+        yaxis: Object.assign({}, cumulativeBaseLayout.yaxis, {
+          range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
       });
       Plotly.react(charts.sectorCumulative, cumulativeTraces, cumulativeLayout, {
@@ -521,7 +479,7 @@
 
       Promise.all(updates.concat([
         Plotly.restyle(chart, { y: [totals], text: [totals.map(barLabel)] }, [totalIndex]),
-        Plotly.relayout(chart, { "yaxis.range": maxTotal > 0 ? [0, maxTotal * 1.17] : [0, 1] })
+        Plotly.relayout(chart, { "yaxis.range": maxTotal > 0 ? [0, maxTotal * labelHeadroom()] : [0, 1] })
       ])).finally(() => {
         if (cumulative) syncingSectorCumulative = false;
         else syncingSectorMonthly = false;
@@ -647,6 +605,12 @@
       controls.project.status.textContent = selected.length === compatible.length && compatible.length > 0
         ? compatible.length + " proyectos seleccionados (todos los visibles)"
         : selected.length + " de " + compatible.length + " proyectos seleccionados";
+      window.requestAnimationFrame(function () {
+        responsive.updateOverflowHint(
+          document.getElementById("impo-project-chips"),
+          document.getElementById("impo-project-chips-scroll-hint")
+        );
+      });
     }
 
     function refreshProjectAvailability(options) {
@@ -679,8 +643,6 @@
       const projects = selectedProjects();
       const months = visibleMonths(controls.project.start.value, controls.project.end.value);
       const sectors = projectSectorFilters();
-      prepareChartWidth(charts.projectMonthly, months.length);
-      prepareChartWidth(charts.projectCumulative, months.length);
 
       if (!projects.length || !months.length) {
         renderEmpty(charts.projectMonthly, "Seleccioná al menos un proyecto y un período válido.");
@@ -690,6 +652,8 @@
 
       const rows = rawData.filter((d) => projects.includes(d.project) && sectors.includes(d.sector));
       const byProjectMonth = aggregate(rows, "project");
+      const monthlyProfile = prepareImportChart(charts.projectMonthly, months);
+      const cumulativeProfile = prepareImportChart(charts.projectCumulative, months);
 
       const monthlyBars = projects.map((project) => {
         const y = months.map((month) => byProjectMonth.get(project + "|||" + month) || 0);
@@ -711,13 +675,14 @@
         };
       });
       const monthlyTotals = totalsFromBars(monthlyBars);
-      const monthlyTraces = monthlyBars.concat([totalTextTrace(months, monthlyTotals, "Total")]);
+      const monthlyTraces = monthlyBars.concat([totalTextTrace(months, monthlyTotals, "Total", monthlyProfile)]);
       const maxMonthly = Math.max.apply(null, monthlyTotals.concat([0]));
-      const monthlyLayout = Object.assign({}, buildBaseLayout(months, { showLegend: false, bottomMargin: 76 }), {
+      const monthlyBaseLayout = buildBaseLayout(months, { showLegend: false, profile: monthlyProfile });
+      const monthlyLayout = Object.assign({}, monthlyBaseLayout, {
         barmode: "stack",
         bargap: 0.30,
-        yaxis: Object.assign({}, buildBaseLayout(months).yaxis, {
-          range: maxMonthly > 0 ? [0, maxMonthly * 1.17] : [0, 1]
+        yaxis: Object.assign({}, monthlyBaseLayout.yaxis, {
+          range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
       });
       Plotly.react(charts.projectMonthly, monthlyTraces, monthlyLayout, {
@@ -746,13 +711,14 @@
         };
       });
       const cumulativeTotals = totalsFromBars(cumulativeBars);
-      const cumulativeTraces = cumulativeBars.concat([totalTextTrace(months, cumulativeTotals, "Total acumulado")]);
+      const cumulativeTraces = cumulativeBars.concat([totalTextTrace(months, cumulativeTotals, "Total acumulado", cumulativeProfile)]);
       const maxCumulative = Math.max.apply(null, cumulativeTotals.concat([0]));
-      const cumulativeLayout = Object.assign({}, buildBaseLayout(months, { showLegend: false, bottomMargin: 76 }), {
+      const cumulativeBaseLayout = buildBaseLayout(months, { showLegend: false, profile: cumulativeProfile });
+      const cumulativeLayout = Object.assign({}, cumulativeBaseLayout, {
         barmode: "stack",
         bargap: 0.30,
-        yaxis: Object.assign({}, buildBaseLayout(months).yaxis, {
-          range: maxCumulative > 0 ? [0, maxCumulative * 1.17] : [0, 1]
+        yaxis: Object.assign({}, cumulativeBaseLayout.yaxis, {
+          range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
       });
       Plotly.react(charts.projectCumulative, cumulativeTraces, cumulativeLayout, {
@@ -888,45 +854,13 @@
       });
     });
 
-    let responsiveResizeTimer = null;
-    function applyResponsiveChartSizing() {
-      const sectorMonths = visibleMonths(controls.sector.start.value, controls.sector.end.value);
-      const projectMonths = visibleMonths(controls.project.start.value, controls.project.end.value);
-      const specs = [
-        [charts.sectorMonthly, sectorMonths, true, 105],
-        [charts.sectorCumulative, sectorMonths, true, 105],
-        [charts.projectMonthly, projectMonths, false, 76],
-        [charts.projectCumulative, projectMonths, false, 76]
-      ];
-
-      specs.forEach(([chart, months, showLegend, bottomMargin]) => {
-        if (!chart) return;
-        prepareChartWidth(chart, months.length);
-        if (!chart.layout) return;
-        const responsive = responsiveLayoutParts(showLegend, bottomMargin);
-        Plotly.relayout(chart, {
-          "height": responsive.height,
-          "margin.l": responsive.margin.l,
-          "margin.r": responsive.margin.r,
-          "margin.t": responsive.margin.t,
-          "margin.b": responsive.margin.b,
-          "font.size": responsive.fontSize,
-          "legend.orientation": responsive.legend.orientation,
-          "legend.x": responsive.legend.x,
-          "legend.xanchor": responsive.legend.xanchor,
-          "legend.y": responsive.legend.y,
-          "legend.font.size": responsive.legend.font.size,
-          "xaxis.tickfont.size": responsive.tickSize,
-          "xaxis.title.font.size": responsive.titleSize,
-          "yaxis.tickfont.size": responsive.tickSize,
-          "yaxis.title.font.size": responsive.titleSize
-        }).then(() => Plotly.Plots.resize(chart));
-      });
-    }
-
-    window.addEventListener("resize", function () {
-      window.clearTimeout(responsiveResizeTimer);
-      responsiveResizeTimer = window.setTimeout(applyResponsiveChartSizing, 140);
+    responsive.subscribe("importaciones", function () {
+      renderSectorCharts();
+      renderProjectCharts();
+      responsive.updateOverflowHint(
+        document.getElementById("impo-project-chips"),
+        document.getElementById("impo-project-chips-scroll-hint")
+      );
     });
 
     // ---------------------------------------------------------------------

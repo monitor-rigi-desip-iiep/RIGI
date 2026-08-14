@@ -439,16 +439,36 @@ make_importaciones_module <- function(data, project_data) {
           class = "impo-chart-card",
           htmltools::tags$h4("Importaciones mensuales por sector"),
           htmltools::div(
-            id = "impo-sector-monthly-chart",
-            class = "impo-chart"
+            class = "rigi-plot-scroll",
+            `data-scroll-hint` = "impo-sector-monthly-scroll-hint",
+            htmltools::div(
+              id = "impo-sector-monthly-chart",
+              class = "impo-chart"
+            )
+          ),
+          htmltools::tags$p(
+            id = "impo-sector-monthly-scroll-hint",
+            class = "rigi-scroll-hint",
+            hidden = "hidden",
+            "Deslizá el gráfico para ver más períodos →"
           )
         ),
         htmltools::div(
           class = "impo-chart-card",
           htmltools::tags$h4("Importaciones acumuladas por sector"),
           htmltools::div(
-            id = "impo-sector-cumulative-chart",
-            class = "impo-chart"
+            class = "rigi-plot-scroll",
+            `data-scroll-hint` = "impo-sector-cumulative-scroll-hint",
+            htmltools::div(
+              id = "impo-sector-cumulative-chart",
+              class = "impo-chart"
+            )
+          ),
+          htmltools::tags$p(
+            id = "impo-sector-cumulative-scroll-hint",
+            class = "rigi-scroll-hint",
+            hidden = "hidden",
+            "Deslizá el gráfico para ver más períodos →"
           ),
           htmltools::tags$p(
             class = "impo-chart-note",
@@ -564,6 +584,12 @@ make_importaciones_module <- function(data, project_data) {
               )
             })
           ),
+          htmltools::tags$p(
+            id = "impo-project-chips-scroll-hint",
+            class = "rigi-scroll-hint impo-project-chips-scroll-hint",
+            hidden = "hidden",
+            "Deslizá las etiquetas para ver más proyectos →"
+          ),
           htmltools::div(
             class = "impo-project-card-controls",
             htmltools::tags$button(
@@ -589,16 +615,36 @@ make_importaciones_module <- function(data, project_data) {
           class = "impo-chart-card",
           htmltools::tags$h4("Importaciones mensuales por proyecto"),
           htmltools::div(
-            id = "impo-project-monthly-chart",
-            class = "impo-chart"
+            class = "rigi-plot-scroll",
+            `data-scroll-hint` = "impo-project-monthly-scroll-hint",
+            htmltools::div(
+              id = "impo-project-monthly-chart",
+              class = "impo-chart"
+            )
+          ),
+          htmltools::tags$p(
+            id = "impo-project-monthly-scroll-hint",
+            class = "rigi-scroll-hint",
+            hidden = "hidden",
+            "Deslizá el gráfico para ver más períodos →"
           )
         ),
         htmltools::div(
           class = "impo-chart-card",
           htmltools::tags$h4("Importaciones acumuladas por proyecto"),
           htmltools::div(
-            id = "impo-project-cumulative-chart",
-            class = "impo-chart"
+            class = "rigi-plot-scroll",
+            `data-scroll-hint` = "impo-project-cumulative-scroll-hint",
+            htmltools::div(
+              id = "impo-project-cumulative-chart",
+              class = "impo-chart"
+            )
+          ),
+          htmltools::tags$p(
+            id = "impo-project-cumulative-scroll-hint",
+            class = "rigi-scroll-hint",
+            hidden = "hidden",
+            "Deslizá el gráfico para ver más períodos →"
           ),
           htmltools::tags$p(
             class = "impo-chart-note",

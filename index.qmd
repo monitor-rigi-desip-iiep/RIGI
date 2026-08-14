@@ -10,6 +10,8 @@ execute:
   message: false
 ---
 
+<script src="assets/rigi-responsive.js" defer></script>
+
 ```{r setup}
 source("R/00_packages.R")
 source("R/01_load_data.R")
