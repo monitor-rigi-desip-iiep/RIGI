@@ -7,6 +7,7 @@ project:
     - downloads/*.xlsx
     - downloads/*.csv
     - assets/planes_inversion.js
+    - assets/importaciones.js
 
 website:
   title: "Monitor de Proyectos RIGI"

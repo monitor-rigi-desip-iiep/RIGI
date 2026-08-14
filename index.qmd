@@ -17,6 +17,7 @@ source("R/02_clean_data.R")
 source("R/03_indicators.R")
 source("R/04_plots.R")
 source("R/05_planes_inversion.R")
+source("R/06_importaciones.R")
 
 raw_data <- load_proyectos()
 raw_sources <- load_fuentes_proyectos()
@@ -33,6 +34,9 @@ resumen_ejecutivo <- make_summary_text(indicadores, tablas)
 planes_inversion <- load_planes_inversion()
 validate_planes_inversion(planes_inversion)
 planes_downloads <- create_planes_inversion_downloads(planes_inversion)
+importaciones_rigi <- load_importaciones_rigi()
+validate_importaciones_rigi(importaciones_rigi)
+importaciones_downloads <- create_importaciones_downloads(importaciones_rigi)
 ```
 
 ::: hero-section
@@ -98,7 +102,7 @@ htmltools::div(class = "summary-box", htmltools::p(resumen_ejecutivo))
 # 1. Proyectos aprobados
 
 ::: section-intro
-Esta sección reúne los proyectos cuya adhesión al RIGI ha sido aprobada. Los indicadores presentan información sobre monto de inversión, activos computables, empleo informado, distribución sectorial y territorial y principales hitos administrativos.
+Esta sección reúne los proyectos cuya adhesión al RIGI ha sido aprobada. Los indicadores presentan información sobre monto de inversión, activos computables, importaciones, planes de inversión, empleo informado, distribución sectorial y territorial y principales hitos administrativos.
 :::
 
 ## Indicadores principales
@@ -143,6 +147,15 @@ Los planes de inversión presentan la distribución anual de los montos de inver
 
 ```{r}
 make_planes_inversion_module(planes_inversion)
+```
+
+
+## Importaciones
+
+Esta sección presenta la evolución mensual de las importaciones asociadas a los proyectos identificados en la base, a partir de registros aduaneros. Los valores se expresan en millones de USD FOB y pueden analizarse por período, sector y proyecto.
+
+```{r}
+make_importaciones_module(importaciones_rigi, proyectos)
 ```
 
 ## Empleo informado en proyectos aprobados
