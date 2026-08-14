@@ -2434,3 +2434,419 @@ input {
     border-radius: 12px;
   }
 }
+
+
+/* Responsive audit 2026-08 -------------------------------------------------
+   Consolidated overrides for phone/tablet layouts. Desktop rules above stay
+   unchanged; these overrides only activate at narrower viewports. */
+
+html,
+body {
+  max-width: 100%;
+}
+
+main.content,
+#quarto-content,
+.page-columns,
+.column-page,
+.column-body {
+  min-width: 0;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Dedicated internal scrolling for dense Plotly timelines. */
+.rigi-chart-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+
+.rigi-chart-scroll::-webkit-scrollbar {
+  height: 7px;
+}
+
+.rigi-chart-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 999px;
+}
+
+.rigi-chart-scroll > .plans-chart,
+.rigi-chart-scroll > .impo-chart {
+  flex: 0 0 auto;
+}
+
+.rigi-chart-scroll-hint {
+  display: none;
+  margin: 0.25rem 0 0.15rem;
+  color: #64748B;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: left !important;
+  word-spacing: normal !important;
+}
+
+.rigi-chart-scroll-hint.is-visible {
+  display: block;
+}
+
+/* Generic tables stay inside their own component instead of widening BODY. */
+main.content .table-responsive,
+main.content .dataTables_wrapper,
+main.content .datatables,
+main.content .cell-output-display {
+  max-width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .hero-meta-grid,
+  .kpi-grid {
+    gap: 0.8rem;
+  }
+
+  .plans-chart-card,
+  .impo-chart-card {
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: clamp(1.85rem, 5.8vw, 2.35rem);
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 4.8vw, 1.85rem);
+  }
+
+  h3,
+  .impo-view-title {
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+  }
+
+  .hero-section {
+    padding: 28px 22px;
+    border-radius: 22px;
+  }
+
+  .download-box {
+    gap: 0.55rem;
+  }
+
+  .plans-filter-control,
+  .plans-reset-button,
+  .impo-input,
+  .impo-multiselect > summary,
+  .impo-reset-button,
+  .impo-secondary-button,
+  .impo-project-card-button,
+  .download-button,
+  .rigi-card-clear,
+  .rigi-project-card__details summary {
+    min-height: 44px;
+  }
+
+  .rigi-project-card__title,
+  .rigi-project-card__value,
+  .impo-project-mini-card__title {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  main.content {
+    padding-top: 0.85rem;
+  }
+
+  /* Justification is attractive on desktop but creates large word gaps on phones. */
+  main.content p,
+  .hero-subtitle,
+  .source-note-box,
+  .summary-box,
+  .note-box,
+  .method-box,
+  .section-intro,
+  .plans-chart-note,
+  .plans-open-data,
+  .plans-source,
+  .impo-chart-note,
+  .impo-open-data,
+  .impo-method-note,
+  .impo-source,
+  .impo-view-subtitle,
+  .rigi-project-card__description p,
+  .rigi-project-card__sources p {
+    text-align: left !important;
+    text-justify: auto !important;
+    word-spacing: normal !important;
+  }
+
+  h1 {
+    font-size: clamp(1.72rem, 8.2vw, 2.05rem);
+    line-height: 1.08;
+  }
+
+  h2 {
+    margin-top: 2.05rem;
+    font-size: clamp(1.42rem, 6.6vw, 1.72rem);
+    line-height: 1.14;
+  }
+
+  h3,
+  .impo-view-title {
+    font-size: clamp(1.15rem, 5.2vw, 1.38rem);
+    line-height: 1.18;
+  }
+
+  .hero-section {
+    padding: 22px 16px;
+    border-radius: 19px;
+    margin-bottom: 1.15rem;
+  }
+
+  .hero-section h1 {
+    font-size: clamp(1.85rem, 9vw, 2.25rem);
+  }
+
+  .hero-subtitle {
+    font-size: 0.98rem;
+    line-height: 1.52;
+  }
+
+  .hero-meta-grid > div,
+  .kpi-card {
+    padding: 0.8rem 0.9rem;
+    min-width: 0;
+  }
+
+  .meta-label,
+  .kpi-label,
+  .kpi-sublabel,
+  .meta-value,
+  .kpi-value {
+    text-align: left !important;
+    word-spacing: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .navbar-brand {
+    max-width: calc(100vw - 7.3rem);
+  }
+
+  .navbar-title {
+    display: block;
+    max-width: 100%;
+    font-size: 0.92rem;
+    line-height: 1.12;
+    white-space: normal;
+  }
+
+  .source-note-box,
+  .summary-box,
+  .note-box,
+  .method-box,
+  .section-intro,
+  .download-box {
+    padding: 0.85rem 0.9rem;
+    border-radius: 15px;
+  }
+
+  input,
+  select,
+  textarea,
+  .plans-filter-control,
+  .impo-input,
+  .plans-multiselect > summary,
+  .impo-multiselect > summary {
+    max-width: 100%;
+    font-size: 16px !important;
+  }
+
+  button,
+  .btn,
+  .download-button,
+  .plans-reset-button,
+  .impo-reset-button,
+  .impo-secondary-button,
+  .impo-project-card-button {
+    min-height: 44px;
+  }
+
+  .plans-chart-card,
+  .impo-chart-card {
+    margin: 0.9rem 0 1.15rem;
+    padding: 0.72rem 0.45rem 0.62rem;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+
+  .plans-chart-card h3,
+  .impo-chart-card h3,
+  .impo-chart-card h4 {
+    padding: 0 0.25rem;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+
+  .plans-chart,
+  .impo-chart {
+    min-height: 390px;
+    height: 390px;
+  }
+
+  .rigi-chart-scroll-hint {
+    padding: 0 0.3rem;
+  }
+
+  /* Project chips become a horizontal, touch-friendly strip instead of a tall list. */
+  .impo-project-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.5rem;
+    margin-right: -0.15rem;
+    margin-left: -0.15rem;
+    padding: 0.15rem 0.15rem 0.45rem;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+  }
+
+  .impo-project-chip {
+    width: auto !important;
+    min-height: 44px;
+    flex: 0 0 auto;
+    max-width: min(82vw, 310px);
+    border-radius: 999px !important;
+    scroll-snap-align: start;
+  }
+
+  .impo-project-chip__label {
+    max-width: 245px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .impo-project-selector__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .impo-secondary-button {
+    width: 100%;
+  }
+
+  .impo-project-card-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .impo-project-card-button {
+    width: 100%;
+  }
+
+  .impo-project-mini-card__grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  main.content table {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .download-box {
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .download-box strong {
+    flex: 1 0 100%;
+  }
+
+  .download-button {
+    flex: 1 1 8rem;
+    justify-content: center;
+    text-align: center !important;
+  }
+
+  .nav-footer {
+    gap: 0.35rem;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nav-footer-left,
+  .nav-footer-right,
+  .nav-footer-center {
+    width: 100%;
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-meta-grid,
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .impo-subsection {
+    margin-right: 0;
+    margin-left: 0;
+    padding: 0.8rem 0.55rem 0.9rem;
+  }
+
+  .impo-filter-panel,
+  .plans-filter-panel,
+  .impo-project-selector {
+    border-radius: 14px;
+  }
+
+  .impo-project-selector__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .download-button {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-section {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .plans-chart,
+  .impo-chart {
+    min-height: 370px;
+    height: 370px;
+  }
+
+  .impo-project-chip {
+    max-width: 86vw;
+  }
+}

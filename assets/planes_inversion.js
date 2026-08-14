@@ -43,6 +43,81 @@
     let syncingAnnualLegend = false;
     let syncingCumulativeLegend = false;
 
+
+    function viewportProfile() {
+      const width = window.innerWidth || document.documentElement.clientWidth || 1440;
+      return {
+        mobile: width <= 640,
+        tablet: width > 640 && width <= 900
+      };
+    }
+
+    function ensureChartScroller(chart) {
+      let wrapper = chart.parentElement && chart.parentElement.classList.contains("rigi-chart-scroll")
+        ? chart.parentElement
+        : null;
+      let hint = null;
+
+      if (!wrapper) {
+        wrapper = document.createElement("div");
+        wrapper.className = "rigi-chart-scroll";
+        chart.parentNode.insertBefore(wrapper, chart);
+        wrapper.appendChild(chart);
+
+        hint = document.createElement("p");
+        hint.className = "rigi-chart-scroll-hint";
+        hint.textContent = "Deslizá el gráfico horizontalmente para ver más períodos →";
+        wrapper.insertAdjacentElement("afterend", hint);
+      } else {
+        hint = wrapper.nextElementSibling && wrapper.nextElementSibling.classList.contains("rigi-chart-scroll-hint")
+          ? wrapper.nextElementSibling
+          : null;
+      }
+      return { wrapper, hint };
+    }
+
+    function prepareChartWidth(chart, periodCount) {
+      const parts = ensureChartScroller(chart);
+      const profile = viewportProfile();
+      const available = Math.max(parts.wrapper.clientWidth || chart.parentElement.clientWidth || 320, 280);
+      let target = available;
+
+      if (profile.mobile) target = Math.max(available, periodCount * 46 + 88);
+      else if (profile.tablet) target = Math.max(available, periodCount * 34 + 82);
+
+      const scrolling = target > available + 8;
+      chart.style.width = scrolling ? Math.ceil(target) + "px" : "100%";
+      chart.style.minWidth = scrolling ? Math.ceil(target) + "px" : "0";
+      if (parts.hint) parts.hint.classList.toggle("is-visible", scrolling);
+      return { profile, scrolling };
+    }
+
+    function responsiveLayoutParts(periodCount, hasLegend) {
+      const profile = viewportProfile();
+      const mobile = profile.mobile;
+      const tablet = profile.tablet;
+      return {
+        margin: mobile
+          ? { l: 52, r: 12, t: 30, b: hasLegend ? 96 : 66 }
+          : tablet
+            ? { l: 62, r: 18, t: 28, b: hasLegend ? 100 : 72 }
+            : { l: 72, r: 22, t: 24, b: 100 },
+        fontSize: mobile ? 10.5 : tablet ? 11 : 12,
+        tickSize: mobile ? 9.5 : tablet ? 10 : 11,
+        titleSize: mobile ? 10.5 : tablet ? 11 : 12,
+        labelSize: mobile ? 9.5 : 11,
+        height: mobile ? 390 : tablet ? 440 : 470,
+        legend: {
+          orientation: "h",
+          x: mobile ? 0 : 0.5,
+          xanchor: mobile ? "left" : "center",
+          y: mobile ? -0.22 : -0.18,
+          yanchor: "top",
+          font: { size: mobile ? 9.5 : tablet ? 10 : 11 }
+        }
+      };
+    }
+
     function selectedValues(inputs) {
       return inputs.filter((input) => input.checked && !input.disabled).map((input) => input.value);
     }
@@ -140,28 +215,36 @@
           : activeSectorSubs.join(", ");
       });
 
+      const responsive = responsiveLayoutParts(visibleYears.length, true);
+      prepareChartWidth(annualChart, visibleYears.length);
+      prepareChartWidth(cumulativeChart, visibleYears.length);
+
       const baseLayout = {
+        autosize: true,
+        height: responsive.height,
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        font: { family: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: "#334155" },
-        margin: { l: 72, r: 22, t: 24, b: 100 },
-        legend: { orientation: "h", x: 0.5, xanchor: "center", y: -0.18, yanchor: "top" },
+        font: { family: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: "#334155", size: responsive.fontSize },
+        margin: responsive.margin,
+        legend: responsive.legend,
         hoverlabel: { bgcolor: "#FFFFFF", bordercolor: "#CBD5E1", font: { color: "#0F172A" } },
         xaxis: {
-          title: { text: "Año", standoff: 10 },
+          title: { text: "Año", standoff: 10, font: { size: responsive.titleSize } },
           tickmode: "linear",
           dtick: Math.max(1, Math.ceil(Math.max(1, end - start + 1) / 12)),
           showgrid: false,
           zeroline: false,
-          automargin: true
+          automargin: true,
+          tickfont: { size: responsive.tickSize }
         },
         yaxis: {
-          title: { text: "Millones de USD", standoff: 12 },
+          title: { text: "Millones de USD", standoff: 10, font: { size: responsive.titleSize } },
           gridcolor: "#E5E7EB",
           zeroline: false,
           rangemode: "tozero",
           automargin: true,
-          tickformat: ",.0f"
+          tickformat: ",.0f",
+          tickfont: { size: responsive.tickSize }
         }
       };
 
@@ -212,7 +295,7 @@
         y: annualTotals,
         text: annualLabels,
         textposition: "top center",
-        textfont: { color: "#334155", size: 11 },
+        textfont: { color: "#334155", size: responsive.labelSize },
         cliponaxis: false,
         hoverinfo: "skip"
       });
@@ -462,6 +545,39 @@
       root.querySelectorAll(".plans-multiselect[open]").forEach((details) => {
         if (!details.contains(event.target)) details.removeAttribute("open");
       });
+    });
+
+    let responsiveResizeTimer = null;
+    function resizePlansCharts() {
+      const start = Number(yearStart.value);
+      const end = Number(yearEnd.value);
+      const count = allYears.filter((y) => y >= start && y <= end).length;
+      const responsive = responsiveLayoutParts(count, true);
+      [annualChart, cumulativeChart].forEach((chart) => {
+        prepareChartWidth(chart, count);
+        if (!chart || !chart.layout) return;
+        Plotly.relayout(chart, {
+          "height": responsive.height,
+          "margin.l": responsive.margin.l,
+          "margin.r": responsive.margin.r,
+          "margin.t": responsive.margin.t,
+          "margin.b": responsive.margin.b,
+          "font.size": responsive.fontSize,
+          "legend.orientation": responsive.legend.orientation,
+          "legend.x": responsive.legend.x,
+          "legend.xanchor": responsive.legend.xanchor,
+          "legend.y": responsive.legend.y,
+          "legend.font.size": responsive.legend.font.size,
+          "xaxis.tickfont.size": responsive.tickSize,
+          "xaxis.title.font.size": responsive.titleSize,
+          "yaxis.tickfont.size": responsive.tickSize,
+          "yaxis.title.font.size": responsive.titleSize
+        }).then(() => Plotly.Plots.resize(chart));
+      });
+    }
+    window.addEventListener("resize", function () {
+      window.clearTimeout(responsiveResizeTimer);
+      responsiveResizeTimer = window.setTimeout(resizePlansCharts, 140);
     });
 
     refreshSubsectorAvailability(true);

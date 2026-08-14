@@ -76,6 +76,82 @@
     let syncingSectorCumulative = false;
     let projectCardOpen = false;
 
+
+    function viewportProfile() {
+      const width = window.innerWidth || document.documentElement.clientWidth || 1440;
+      return {
+        mobile: width <= 640,
+        tablet: width > 640 && width <= 900
+      };
+    }
+
+    function ensureChartScroller(chart) {
+      let wrapper = chart.parentElement && chart.parentElement.classList.contains("rigi-chart-scroll")
+        ? chart.parentElement
+        : null;
+      let hint = null;
+
+      if (!wrapper) {
+        wrapper = document.createElement("div");
+        wrapper.className = "rigi-chart-scroll";
+        chart.parentNode.insertBefore(wrapper, chart);
+        wrapper.appendChild(chart);
+
+        hint = document.createElement("p");
+        hint.className = "rigi-chart-scroll-hint";
+        hint.textContent = "Deslizá el gráfico horizontalmente para ver más períodos →";
+        wrapper.insertAdjacentElement("afterend", hint);
+      } else {
+        hint = wrapper.nextElementSibling && wrapper.nextElementSibling.classList.contains("rigi-chart-scroll-hint")
+          ? wrapper.nextElementSibling
+          : null;
+      }
+      return { wrapper, hint };
+    }
+
+    function prepareChartWidth(chart, periodCount) {
+      const parts = ensureChartScroller(chart);
+      const profile = viewportProfile();
+      const available = Math.max(parts.wrapper.clientWidth || chart.parentElement.clientWidth || 320, 280);
+      let target = available;
+
+      if (profile.mobile) target = Math.max(available, periodCount * 62 + 88);
+      else if (profile.tablet) target = Math.max(available, periodCount * 42 + 80);
+
+      const scrolling = target > available + 8;
+      chart.style.width = scrolling ? Math.ceil(target) + "px" : "100%";
+      chart.style.minWidth = scrolling ? Math.ceil(target) + "px" : "0";
+      if (parts.hint) parts.hint.classList.toggle("is-visible", scrolling);
+      return { profile, scrolling };
+    }
+
+    function responsiveLayoutParts(showLegend, bottomMargin) {
+      const profile = viewportProfile();
+      const mobile = profile.mobile;
+      const tablet = profile.tablet;
+      const legendBottom = showLegend ? (mobile ? 96 : tablet ? 100 : (bottomMargin || 105)) : (mobile ? 64 : tablet ? 70 : (bottomMargin || 76));
+      return {
+        margin: mobile
+          ? { l: 52, r: 12, t: 30, b: legendBottom }
+          : tablet
+            ? { l: 62, r: 18, t: 32, b: legendBottom }
+            : { l: 72, r: 24, t: 36, b: bottomMargin || 105 },
+        fontSize: mobile ? 10.5 : tablet ? 11 : 12,
+        tickSize: mobile ? 9.5 : tablet ? 10 : 11,
+        titleSize: mobile ? 10.5 : tablet ? 11 : 12,
+        labelSize: mobile ? 9.5 : 11,
+        height: mobile ? 390 : tablet ? 440 : 470,
+        legend: {
+          orientation: "h",
+          x: mobile ? 0 : 0.5,
+          xanchor: mobile ? "left" : "center",
+          y: mobile ? -0.22 : -0.22,
+          yanchor: "top",
+          font: { size: mobile ? 9.5 : tablet ? 10 : 11 }
+        }
+      };
+    }
+
     function monthSequence(start, end) {
       if (!start || !end) return [];
       const out = [];
@@ -150,6 +226,16 @@
     }
 
     function tickStep(count) {
+      const profile = viewportProfile();
+      if (profile.mobile) {
+        if (count <= 24) return 1;
+        if (count <= 48) return 2;
+        return 3;
+      }
+      if (profile.tablet) {
+        if (count <= 18) return 1;
+        if (count <= 36) return 2;
+      }
       if (count <= 12) return 1;
       if (count <= 24) return 2;
       if (count <= 36) return 3;
@@ -169,46 +255,45 @@
     function buildBaseLayout(months, options) {
       const opts = options || {};
       const ticks = buildTicks(months);
+      const responsive = responsiveLayoutParts(opts.showLegend !== false, opts.bottomMargin || 105);
       return {
         autosize: true,
-        margin: { l: 72, r: 24, t: 36, b: opts.bottomMargin || 105 },
+        height: responsive.height,
+        margin: responsive.margin,
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
         font: {
           family: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-          color: "#334155"
+          color: "#334155",
+          size: responsive.fontSize
         },
         hoverlabel: {
           bgcolor: "#FFFFFF",
           bordercolor: "#CBD5E1",
           font: { color: "#0F172A" }
         },
-        legend: {
-          orientation: "h",
-          x: 0.5,
-          xanchor: "center",
-          y: -0.22,
-          yanchor: "top"
-        },
+        legend: responsive.legend,
         showlegend: opts.showLegend !== false,
         xaxis: {
           type: "date",
           tickmode: "array",
           tickvals: ticks.vals,
           ticktext: ticks.text,
-          title: { text: "Período", standoff: 14 },
+          title: { text: "Período", standoff: 10, font: { size: responsive.titleSize } },
           showgrid: false,
           automargin: true,
-          fixedrange: true
+          fixedrange: true,
+          tickfont: { size: responsive.tickSize }
         },
         yaxis: {
-          title: { text: "Millones de USD", standoff: 10 },
+          title: { text: "Millones de USD", standoff: 8, font: { size: responsive.titleSize } },
           gridcolor: "#E5E7EB",
           zerolinecolor: "#CBD5E1",
           rangemode: "tozero",
           automargin: true,
           fixedrange: true,
-          tickformat: ",.1f"
+          tickformat: ",.1f",
+          tickfont: { size: responsive.tickSize }
         }
       };
     }
@@ -275,7 +360,7 @@
         y: totals,
         text: totals.map(barLabel),
         textposition: "top center",
-        textfont: { color: "#334155", size: 11 },
+        textfont: { color: "#334155", size: responsiveLayoutParts(false, 76).labelSize },
         cliponaxis: false,
         hoverinfo: "skip"
       };
@@ -305,6 +390,8 @@
     function renderSectorCharts() {
       const selectedSectors = selectedSectorFilters();
       const months = visibleMonths(controls.sector.start.value, controls.sector.end.value);
+      prepareChartWidth(charts.sectorMonthly, months.length);
+      prepareChartWidth(charts.sectorCumulative, months.length);
 
       if (!selectedSectors.length || !months.length) {
         renderEmpty(charts.sectorMonthly, "Seleccioná al menos un sector y un período válido.");
@@ -592,6 +679,8 @@
       const projects = selectedProjects();
       const months = visibleMonths(controls.project.start.value, controls.project.end.value);
       const sectors = projectSectorFilters();
+      prepareChartWidth(charts.projectMonthly, months.length);
+      prepareChartWidth(charts.projectCumulative, months.length);
 
       if (!projects.length || !months.length) {
         renderEmpty(charts.projectMonthly, "Seleccioná al menos un proyecto y un período válido.");
@@ -797,6 +886,47 @@
       root.querySelectorAll(".impo-multiselect[open]").forEach((details) => {
         if (!details.contains(event.target)) details.removeAttribute("open");
       });
+    });
+
+    let responsiveResizeTimer = null;
+    function applyResponsiveChartSizing() {
+      const sectorMonths = visibleMonths(controls.sector.start.value, controls.sector.end.value);
+      const projectMonths = visibleMonths(controls.project.start.value, controls.project.end.value);
+      const specs = [
+        [charts.sectorMonthly, sectorMonths, true, 105],
+        [charts.sectorCumulative, sectorMonths, true, 105],
+        [charts.projectMonthly, projectMonths, false, 76],
+        [charts.projectCumulative, projectMonths, false, 76]
+      ];
+
+      specs.forEach(([chart, months, showLegend, bottomMargin]) => {
+        if (!chart) return;
+        prepareChartWidth(chart, months.length);
+        if (!chart.layout) return;
+        const responsive = responsiveLayoutParts(showLegend, bottomMargin);
+        Plotly.relayout(chart, {
+          "height": responsive.height,
+          "margin.l": responsive.margin.l,
+          "margin.r": responsive.margin.r,
+          "margin.t": responsive.margin.t,
+          "margin.b": responsive.margin.b,
+          "font.size": responsive.fontSize,
+          "legend.orientation": responsive.legend.orientation,
+          "legend.x": responsive.legend.x,
+          "legend.xanchor": responsive.legend.xanchor,
+          "legend.y": responsive.legend.y,
+          "legend.font.size": responsive.legend.font.size,
+          "xaxis.tickfont.size": responsive.tickSize,
+          "xaxis.title.font.size": responsive.titleSize,
+          "yaxis.tickfont.size": responsive.tickSize,
+          "yaxis.title.font.size": responsive.titleSize
+        }).then(() => Plotly.Plots.resize(chart));
+      });
+    }
+
+    window.addEventListener("resize", function () {
+      window.clearTimeout(responsiveResizeTimer);
+      responsiveResizeTimer = window.setTimeout(applyResponsiveChartSizing, 140);
     });
 
     // ---------------------------------------------------------------------
