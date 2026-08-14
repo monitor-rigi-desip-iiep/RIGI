@@ -182,20 +182,49 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
 make_source_note <- function() {
   htmltools::div(
     class = "source-note-box",
-    htmltools::strong("Aclaración metodológica: "),
-    "Para los proyectos aprobados, se utilizó la información del Boletín Oficial y las empresas inferidas por ",
+    htmltools::strong("Fuentes y alcance."),
+    htmltools::tags$br(),
+    htmltools::tags$br(),
+    htmltools::strong("Proyectos aprobados. "),
+    "Las principales fuentes son las resoluciones publicadas en el ",
+    htmltools::a(
+      "Boletín Oficial",
+      href = "https://www.boletinoficial.gob.ar/",
+      target = "_blank",
+      rel = "noopener noreferrer"
+    ),
+    " y el ",
+    htmltools::a(
+      "sitio oficial del RIGI",
+      href = "https://www.argentina.gob.ar/economia/rigi",
+      target = "_blank",
+      rel = "noopener noreferrer"
+    ),
+    ". La identificación de las empresas involucradas en cada proyecto se complementa con datos de ",
     htmltools::a(
       "Globaris",
       href = globaris_source_url,
       target = "_blank",
       rel = "noopener noreferrer"
     ),
-    ". Para los proyectos en evaluación, se utilizó como fuente base la información del dashboard de ",
-    htmltools::a("Globaris", href = globaris_source_url, target = "_blank", rel = "noopener noreferrer"),
-    ", complementada, cuando estuvo disponible, con fuentes públicas adicionales —incluidos medios periodísticos, comunicaciones empresariales e institucionales— que se identifican individualmente en la ficha de cada proyecto. ",
-    "Los datos de empleos directos e indirectos se obtuvieron de la página web del ",
+    ".",
+    htmltools::tags$br(),
+    htmltools::tags$br(),
+    htmltools::strong("Proyectos en evaluación. "),
+    "El relevamiento se construye a partir de distintas fuentes públicas, entre ellas ",
     htmltools::a(
-      "Ministerio de Economía",
+      "Globaris",
+      href = globaris_source_url,
+      target = "_blank",
+      rel = "noopener noreferrer"
+    ),
+    ", sitios web empresariales, anuncios públicos y medios periodísticos. Esta información se complementa con otras fuentes disponibles cuando resulta necesario. Las fuentes utilizadas se detallan en la ficha de cada proyecto para garantizar la trazabilidad de la información.",
+    htmltools::tags$br(),
+    htmltools::tags$br(),
+    htmltools::strong("Empleo. "),
+    "Los datos de empleo directo e indirecto corresponden a los valores informados en el ",
+    htmltools::a(
+      "sitio oficial del RIGI",
       href = "https://www.argentina.gob.ar/economia/rigi",
       target = "_blank",
       rel = "noopener noreferrer"
@@ -207,7 +236,7 @@ make_source_note <- function() {
 make_province_note <- function() {
   htmltools::div(
     class = "note-box",
-    "Cuando un proyecto tiene más de una provincia separada por ';', el monto, los activos computables y el empleo se asignan proporcionalmente entre las provincias informadas para evitar doble conteo."
+    "Cuando un proyecto abarca más de una provincia, el monto de inversión, los activos computables y el empleo informado se distribuyen en partes iguales entre las provincias involucradas."
   )
 }
 
@@ -215,9 +244,9 @@ make_download_links <- function(type = c("aprobados", "pendientes", "total")) {
   type <- match.arg(type)
   download_config <- switch(
     type,
-    aprobados = list(title = "Descargas de la base de proyectos aprobados:", stem = "base_interactiva_aprobados"),
-    pendientes = list(title = "Descargas de la base de proyectos pendientes:", stem = "base_interactiva_pendientes"),
-    total = list(title = "Descargas de la base completa:", stem = "base_completa")
+    aprobados = list(title = "Descarga de datos — proyectos aprobados:", stem = "base_interactiva_aprobados"),
+    pendientes = list(title = "Descarga de datos — proyectos en evaluación:", stem = "base_interactiva_pendientes"),
+    total = list(title = "Descarga de datos — base completa:", stem = "base_completa")
   )
 
   htmltools::div(
@@ -251,23 +280,23 @@ make_kpi_cards_aprobados <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-approved",
     make_kpi_card("Proyectos aprobados", fmt_integer(ind$n_aprobados), "Cantidad de proyectos"),
-    make_kpi_card("Monto aprobado", fmt_currency_mill(ind$monto_aprobado, accuracy = 1), "Millones de USD"),
-    make_kpi_card("Activos computables aprobados", fmt_currency_mill(ind$activos_aprobados, accuracy = 1), "Millones de USD"),
+    make_kpi_card("Monto de proyectos aprobados", fmt_currency_mill(ind$monto_aprobado, accuracy = 1), "Millones de USD"),
+    make_kpi_card("Activos computables", fmt_currency_mill(ind$activos_aprobados, accuracy = 1), "Proyectos aprobados · millones de USD"),
     make_kpi_card("Empleo informado", fmt_integer(ind$empleos_aprobados), "Directos e indirectos"),
-    make_kpi_card("Monto promedio aprobado", fmt_currency_mill(ind$monto_promedio_aprobado, accuracy = 1), "Por proyecto aprobado"),
-    make_kpi_card("Monto mediano aprobado", fmt_currency_mill(ind$monto_mediano_aprobado, accuracy = 1), "Por proyecto aprobado")
+    make_kpi_card("Monto promedio informado", fmt_currency_mill(ind$monto_promedio_aprobado, accuracy = 1), "Por proyecto aprobado"),
+    make_kpi_card("Monto mediano informado", fmt_currency_mill(ind$monto_mediano_aprobado, accuracy = 1), "Por proyecto aprobado")
   )
 }
 
 make_kpi_cards_empleo_aprobado <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-employment",
-    make_kpi_card("Empleo total aprobado", fmt_integer(ind$empleos_aprobados), "Directos e indirectos"),
-    make_kpi_card("Empleo promedio aprobado", fmt_integer(ind$empleos_promedio_aprobados), "Por proyecto aprobado"),
-    make_kpi_card("Empleo mediano aprobado", fmt_integer(ind$empleos_mediana_aprobados), "Por proyecto aprobado"),
+    make_kpi_card("Empleo informado", fmt_integer(ind$empleos_aprobados), "Directos e indirectos"),
+    make_kpi_card("Empleo promedio informado", fmt_integer(ind$empleos_promedio_aprobados), "Por proyecto aprobado"),
+    make_kpi_card("Empleo mediano informado", fmt_integer(ind$empleos_mediana_aprobados), "Por proyecto aprobado"),
     make_kpi_card("Proyecto con mayor empleo", ind$empleo_top_proyecto, "Entre aprobados"),
     make_kpi_card("Sector con mayor empleo", ind$empleo_top_sector, "Entre aprobados"),
-    make_kpi_card("Provincia con mayor empleo", ind$empleo_top_provincia, "Asignación proporcional si es multiprovincial")
+    make_kpi_card("Provincia con mayor empleo", ind$empleo_top_provincia, "Asignación en partes iguales si es multiprovincial")
   )
 }
 
@@ -279,18 +308,18 @@ make_kpi_cards_exportacion_largo_plazo <- function(ind) {
     make_kpi_card("Activos computables asociados", fmt_currency_mill(ind$activos_aprobados_exportacion_largo_plazo, accuracy = 1), "Millones de USD"),
     make_kpi_card("Empleo asociado", fmt_integer(ind$empleos_aprobados_exportacion_largo_plazo), "Directos e indirectos"),
     make_kpi_card("Participación de proyectos PEELP", fmt_pct(ind$participacion_aprobados_exportacion_largo_plazo), "Sobre la cantidad de proyectos aprobados"),
-    make_kpi_card("Participación del monto PEELP", fmt_pct(ind$participacion_monto_aprobados_exportacion_largo_plazo), "Sobre el monto total de inversión aprobado")
+    make_kpi_card("Participación del monto PEELP", fmt_pct(ind$participacion_monto_aprobados_exportacion_largo_plazo), "Sobre el monto informado de proyectos aprobados")
   )
 }
 
 make_kpi_cards_pendientes <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-pending",
-    make_kpi_card("Proyectos pendientes/en evaluación", fmt_integer(ind$n_pendientes), "Cantidad de proyectos"),
-    make_kpi_card("Monto pendiente/en evaluación", fmt_currency_mill(ind$monto_pendiente, accuracy = 1), "Millones de USD"),
-    make_kpi_card("Activos computables pendientes", fmt_currency_mill(ind$activos_pendientes, accuracy = 1), "Millones de USD"),
-    make_kpi_card("Monto promedio pendiente", fmt_currency_mill(ind$monto_promedio_pendiente, accuracy = 1), "Por proyecto pendiente"),
-    make_kpi_card("Monto mediano pendiente", fmt_currency_mill(ind$monto_mediano_pendiente, accuracy = 1), "Por proyecto pendiente")
+    make_kpi_card("Proyectos en evaluación", fmt_integer(ind$n_pendientes), "Cantidad de proyectos"),
+    make_kpi_card("Monto informado", fmt_currency_mill(ind$monto_pendiente, accuracy = 1), "Proyectos en evaluación · millones de USD"),
+    make_kpi_card("Activos computables informados", fmt_currency_mill(ind$activos_pendientes, accuracy = 1), "Proyectos en evaluación · millones de USD"),
+    make_kpi_card("Monto promedio informado", fmt_currency_mill(ind$monto_promedio_pendiente, accuracy = 1), "Por proyecto en evaluación"),
+    make_kpi_card("Monto mediano informado", fmt_currency_mill(ind$monto_mediano_pendiente, accuracy = 1), "Por proyecto en evaluación")
   )
 }
 
@@ -299,8 +328,8 @@ make_kpi_cards_total <- function(ind) {
     class = "kpi-grid kpi-grid-status",
     make_kpi_card("Total de proyectos", fmt_integer(ind$n_total), "Universo de la base"),
     make_kpi_card("Monto total informado", fmt_currency_mill(ind$monto_total, accuracy = 1), "Millones de USD"),
-    make_kpi_card("Aprobados / total", fmt_pct(ind$participacion_proyectos_aprobados), "Participación en cantidad"),
-    make_kpi_card("Monto aprobado / total", fmt_pct(ind$participacion_monto_aprobado), "Participación en monto")
+    make_kpi_card("Proyectos aprobados / total", fmt_pct(ind$participacion_proyectos_aprobados), "Participación en cantidad"),
+    make_kpi_card("Monto de aprobados / total", fmt_pct(ind$participacion_monto_aprobado), "Participación en monto")
   )
 }
 
@@ -622,7 +651,7 @@ plot_estado <- function(data, title = NULL) {
 plot_compare_aprobado_pendiente <- function(aprobado_tbl, pendiente_tbl, label_col, title = NULL) {
   data_plot <- dplyr::bind_rows(
     aprobado_tbl |> dplyr::transmute(label_original = .data[[label_col]], estado = "Aprobado", monto_usd_mill),
-    pendiente_tbl |> dplyr::transmute(label_original = .data[[label_col]], estado = "Pendiente / en evaluación", monto_usd_mill)
+    pendiente_tbl |> dplyr::transmute(label_original = .data[[label_col]], estado = "En evaluación", monto_usd_mill)
   ) |>
     dplyr::filter(!is.na(monto_usd_mill)) |>
     dplyr::group_by(label_original) |>
@@ -658,7 +687,7 @@ plot_compare_aprobado_pendiente <- function(aprobado_tbl, pendiente_tbl, label_c
       color = "#334155",
       show.legend = FALSE
     ) +
-    ggplot2::scale_fill_manual(values = c("Aprobado" = bar_color_compare_approved, "Pendiente / en evaluación" = bar_color_compare_pending)) +
+    ggplot2::scale_fill_manual(values = c("Aprobado" = bar_color_compare_approved, "En evaluación" = bar_color_compare_pending)) +
     ggplot2::scale_x_continuous(
       breaks = scales::breaks_pretty(n = 4),
       labels = function(x) fmt_number(x, accuracy = 1),
@@ -679,7 +708,7 @@ plot_compare_aprobado_pendiente <- function(aprobado_tbl, pendiente_tbl, label_c
 
 plot_compare_counts_montos <- function(ind, title = NULL) {
   data_plot <- tibble::tibble(
-    grupo_original = c("Aprobados", "Pendientes / en evaluación"),
+    grupo_original = c("Aprobados", "En evaluación"),
     proyectos = c(ind$n_aprobados, ind$n_pendientes),
     monto_usd_mill = c(ind$monto_aprobado, ind$monto_pendiente)
   ) |>
@@ -708,7 +737,7 @@ plot_compare_counts_montos <- function(ind, title = NULL) {
       fontface = "bold",
       color = "#334155"
     ) +
-    ggplot2::scale_fill_manual(values = c("Aprobados" = bar_color_compare_approved, "Pendientes / en evaluación" = bar_color_compare_pending)) +
+    ggplot2::scale_fill_manual(values = c("Aprobados" = bar_color_compare_approved, "En evaluación" = bar_color_compare_pending)) +
     ggplot2::scale_y_continuous(
       breaks = scales::breaks_pretty(n = 4),
       labels = function(x) fmt_number(x, accuracy = 1),
@@ -758,12 +787,12 @@ plot_peelp_share <- function(ind, title = NULL) {
 
   p <- ggplot2::ggplot(data_plot, ggplot2::aes(
     x = participacion,
-    y = factor("Monto aprobado", levels = "Monto aprobado"),
+    y = factor("Monto de proyectos aprobados", levels = "Monto de proyectos aprobados"),
     fill = clasificacion,
     text = paste0(
       clasificacion,
       "<br>Monto: ", fmt_currency_mill(monto_usd_mill, accuracy = 1),
-      "<br>Participación del monto aprobado: ", fmt_pct(participacion)
+      "<br>Participación en el monto de proyectos aprobados: ", fmt_pct(participacion)
     )
   )) +
     ggplot2::geom_col(width = 0.54) +
@@ -786,7 +815,7 @@ plot_peelp_share <- function(ind, title = NULL) {
     ) +
     ggplot2::labs(
       title = wrap_title(title),
-      x = "Participación del monto aprobado",
+      x = "Participación en el monto de proyectos aprobados",
       y = NULL,
       fill = NULL
     ) +

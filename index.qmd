@@ -1,6 +1,4 @@
 ---
-title: "Monitor de Proyectos RIGI"
-subtitle: "Informe interactivo basado en la solapa Proyectos del archivo Excel actualizado"
 format:
   html:
     toc: true
@@ -33,23 +31,58 @@ auditoria_fuentes <- make_source_audit(proyectos)
 resumen_ejecutivo <- make_summary_text(indicadores, tablas)
 ```
 
-::: {.hero-section}
-<div class="hero-eyebrow">RIGI · Dashboard reproducible</div>
+::: hero-section
+::: hero-eyebrow
+DESIP · IIEP
+:::
 
 # Monitor de Proyectos RIGI
 
-<div class="hero-subtitle">
-Informe interactivo generado con R y Quarto a partir de la solapa <strong>Proyectos</strong> del archivo Excel actualizado. El foco principal está puesto en los proyectos aprobados; luego se presentan los proyectos pendientes de aprobación o en evaluación.
+::: hero-subtitle
+<p>El <strong>Monitor de Proyectos RIGI</strong> es una iniciativa del DESIP-IIEP destinada a reunir, sistematizar y actualizar información pública sobre los proyectos de inversión presentados en el marco del Régimen de Incentivo para Grandes Inversiones (RIGI).</p>
+
+<p>El Monitor concentra en una única plataforma información que actualmente se encuentra dispersa entre distintas fuentes. Incluye proyectos aprobados y proyectos en evaluación. Para cada uno, reúne datos sobre montos de inversión, activos computables, empleo, sector de actividad, localización, empresas involucradas y principales hitos administrativos. La información proviene principalmente de fuentes oficiales y se complementa con otras fuentes públicas cuando resulta necesario.</p>
+
+<p>El objetivo del Monitor es facilitar el seguimiento y el análisis de los proyectos aprobados y en evaluación en el marco del RIGI. Al mismo tiempo, busca mejorar el acceso público a la información disponible sobre estos proyectos. Para ello, presenta indicadores agregados y fichas detalladas de cada iniciativa. Además, pone a disposición una <strong>base de datos abierta y descargable</strong>.</p>
+:::
+
+::: hero-meta-grid
+<div>
+
+[Última actualización]{.meta-label}[`r indicadores$fecha_actualizacion_fmt`]{.meta-value}
+
 </div>
 
-<div class="hero-meta-grid">
-  <div><span class="meta-label">Informe generado</span><span class="meta-value">`r indicadores$fecha_actualizacion_fmt`</span></div>
-  <div><span class="meta-label">Archivo fuente modificado</span><span class="meta-value">`r indicadores$fecha_modificacion_archivo_fmt`</span></div>
-  <div><span class="meta-label">Proyectos aprobados</span><span class="meta-value">`r fmt_integer(indicadores$n_aprobados)`</span></div>
-  <div><span class="meta-label">Monto aprobado</span><span class="meta-value">`r fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)`</span></div>
-  <div><span class="meta-label">Pendientes/en evaluación</span><span class="meta-value">`r fmt_integer(indicadores$n_pendientes)`</span></div>
-  <div><span class="meta-label">Empleo aprobado</span><span class="meta-value">`r fmt_integer(indicadores$empleos_aprobados)`</span></div>
+<div>
+
+[Proyectos relevados]{.meta-label}[`r fmt_integer(indicadores$n_total)`]{.meta-value}
+
 </div>
+
+<div>
+
+[Proyectos aprobados]{.meta-label}[`r fmt_integer(indicadores$n_aprobados)`]{.meta-value}
+
+</div>
+
+<div>
+
+[Monto de proyectos aprobados]{.meta-label}[`r fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)`]{.meta-value}
+
+</div>
+
+<div>
+
+[Proyectos en evaluación]{.meta-label}[`r fmt_integer(indicadores$n_pendientes)`]{.meta-value}
+
+</div>
+
+<div>
+
+[Empleo informado]{.meta-label}[`r fmt_integer(indicadores$empleos_aprobados)`]{.meta-value}
+
+</div>
+:::
 :::
 
 ```{r}
@@ -68,20 +101,20 @@ htmltools::div(class = "summary-box", htmltools::p(resumen_ejecutivo))
 
 # 1. Proyectos aprobados
 
-::: {.section-intro}
-Esta sección muestra exclusivamente proyectos con estado administrativo **Aprobado**. Las estadísticas de monto, activos computables y empleo corresponden solo a ese subconjunto.
+::: section-intro
+Esta sección reúne los proyectos cuya adhesión al RIGI ha sido aprobada. Los indicadores presentan información sobre monto de inversión, activos computables, empleo informado, distribución sectorial y territorial y principales hitos administrativos.
 :::
 
-## Indicadores principales de proyectos aprobados
+## Indicadores principales
 
 ```{r}
 make_kpi_cards_aprobados(indicadores)
 ```
 
-## Monto aprobado por sector
+## Monto de inversión por sector
 
 ```{r}
-make_chart_context_note("Las etiquetas muestran el monto y su participación sobre la inversión total aprobada.")
+make_chart_context_note("Las etiquetas muestran el monto informado y su participación sobre el monto total de inversión de los proyectos aprobados.")
 ```
 
 ```{r}
@@ -93,7 +126,7 @@ plot_bar_monto(
 )
 ```
 
-## Monto aprobado por provincia
+## Monto de inversión por provincia
 
 ```{r}
 make_province_note()
@@ -127,7 +160,6 @@ make_chart_context_note(
 ```
 
 ::: {.panel-tabset .rigi-chart-tabs}
-
 ### Por proyecto
 
 ```{r}
@@ -164,13 +196,12 @@ plot_bar_empleo(
   fill_color = bar_color_employment
 )
 ```
-
 :::
 
-## Ranking de proyectos aprobados por monto
+## Principales proyectos aprobados por monto
 
 ```{r}
-make_chart_context_note("Los tres primeros puestos se destacan por intensidad de color. Cada etiqueta muestra el monto y su participación sobre la inversión total aprobada.")
+make_chart_context_note("Los tres primeros puestos se destacan por intensidad de color. Cada etiqueta muestra el monto informado y su participación sobre el monto total de los proyectos aprobados.")
 ```
 
 ```{r}
@@ -179,27 +210,27 @@ plot_top_proyectos_monto(
   title = NULL,
   fill_color = bar_color_approved,
   total_value = indicadores$monto_aprobado,
-  share_reference = "del monto aprobado"
+  share_reference = "del monto informado de proyectos aprobados"
 )
 ```
 
 ## Proyectos de exportación estratégica de largo plazo (PEELP)
 
-::: {.section-intro}
+::: section-intro
 Esta subsección reúne los proyectos aprobados clasificados como **Proyectos de Exportación Estratégica de Largo Plazo (PEELP)**.
-::: 
+:::
 
 ```{r}
 make_kpi_cards_exportacion_largo_plazo(indicadores)
 ```
 
-### Participación en el monto aprobado
+### Participación en el monto de proyectos aprobados
 
 ```{r}
 plot_peelp_share(indicadores)
 ```
 
-### Ranking de proyectos PEELP por monto
+### Principales proyectos PEELP por monto
 
 ```{r}
 plot_top_proyectos_monto(
@@ -207,7 +238,7 @@ plot_top_proyectos_monto(
   title = NULL,
   fill_color = bar_color_peelp,
   total_value = indicadores$monto_aprobado,
-  share_reference = "del monto aprobado"
+  share_reference = "del monto informado de proyectos aprobados"
 )
 ```
 
@@ -225,41 +256,45 @@ make_rigi_project_cards(
 
 ## Hitos del RIGI
 
-<p class="rigi-milestones-subtitle">Desde la sanción de la Ley de Bases hasta el último proyecto aprobado.</p>
+<p class="rigi-milestones-subtitle">
+
+Desde la sanción de la Ley de Bases hasta el último proyecto aprobado.
+
+</p>
 
 ```{r}
 make_rigi_milestones_timeline(tablas$timeline_aprobados_tbl)
 ```
 
-## Base interactiva: aprobados
+## Base de datos de proyectos aprobados
 
 ```{r}
 make_download_links("aprobados")
 ```
 
-Las descargas conservan como columnas numéricas: `Monto (mill. USD)`, `Activos Computables (mill. USD)` y `Empleos (directos e indirectos)`.
+**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formatos XLSX y CSV.
 
 ```{r}
 make_rigi_project_cards(
   tablas$base_aprobados,
   table_type = "aprobados",
-  caption = "Base interactiva de proyectos aprobados"
+  caption = "Base de datos de proyectos aprobados"
 )
 ```
 
-# 2. Proyectos pendientes de aprobación / en evaluación
+# 2. Proyectos en evaluación
 
 ::: {.section-intro .pending-intro}
-Esta sección muestra proyectos que no están aprobados y que figuran como pendientes de aprobación, en evaluación, presentados, en análisis o categorías equivalentes.
+Esta sección reúne proyectos identificados públicamente como presentados al RIGI, en análisis, pendientes de resolución o en evaluación que, a la fecha de actualización del Monitor, no cuentan con una resolución de aprobación registrada.
 :::
 
-## Indicadores principales de pendientes / en evaluación
+## Indicadores principales
 
 ```{r}
 make_kpi_cards_pendientes(indicadores)
 ```
 
-## Monto pendiente / en evaluación por sector
+## Monto informado por sector
 
 ```{r}
 plot_bar_monto(
@@ -270,7 +305,7 @@ plot_bar_monto(
 )
 ```
 
-## Monto pendiente / en evaluación por provincia
+## Monto informado por provincia
 
 ```{r}
 make_province_note()
@@ -285,7 +320,7 @@ plot_bar_monto(
 )
 ```
 
-## Ranking de proyectos pendientes por monto
+## Principales proyectos en evaluación por monto informado
 
 ```{r}
 plot_top_proyectos_monto(
@@ -293,11 +328,11 @@ plot_top_proyectos_monto(
   title = NULL,
   fill_color = bar_color_pending,
   total_value = indicadores$monto_pendiente,
-  share_reference = "del monto pendiente / en evaluación"
+  share_reference = "del monto informado en proyectos en evaluación"
 )
 ```
 
-## Línea de tiempo de presentación de pendientes / en evaluación
+## Cronología de presentaciones
 
 ```{r}
 make_chart_context_note(
@@ -314,25 +349,25 @@ plot_timeline(
 )
 ```
 
-## Base interactiva: pendientes
+## Base de datos de proyectos en evaluación
 
 ```{r}
 make_download_links("pendientes")
 ```
 
-Las descargas conservan como columnas numéricas: `Monto (mill. USD)`, `Activos Computables (mill. USD)` y `Empleos (directos e indirectos)`.
+**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formatos XLSX y CSV.
 
 ```{r}
 make_rigi_project_cards(
   tablas$base_pendientes,
   table_type = "pendientes",
-  caption = "Base interactiva de proyectos pendientes / en evaluación"
+  caption = "Base de datos de proyectos en evaluación"
 )
 ```
 
-# 3. Comparación aprobados vs. pendientes
+# 3. Comparación por estado administrativo
 
-## Comparación general
+## Panorama general
 
 ```{r}
 make_kpi_cards_total(indicadores)
@@ -364,41 +399,52 @@ plot_compare_aprobado_pendiente(
 )
 ```
 
-## Estado administrativo del universo total
+## Composición del universo por estado administrativo
 
 ```{r}
 plot_estado(tablas$estado_tbl, title = NULL)
 ```
 
-# 4. Base completa
+# 4. Base de datos completa
+
+La base reúne la información sistematizada para el conjunto de proyectos incluidos en el Monitor, junto con las principales variables de identificación, características del proyecto, montos informados, localización, estado administrativo y fuentes disponibles.
 
 ```{r}
 make_download_links("total")
 ```
 
-Las descargas conservan la totalidad de los proyectos y mantienen como columnas numéricas: `Monto (mill. USD)`, `Activos Computables (mill. USD)` y `Empleos (directos e indirectos)`.
+**Datos abiertos.** La base utilizada para la elaboración del Monitor se encuentra disponible para su descarga en formatos XLSX y CSV.
 
 ```{r}
 make_rigi_project_cards(
   tablas$base_total,
   table_type = "total",
-  caption = "Base completa de proyectos"
+  caption = "Base de datos completa de proyectos"
 )
 ```
 
 # 5. Notas metodológicas
 
-::: {.method-box}
-- La solapa `Proyectos` es la base maestra del informe. Cuando existe una hoja larga de fuentes en el mismo Excel, se utiliza para asociar cada fuente y URL con su proyecto sin modificar los datos originales.
-- El foco principal está puesto en los proyectos **aprobados**; luego se presentan proyectos **pendientes de aprobación / en evaluación**.
-- Los montos están expresados en **millones de USD**.
-- Los activos computables están expresados en **millones de USD**.
-- Los empleos están expresados como cantidad de empleos directos e indirectos.
-- No se imputan datos faltantes de monto, activos, empleo ni fechas.
-- Para los proyectos aprobados, la información administrativa y del proyecto se basa fundamentalmente en las resoluciones, el Boletín Oficial y la información oficial disponible. Las empresas fueron inferidas por <a href="https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708" target="_blank" rel="noopener noreferrer">Globaris</a>, según la metodología utilizada por el dashboard.
-- Para los proyectos en evaluación, se utilizó como fuente base la información del dashboard de <a href="https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708" target="_blank" rel="noopener noreferrer">Globaris</a>. Cuando estuvo disponible, esa información se complementó con medios periodísticos, comunicaciones empresariales, fuentes institucionales y otras fuentes públicas identificadas individualmente en cada ficha. Estas fuentes complementarias no constituyen por sí mismas una validación oficial del estado administrativo del proyecto.
-- Los datos de empleos directos e indirectos se obtuvieron de la página web del <a href="https://www.argentina.gob.ar/economia/rigi" target="_blank" rel="noopener noreferrer">Ministerio de Economía</a>.
-- Cuando un proyecto tiene más de una provincia separada por `;`, el monto, los activos computables y el empleo se asignan proporcionalmente entre las provincias informadas para evitar doble conteo.
-- Informe generado el: **`r indicadores$fecha_actualizacion_fmt`**.
-- Archivo fuente modificado por última vez: **`r indicadores$fecha_modificacion_archivo_fmt`**.
+::: method-box
+### Alcance
+
+El Monitor distingue entre proyectos aprobados y proyectos en evaluación de acuerdo con la información pública disponible a la fecha de actualización. La categoría **Proyectos en evaluación** reúne proyectos identificados públicamente como presentados, en análisis, pendientes de resolución o en evaluación que no cuentan con una resolución de aprobación publicada en el Boletín Oficial. Cuando el estado administrativo no puede verificarse mediante una fuente oficial, esa limitación debe interpretarse a partir de las fuentes consignadas en la ficha correspondiente.
+
+### Fuentes
+
+**Proyectos aprobados.** Las principales fuentes son las resoluciones publicadas en el [**Boletín Oficial**](https://www.boletinoficial.gob.ar/) y el [**sitio oficial del RIGI**](https://www.argentina.gob.ar/economia/rigi). La identificación de las empresas involucradas en cada proyecto se complementa con datos de [**Globaris**](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708).
+
+**Proyectos en evaluación.** El relevamiento se construye a partir de distintas fuentes públicas, entre ellas [**Globaris**](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708), sitios web empresariales, anuncios públicos y medios periodísticos. Esta información se complementa con otras fuentes disponibles cuando resulta necesario. Las fuentes utilizadas se detallan en la ficha de cada proyecto para garantizar la trazabilidad de la información.
+
+**Empleo.** Los datos de empleo directo e indirecto corresponden a los valores informados en el [**sitio oficial del RIGI**](https://www.argentina.gob.ar/economia/rigi). No se imputan valores para proyectos sin información disponible.
+
+### Variables monetarias
+
+Los montos de inversión informados y los activos computables se expresan en **millones de USD**, salvo indicación en contrario. La denominación “monto de proyectos aprobados” refiere al monto informado para el conjunto de proyectos cuya adhesión al régimen fue aprobada y no implica que se trate de inversión efectivamente ejecutada.
+
+### Distribución territorial
+
+Cuando un proyecto abarca más de una provincia, el monto de inversión, los activos computables y el empleo informado se distribuyen en partes iguales entre las provincias involucradas.
+
+**Última actualización:** `r indicadores$fecha_actualizacion_fmt`.<br> **Última modificación del archivo fuente:** `r indicadores$fecha_modificacion_archivo_fmt`.
 :::

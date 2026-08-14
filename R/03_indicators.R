@@ -279,14 +279,14 @@ make_summary_text <- function(indicadores, tablas) {
   if (identical(top_projects_text, "")) top_projects_text <- "s/d"
 
   empleo_text <- if (is.na(indicadores$empleos_aprobados)) {
-    "El archivo fuente no contiene datos de empleo informados o todos los valores están vacíos para los proyectos aprobados."
+    "No hay datos de empleo informados para los proyectos aprobados o todos los valores disponibles están vacíos."
   } else {
     glue::glue(
-      "Los proyectos aprobados informan {fmt_integer(indicadores$empleos_aprobados)} empleos directos e indirectos. El sector con mayor empleo informado entre aprobados es {indicadores$empleo_top_sector}, y la provincia con mayor empleo informado —considerando la asignación proporcional en proyectos multiprovinciales— es {indicadores$empleo_top_provincia}."
+      "Los proyectos aprobados informan {fmt_integer(indicadores$empleos_aprobados)} empleos directos e indirectos. El sector con mayor empleo informado entre aprobados es {indicadores$empleo_top_sector}, y la provincia con mayor empleo informado —considerando la asignación en partes iguales en proyectos multiprovinciales— es {indicadores$empleo_top_provincia}."
     )
   }
 
   glue::glue(
-    "El informe prioriza el subconjunto de proyectos aprobados. En la base hay {fmt_integer(indicadores$n_total)} proyectos en total, de los cuales {fmt_integer(indicadores$n_aprobados)} se encuentran aprobados y {fmt_integer(indicadores$n_pendientes)} figuran como pendientes de aprobación o en evaluación. El monto aprobado asciende a {fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)}, equivalente al {fmt_pct(indicadores$participacion_monto_aprobado)} del monto total informado. Entre los aprobados, el sector con mayor monto acumulado es {indicadores$sector_top_aprobado}, y la provincia con mayor monto —considerando la asignación proporcional en proyectos multiprovinciales— es {indicadores$provincia_top_aprobada}. Los principales proyectos aprobados por monto son: {top_projects_text}. {empleo_text} El informe fue generado el {indicadores$fecha_actualizacion_fmt}."
+    "El Monitor releva {fmt_integer(indicadores$n_total)} proyectos, de los cuales {fmt_integer(indicadores$n_aprobados)} se encuentran aprobados y {fmt_integer(indicadores$n_pendientes)} se incluyen en la categoría de proyectos en evaluación. El monto informado correspondiente a los proyectos aprobados asciende a {fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)}, equivalente al {fmt_pct(indicadores$participacion_monto_aprobado)} del monto total informado en la base. Entre los proyectos aprobados, el sector con mayor monto acumulado es {indicadores$sector_top_aprobado}, y la provincia con mayor monto —considerando la asignación en partes iguales en proyectos multiprovinciales— es {indicadores$provincia_top_aprobada}. Los principales proyectos aprobados por monto son: {top_projects_text}. {empleo_text} Última actualización: {indicadores$fecha_actualizacion_fmt}."
   )
 }

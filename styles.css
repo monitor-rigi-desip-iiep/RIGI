@@ -58,6 +58,52 @@ h3 {
   color: #1E293B;
 }
 
+/* Alineación de textos narrativos ----------------------------------------- */
+
+main.content p,
+.hero-subtitle,
+.source-note-box,
+.summary-box,
+.note-box,
+.method-box,
+.section-intro,
+.rigi-project-card__description p,
+.rigi-project-card__sources p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+
+/* Excluir tarjetas y controles del justificado narrativo ------------------ */
+.hero-meta-grid,
+.hero-meta-grid p,
+.meta-label,
+.meta-value,
+.kpi-card,
+.kpi-card p,
+.kpi-label,
+.kpi-value,
+.kpi-sublabel {
+  text-align: left !important;
+  text-justify: auto !important;
+  word-spacing: normal !important;
+}
+
+.download-box,
+.download-box *,
+.rigi-project-cards__toolbar,
+.rigi-project-cards__toolbar *,
+.navbar,
+.navbar *,
+button,
+.btn,
+label,
+select,
+input {
+  text-justify: auto !important;
+  word-spacing: normal !important;
+}
+
 /* Portada ---------------------------------------------------------------- */
 
 .hero-section {

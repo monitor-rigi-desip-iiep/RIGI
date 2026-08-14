@@ -1,5 +1,9 @@
 # Monitor de Proyectos RIGI
 
+**DESIP — Desarrollo e internacionalización productiva · IIEP (UBA-CONICET)**
+
+El Monitor reúne y sistematiza información pública sobre los proyectos aprobados y en evaluación en el marco del Régimen de Incentivo para Grandes Inversiones (RIGI). La publicación ofrece indicadores, fichas de proyectos y bases descargables para facilitar la consulta, reutilización y análisis de la información.
+
 ## Variante visual incluida
 
 **Fichas de proyectos + gráficos institucionales.** Las bases interactivas se
@@ -16,10 +20,10 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
 ## Cambios de esta versión
 
 - El informe prioriza primero los **proyectos aprobados**.
-- Luego muestra los **proyectos pendientes de aprobación / en evaluación**.
+- Luego muestra los **proyectos en evaluación**.
 - Los montos se muestran en **millones de USD**, sin abreviaturas tipo `B`.
 - Se incorporan estadísticas y gráficos de **empleo directo e indirecto** para proyectos aprobados.
-- Las provincias múltiples separadas por `;` se tratan mediante **asignación proporcional** de monto, activos computables y empleo para evitar doble conteo territorial.
+- Las provincias múltiples separadas por `;` se tratan mediante **asignación en partes iguales** del monto, los activos computables y el empleo entre las provincias involucradas.
 - Se agregan descargas en `.xlsx` y `.csv` para:
   - `Base interactiva: aprobados`
   - `Base interactiva: pendientes`

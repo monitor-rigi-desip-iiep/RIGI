@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: _site
+  preview:
+    navigate: false
   resources:
     - downloads/*.xlsx
     - downloads/*.csv
@@ -10,17 +12,14 @@ website:
   site-url: "https://monitor-rigi-desip-iiep.github.io/RIGI/"
   repo-url: "https://github.com/monitor-rigi-desip-iiep/RIGI"
   page-footer:
-    left: "Generado automáticamente con R y Quarto."
-    right: "Fuente: archivo Excel del tracker RIGI."
+    left: "DESIP-IIEP"
+    right: "IIEP"
   navbar:
     background: "#0B132B"
     foreground: "#FFFFFF"
     left:
       - href: index.qmd
         text: Informe
-      - href: presentation.qmd
-        text: Presentación
-
 format:
   html:
     theme:
