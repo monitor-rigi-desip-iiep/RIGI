@@ -16,6 +16,7 @@ source("R/01_load_data.R")
 source("R/02_clean_data.R")
 source("R/03_indicators.R")
 source("R/04_plots.R")
+source("R/05_planes_inversion.R")
 
 raw_data <- load_proyectos()
 raw_sources <- load_fuentes_proyectos()
@@ -29,6 +30,9 @@ tablas <- make_tables(proyectos, proyectos_prov)
 downloads <- create_download_files(proyectos)
 auditoria_fuentes <- make_source_audit(proyectos)
 resumen_ejecutivo <- make_summary_text(indicadores, tablas)
+planes_inversion <- load_planes_inversion()
+validate_planes_inversion(planes_inversion)
+planes_downloads <- create_planes_inversion_downloads(planes_inversion)
 ```
 
 ::: hero-section
@@ -131,6 +135,14 @@ plot_bar_monto(
   title = NULL,
   fill_color = bar_color_approved
 )
+```
+
+## Planes de inversión
+
+Los planes de inversión presentan la distribución anual de los montos de inversión informados para los proyectos aprobados, desagregados por sector y subsector. La información se expresa en millones de dólares y permite analizar tanto el flujo anual previsto como su evolución acumulada a lo largo del tiempo.
+
+```{r}
+make_planes_inversion_module(planes_inversion)
 ```
 
 ## Empleo informado en proyectos aprobados

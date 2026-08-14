@@ -28,6 +28,8 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
   - `Base interactiva: aprobados`
   - `Base interactiva: pendientes`
   - `Base completa`
+  - `Planes de inversión` (hoja `Datos_long`, siete columnas seleccionadas)
+- La sección **Planes de inversión** utiliza `data/RIGI_planes_inversion.xlsx` (hoja `Datos_long`) e incorpora filtros sincronizados por período, sector y subsector, un gráfico anual y otro acumulado.
 - En las descargas, las columnas `Monto (mill. USD)`, `Activos Computables (mill. USD)` y `Empleos (directos e indirectos)` se mantienen como numéricas.
 - Las bases con información PEELP incorporan el filtro `Clasificación del proyecto`, con las opciones `Todos los proyectos`, `Solo proyectos PEELP` y `Solo proyectos no PEELP`.
 - La subsección PEELP utiliza fichas filtrables y expandibles, manteniendo el gráfico comparativo por monto.
@@ -70,9 +72,10 @@ quarto preview
 
 ## Cómo actualizar el informe
 
-1. Reemplazar el archivo Excel en `data/RIGI_tracker_data_final_con_proyectos_integrados.xlsx`.
-2. Verificar que la solapa se siga llamando `Proyectos`.
-3. Ejecutar:
+1. Reemplazar el archivo Excel en `data/RIGI_tracker_data_final_con_proyectos_integrados.xlsx` cuando se actualice la base de proyectos.
+2. Reemplazar `data/RIGI_planes_inversion.xlsx` cuando se actualicen los planes de inversión y verificar que conserve la hoja `Datos_long`.
+3. Verificar que la base principal conserve la solapa `Proyectos`.
+4. Ejecutar:
 
 ```bash
 quarto render

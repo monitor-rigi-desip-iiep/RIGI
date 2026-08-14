@@ -15,7 +15,8 @@ required_packages <- c(
   "htmltools",
   "htmlwidgets",
   "forcats",
-  "writexl"
+  "writexl",
+  "jsonlite"
 )
 
 install_if_missing <- function(packages) {

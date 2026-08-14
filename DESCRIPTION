@@ -15,4 +15,5 @@ Imports:
     htmltools,
     htmlwidgets,
     forcats,
-    writexl
+    writexl,
+    jsonlite
