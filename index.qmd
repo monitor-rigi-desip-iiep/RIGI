@@ -85,14 +85,6 @@ DESIP · IIEP
 :::
 :::
 
-```{r}
-make_source_note()
-```
-
-```{r}
-make_kpi_cards_aprobados(indicadores)
-```
-
 ## Resumen ejecutivo
 
 ```{r}
