@@ -189,16 +189,16 @@ create_planes_inversion_downloads <- function(data, download_dir = "downloads") 
 
 planes_sector_colors <- function(sectors) {
   preferred <- c(
-    "Energía Eléctrica" = "#D97706",
-    "Petróleo y Gas" = "#2E7D32",
-    "Minería" = "#5B3F8C",
-    "Siderurgia" = "#64748B",
-    "Infraestructura" = "#1F6E8C"
+    "Energía Eléctrica" = "#F97316",
+    "Petróleo y Gas" = "#0F766E",
+    "Minería" = "#7C3AED",
+    "Siderurgia" = "#BE123C",
+    "Infraestructura" = "#2563EB"
   )
 
   fallback <- c(
-    "#C2410C", "#0F766E", "#7C3AED", "#475569", "#0EA5E9",
-    "#BE123C", "#4F46E5", "#65A30D", "#B45309", "#334155"
+    "#1D4ED8", "#EA580C", "#0D9488", "#6D28D9", "#64748B",
+    "#0284C7", "#C2410C", "#15803D", "#9333EA", "#334155"
   )
 
   sectors <- unique(as.character(sectors))
@@ -365,8 +365,7 @@ make_planes_inversion_module <- function(data) {
         htmltools::tags$h3("Planes de inversión por año"),
         htmltools::div(
           id = "planes-annual-chart",
-          class = "plans-chart",
-          htmltools::div(class = "plans-loading", "Cargando gráfico...")
+          class = "plans-chart"
         )
       ),
 
@@ -375,8 +374,7 @@ make_planes_inversion_module <- function(data) {
         htmltools::tags$h3("Planes de inversión acumulados"),
         htmltools::div(
           id = "planes-cumulative-chart",
-          class = "plans-chart",
-          htmltools::div(class = "plans-loading", "Cargando gráfico...")
+          class = "plans-chart"
         ),
         htmltools::tags$p(
           class = "plans-chart-note",

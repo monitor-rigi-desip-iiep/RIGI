@@ -40,6 +40,8 @@
     const allYears = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
     const formatter = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 1 });
     const pctFormatter = new Intl.NumberFormat("es-AR", { style: "percent", maximumFractionDigits: 1 });
+    let syncingAnnualLegend = false;
+    let syncingCumulativeLegend = false;
 
     function selectedValues(inputs) {
       return inputs.filter((input) => input.checked && !input.disabled).map((input) => input.value);
@@ -168,7 +170,9 @@
           annotations: emptyAnnotation("No hay datos para los filtros seleccionados.")
         });
         Plotly.react(annualChart, [], emptyLayout, { displayModeBar: false, responsive: true });
-        Plotly.react(cumulativeChart, [], emptyLayout, { displayModeBar: false, responsive: true });
+        Promise.resolve(
+          Plotly.react(cumulativeChart, [], emptyLayout, { displayModeBar: false, responsive: true })
+        ).then(bindLegendSync);
         return;
       }
 
@@ -282,7 +286,120 @@
         hovermode: "x unified"
       });
 
-      Plotly.react(cumulativeChart, cumulativeTraces, cumulativeLayout, { displayModeBar: false, responsive: true });
+      Promise.resolve(
+        Plotly.react(cumulativeChart, cumulativeTraces, cumulativeLayout, { displayModeBar: false, responsive: true })
+      ).then(bindLegendSync);
+    }
+
+    function traceIsVisible(trace) {
+      return trace.visible !== "legendonly" && trace.visible !== false;
+    }
+
+    function syncAnnualTotalsWithLegend() {
+      if (syncingAnnualLegend || !annualChart.data || annualChart.data.length === 0) return;
+
+      const totalIndex = annualChart.data.findIndex((trace) =>
+        trace.type === "scatter" && trace.name === "Total"
+      );
+      if (totalIndex < 0) return;
+
+      const totalTrace = annualChart.data[totalIndex];
+      const xValues = Array.from(totalTrace.x || []);
+      const visibleSectorTraces = annualChart.data.filter((trace) =>
+        trace.type === "bar" && traceIsVisible(trace)
+      );
+
+      const totals = xValues.map((year, i) =>
+        visibleSectorTraces.reduce(
+          (sum, trace) => sum + Number((trace.y || [])[i] || 0),
+          0
+        )
+      );
+      const labels = totals.map((value) => value > 0 ? formatter.format(value) : "");
+      const maxTotal = Math.max.apply(null, totals.concat([0]));
+
+      syncingAnnualLegend = true;
+      Promise.resolve(
+        Plotly.restyle(
+          annualChart,
+          { y: [totals], text: [labels] },
+          [totalIndex]
+        )
+      )
+        .then(() => Plotly.relayout(annualChart, {
+          "yaxis.range": maxTotal > 0 ? [0, maxTotal * 1.16] : [0, 1]
+        }))
+        .finally(() => {
+          syncingAnnualLegend = false;
+        });
+    }
+
+    function syncCumulativeTotalWithLegend() {
+      if (syncingCumulativeLegend || !cumulativeChart.data || cumulativeChart.data.length === 0) return;
+
+      const totalIndex = cumulativeChart.data.findIndex((trace) =>
+        trace.type === "scatter" && trace.name === "Total acumulado"
+      );
+      if (totalIndex < 0) return;
+
+      const totalTrace = cumulativeChart.data[totalIndex];
+      const xValues = Array.from(totalTrace.x || []);
+      const visibleSectorTraces = cumulativeChart.data.filter((trace, index) =>
+        index !== totalIndex &&
+        trace.type === "scatter" &&
+        trace.stackgroup === "planes-total" &&
+        traceIsVisible(trace)
+      );
+
+      const totals = xValues.map((year, i) =>
+        visibleSectorTraces.reduce(
+          (sum, trace) => sum + Number((trace.y || [])[i] || 0),
+          0
+        )
+      );
+      const hover = xValues.map((year, i) =>
+        "<b>Total acumulado</b><br>Año: " + year +
+        "<br>US$ " + formatter.format(totals[i] || 0) + " millones"
+      );
+
+      syncingCumulativeLegend = true;
+      Promise.resolve(
+        Plotly.restyle(
+          cumulativeChart,
+          { y: [totals], customdata: [hover] },
+          [totalIndex]
+        )
+      )
+        .then(() => Plotly.relayout(cumulativeChart, { "yaxis.autorange": true }))
+        .finally(() => {
+          syncingCumulativeLegend = false;
+        });
+    }
+
+    function bindLegendSync() {
+      if (
+        typeof annualChart.on === "function" &&
+        annualChart.dataset.legendSyncBound !== "true"
+      ) {
+        annualChart.dataset.legendSyncBound = "true";
+        annualChart.on("plotly_restyle", function () {
+          if (!syncingAnnualLegend) {
+            window.requestAnimationFrame(syncAnnualTotalsWithLegend);
+          }
+        });
+      }
+
+      if (
+        typeof cumulativeChart.on === "function" &&
+        cumulativeChart.dataset.legendSyncBound !== "true"
+      ) {
+        cumulativeChart.dataset.legendSyncBound = "true";
+        cumulativeChart.on("plotly_restyle", function () {
+          if (!syncingCumulativeLegend) {
+            window.requestAnimationFrame(syncCumulativeTotalWithLegend);
+          }
+        });
+      }
     }
 
     function refreshControlsAndCharts() {
