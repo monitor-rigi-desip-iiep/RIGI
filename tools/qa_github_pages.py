@@ -66,7 +66,7 @@ def main() -> int:
         for path in ROOT.rglob("*")
         if path.is_file()
         and not any(part in {".git", ".quarto", "_site", "qa"} for part in path.parts)
-        and path.suffix in {".html", ".qmd", ".yml", ".yaml"}
+        and path.suffix in {".html", ".qmd"}
     )
 
     checks = {

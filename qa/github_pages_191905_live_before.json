@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-08-15",
+  "url": "https://monitor-rigi-desip-iiep.github.io/RIGI/aprobados.html",
+  "page_status": 200,
+  "responsive_script_tag_count": 0,
+  "plans_script_tag_count": 1,
+  "imports_script_tag_count": 1,
+  "plans_dataset": {
+    "defaultYearStart": "2024",
+    "defaultYearEnd": "2034",
+    "initializationError": "window.RigiResponsive"
+  },
+  "imports_dataset": {
+    "initializationError": "window.RigiResponsive"
+  },
+  "chart_children": {
+    "planes-annual-chart": 0,
+    "planes-cumulative-chart": 0,
+    "impo-sector-monthly-chart": 0,
+    "impo-sector-cumulative-chart": 0,
+    "impo-project-monthly-chart": 0,
+    "impo-project-cumulative-chart": 0
+  },
+  "responsive_resource": {
+    "url": "https://monitor-rigi-desip-iiep.github.io/RIGI/assets/rigi-responsive.js",
+    "status": 200,
+    "content_type": "application/javascript; charset=utf-8",
+    "size_bytes": 13867
+  },
+  "conclusion": "El recurso existe en GitHub Pages, pero aprobados.html no contiene la etiqueta que lo carga. Los dos módulos terminan con initializationError: window.RigiResponsive."
+}
