@@ -80,6 +80,7 @@ first_or_sd <- function(x) {
 make_indicators <- function(data, data_prov, file_update_time) {
   aprobados <- data |> dplyr::filter(aprobado)
   pendientes <- data |> dplyr::filter(pendiente_aprobacion)
+  rechazados <- data |> dplyr::filter(estado_simplificado == "Rechazado")
   aprobados_exportacion_lp <- aprobados |> dplyr::filter(proyecto_exportacion_estrategia_largo_plazo_si)
   aprobados_prov <- data_prov |> dplyr::filter(aprobado)
   pendientes_prov <- data_prov |> dplyr::filter(pendiente_aprobacion)
@@ -166,8 +167,11 @@ make_indicators <- function(data, data_prov, file_update_time) {
     monto_promedio_pendiente = mean_or_na(pendientes$monto_usd_mill),
     monto_mediano_pendiente = median_or_na(pendientes$monto_usd_mill),
 
-    participacion_monto_aprobado = monto_aprobado / monto_total,
-    participacion_proyectos_aprobados = n_aprobados / n_total
+    n_rechazados = nrow(rechazados),
+    monto_rechazado = sum_or_na(rechazados$monto_usd_mill),
+
+    participacion_monto_aprobado = ratio_or_na(monto_aprobado, monto_total),
+    participacion_proyectos_aprobados = ratio_or_na(n_aprobados, n_total)
   ) |>
     dplyr::slice(1)
 }
@@ -287,6 +291,6 @@ make_summary_text <- function(indicadores, tablas) {
   }
 
   glue::glue(
-    "El Monitor releva {fmt_integer(indicadores$n_total)} proyectos, de los cuales {fmt_integer(indicadores$n_aprobados)} se encuentran aprobados y {fmt_integer(indicadores$n_pendientes)} se incluyen en la categoría de proyectos en evaluación. El monto informado correspondiente a los proyectos aprobados asciende a {fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)}, equivalente al {fmt_pct(indicadores$participacion_monto_aprobado)} del monto total informado en la base. Entre los proyectos aprobados, el sector con mayor monto acumulado es {indicadores$sector_top_aprobado}, y la provincia con mayor monto —considerando la asignación en partes iguales en proyectos multiprovinciales— es {indicadores$provincia_top_aprobada}. Los principales proyectos aprobados por monto son: {top_projects_text}. {empleo_text} Última actualización: {indicadores$fecha_actualizacion_fmt}."
+    "El Monitor releva {fmt_integer(indicadores$n_total)} proyectos: {fmt_integer(indicadores$n_aprobados)} aprobados, {fmt_integer(indicadores$n_pendientes)} en evaluación y {fmt_integer(indicadores$n_rechazados)} proyectos rechazados. El monto informado correspondiente a los proyectos aprobados asciende a {fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)}, equivalente al {fmt_pct(indicadores$participacion_monto_aprobado)} del monto total informado en la base. Entre los proyectos aprobados, el sector con mayor monto acumulado es {indicadores$sector_top_aprobado}, y la provincia con mayor monto —considerando la asignación en partes iguales en proyectos multiprovinciales— es {indicadores$provincia_top_aprobada}. Los principales proyectos aprobados por monto son: {top_projects_text}. {empleo_text} Última actualización: {indicadores$fecha_actualizacion_fmt}."
   )
 }

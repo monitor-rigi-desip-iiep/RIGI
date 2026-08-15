@@ -1,0 +1,62 @@
+---
+title: "Comparación por estado administrativo"
+format:
+  html:
+    toc: false
+    page-layout: full
+---
+
+{{< include _partials/setup-core.qmd >}}
+
+::: page-lead
+[03 · COMPARACIÓN]{.page-kicker}
+
+# Comparación por estado administrativo
+
+Esta página permite comparar el universo relevado por estado administrativo, sector y provincia sin alterar los criterios de cálculo del Monitor.
+:::
+
+::: {.page-subnav role="navigation" aria-label="En esta sección"}
+- [Panorama](#panorama)
+- [Sectores](#sectores)
+- [Provincias](#provincias)
+- [Composición](#composicion)
+:::
+
+## Panorama general {#panorama}
+
+```{r}
+make_kpi_cards_total(indicadores)
+```
+
+```{r}
+plot_compare_counts_montos(indicadores, title = NULL)
+```
+
+## Comparación por sector {#sectores}
+
+```{r}
+plot_compare_aprobado_pendiente(
+  aprobado_tbl = tablas$sector_tbl_aprobados,
+  pendiente_tbl = tablas$sector_tbl_pendientes,
+  label_col = "sector_simplificado",
+  title = NULL
+)
+```
+
+## Comparación por provincia {#provincias}
+
+```{r}
+plot_compare_aprobado_pendiente(
+  aprobado_tbl = tablas$provincia_tbl_aprobados,
+  pendiente_tbl = tablas$provincia_tbl_pendientes,
+  label_col = "provincia_simplificada",
+  title = NULL
+)
+```
+
+## Composición del universo por estado administrativo {#composicion}
+
+```{r}
+plot_estado(tablas$estado_tbl, title = NULL)
+```

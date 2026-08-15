@@ -112,10 +112,12 @@
       return monthFormatter.format(date).replace(/^./, (x) => x.toUpperCase());
     }
 
-    function formatMonthTick(month, compact) {
-      if (!compact) return formatMonth(month);
-      const label = formatMonth(month).replace(/\s+de\s+/gi, " ");
-      return label.replace(/(\d{4})$/, (year) => year.slice(2));
+    function formatMonthTick(month) {
+      const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+      const year = month.slice(0, 4);
+      const monthNumber = Number(month.slice(5, 7));
+      const monthLabel = monthNames[monthNumber - 1] || "";
+      return monthLabel + "<br>" + year;
     }
 
     function visibleMonths(start, end) {
@@ -172,7 +174,7 @@
       const selected = months.filter((month, i) => i % step === 0 || i === months.length - 1);
       return {
         vals: selected.map(monthToDate),
-        text: selected.map((month) => formatMonthTick(month, profile && profile.compact))
+        text: selected.map((month) => formatMonthTick(month))
       };
     }
 
@@ -189,7 +191,7 @@
           l: profile.leftMargin,
           r: profile.rightMargin,
           t: profile.topMargin,
-          b: opts.bottomMargin || (hasLegend ? (profile.compact ? 112 : 105) : (profile.compact ? 72 : 76))
+          b: opts.bottomMargin || (hasLegend ? (profile.compact ? 132 : 112) : (profile.compact ? 76 : 80))
         },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
@@ -207,7 +209,7 @@
           orientation: "h",
           x: 0.5,
           xanchor: "center",
-          y: profile.compact ? -0.20 : -0.22,
+          y: profile.compact ? -0.25 : -0.22,
           yanchor: "top",
           font: { size: profile.legendFontSize }
         },
@@ -218,6 +220,7 @@
           tickmode: "array",
           tickvals: ticks.vals,
           ticktext: ticks.text,
+          tickangle: 0,
           title: { text: "Período", standoff: 10, font: { size: profile.titleFontSize } },
           tickfont: { size: profile.tickFontSize },
           showgrid: false,
@@ -238,14 +241,15 @@
     }
 
     function prepareImportChart(chart, months) {
-      return responsive.prepareScrollablePlot(chart, months.length, {
+      const profile = responsive.prepareScrollablePlot(chart, months.length, {
         mobilePixelsPerPeriod: 62,
         tabletPixelsPerPeriod: 58,
         scrollThreshold: 10,
-        mobileHeight: 400,
+        mobileHeight: 420,
         tabletHeight: 440,
         desktopHeight: 470
       });
+      return profile;
     }
 
     function labelHeadroom() {
@@ -339,6 +343,22 @@
         .replace(/'/g, "&#039;");
     }
 
+    function legendLabel(value) {
+      const words = String(value).split(/\s+/);
+      const lines = [];
+      let line = "";
+      words.forEach((word) => {
+        if (line && (line + " " + word).length > 24) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = line ? line + " " + word : word;
+        }
+      });
+      if (line) lines.push(line);
+      return lines.slice(0, 2).join("<br>");
+    }
+
     // ---------------------------------------------------------------------
     // Sector
     // ---------------------------------------------------------------------
@@ -365,7 +385,9 @@
         const y = months.map((month) => bySectorMonth.get(sector + "|||" + month) || 0);
         return {
           type: "bar",
-          name: sector,
+          name: legendLabel(sector),
+          legendgroup: sector,
+          meta: { sector: sector },
           x: months.map(monthToDate),
           y: y,
           marker: { color: sectorColors[sector] || "#64748B" },
@@ -379,7 +401,7 @@
         trace.customdata = trace.customdata.map((d, i) => {
           const share = monthlyTotals[i] > 0 ? d.value / monthlyTotals[i] : 0;
           return (
-            "<b>" + trace.name + "</b><br>" +
+            "<b>" + trace.meta.sector + "</b><br>" +
             "Período: " + formatMonth(d.month) + "<br>" +
             "Importaciones: US$ " + formatter.format(d.value) + " millones<br>" +
             "Participación: " + pctFormatter.format(share)
@@ -404,7 +426,9 @@
         const y = months.map((month) => cumulative[sector][month] || 0);
         return {
           type: "bar",
-          name: sector,
+          name: legendLabel(sector),
+          legendgroup: sector,
+          meta: { sector: sector },
           x: months.map(monthToDate),
           y: y,
           marker: { color: sectorColors[sector] || "#64748B" },
@@ -417,7 +441,7 @@
         trace.customdata = trace.customdata.map((d, i) => {
           const share = cumulativeTotals[i] > 0 ? d.value / cumulativeTotals[i] : 0;
           return (
-            "<b>" + trace.name + "</b><br>" +
+            "<b>" + trace.meta.sector + "</b><br>" +
             "Período: " + formatMonth(d.month) + "<br>" +
             "Importaciones acumuladas: US$ " + formatter.format(d.value) + " millones<br>" +
             "Participación: " + pctFormatter.format(share)
@@ -464,7 +488,7 @@
             const total = totals[i] || 0;
             const share = total > 0 ? value / total : 0;
             return (
-              "<b>" + trace.name + "</b><br>" +
+              "<b>" + (trace.meta && trace.meta.sector ? trace.meta.sector : trace.name) + "</b><br>" +
               "Período: " + formatMonth(dateToMonth(x)) + "<br>" +
               (cumulative ? "Importaciones acumuladas: " : "Importaciones: ") +
               "US$ " + formatter.format(value) + " millones<br>" +
@@ -726,6 +750,12 @@
       renderProjectCharts();
     }
 
+    function closeCompactMenu(input) {
+      if (!responsive.isMobile() || !input) return;
+      const details = input.closest("details");
+      if (details) details.open = false;
+    }
+
     // ---------------------------------------------------------------------
     // Eventos: sector
     // ---------------------------------------------------------------------
@@ -746,10 +776,14 @@
     controls.sector.all.addEventListener("change", function () {
       controls.sector.inputs.forEach((input) => { input.checked = controls.sector.all.checked; });
       refreshSectorControls();
+      closeCompactMenu(controls.sector.all);
     });
 
     controls.sector.inputs.forEach((input) => {
-      input.addEventListener("change", refreshSectorControls);
+      input.addEventListener("change", function () {
+        refreshSectorControls();
+        closeCompactMenu(input);
+      });
     });
 
     controls.sector.reset.addEventListener("click", function () {
@@ -780,12 +814,14 @@
       controls.project.sectorInputs.forEach((input) => { input.checked = controls.project.sectorAll.checked; });
       refreshProjectAvailability({ selectAll: controls.project.sectorAll.checked });
       renderProjectCharts();
+      closeCompactMenu(controls.project.sectorAll);
     });
 
     controls.project.sectorInputs.forEach((input) => {
       input.addEventListener("change", function () {
         refreshProjectAvailability({ ensureSelection: true });
         renderProjectCharts();
+        closeCompactMenu(input);
       });
     });
 

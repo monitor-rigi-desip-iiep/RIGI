@@ -121,9 +121,25 @@
     }
 
     function labelHeadroom() {
-      if (responsive.isMobile()) return 1.22;
-      if (responsive.isTablet()) return 1.19;
-      return 1.16;
+      if (responsive.isMobile()) return 1.14;
+      if (responsive.isTablet()) return 1.12;
+      return 1.10;
+    }
+
+    function totalLabels(values) {
+      return values.map((value) => value > 0 ? formatter.format(value) : "");
+    }
+
+    function totalLabelFontSize(profile) {
+      if (profile && profile.mobile) return 8;
+      if (profile && profile.tablet) return 9;
+      return 10;
+    }
+
+    function yearTickFontSize(profile) {
+      if (profile && profile.mobile) return 8.5;
+      if (profile && profile.tablet) return 9.5;
+      return 10.5;
     }
 
     function renderCharts() {
@@ -138,18 +154,22 @@
 
       const visibleYears = allYears.filter((y) => y >= start && y <= end);
       const annualProfile = responsive.prepareScrollablePlot(annualChart, visibleYears.length, {
-        mobilePixelsPerPeriod: 50,
-        tabletPixelsPerPeriod: 46,
-        scrollThreshold: 12,
-        mobileHeight: 400,
+        mobilePixelsPerPeriod: 56,
+        tabletPixelsPerPeriod: 54,
+        desktopPixelsPerPeriod: 54,
+        scrollThreshold: 14,
+        allowDesktopScroll: true,
+        mobileHeight: 420,
         tabletHeight: 440,
         desktopHeight: 470
       });
       const cumulativeProfile = responsive.prepareScrollablePlot(cumulativeChart, visibleYears.length, {
-        mobilePixelsPerPeriod: 50,
-        tabletPixelsPerPeriod: 46,
-        scrollThreshold: 12,
-        mobileHeight: 400,
+        mobilePixelsPerPeriod: 58,
+        tabletPixelsPerPeriod: 56,
+        desktopPixelsPerPeriod: 56,
+        scrollThreshold: 14,
+        allowDesktopScroll: true,
+        mobileHeight: 420,
         tabletHeight: 440,
         desktopHeight: 470
       });
@@ -163,6 +183,22 @@
           ? "Todos"
           : activeSectorSubs.join(", ");
       });
+
+      function legendLabel(value) {
+        const words = String(value).split(/\s+/);
+        const lines = [];
+        let line = "";
+        words.forEach((word) => {
+          if (line && (line + " " + word).length > 24) {
+            lines.push(line);
+            line = word;
+          } else {
+            line = line ? line + " " + word : word;
+          }
+        });
+        if (line) lines.push(line);
+        return lines.slice(0, 2).join("<br>");
+      }
 
       const baseLayout = {
         autosize: true,
@@ -179,23 +215,24 @@
           l: annualProfile.leftMargin,
           r: annualProfile.rightMargin,
           t: annualProfile.topMargin,
-          b: annualProfile.compact ? 108 : 100
+          b: annualProfile.compact ? 132 : 112
         },
         legend: {
           orientation: "h",
           x: 0.5,
           xanchor: "center",
-          y: annualProfile.compact ? -0.20 : -0.18,
+          y: annualProfile.compact ? -0.25 : -0.20,
           yanchor: "top",
           font: { size: annualProfile.legendFontSize }
         },
         hoverlabel: { bgcolor: "#FFFFFF", bordercolor: "#CBD5E1", font: { color: "#0F172A" } },
-        uniformtext: { mode: "hide", minsize: 9 },
         xaxis: {
           title: { text: "Año", standoff: 8, font: { size: annualProfile.titleFontSize } },
-          tickmode: "linear",
-          dtick: annualProfile.compact ? 1 : Math.max(1, Math.ceil(Math.max(1, end - start + 1) / 12)),
-          tickfont: { size: annualProfile.tickFontSize },
+          tickmode: "array",
+          tickvals: visibleYears,
+          ticktext: visibleYears.map((year) => String(year)),
+          tickangle: 0,
+          tickfont: { size: yearTickFontSize(annualProfile) },
           showgrid: false,
           zeroline: false,
           automargin: true,
@@ -234,23 +271,26 @@
             "Año: " + year + "<br>" +
             "Monto: US$ " + formatter.format(y[i]) + " millones<br>" +
             "Participación: " + pctFormatter.format(share) + "<br>" +
-            "Subsectores: " + sectorSubsectorLabel[sector]
+            "Subsectores: " + sectorSubsectorLabel[sector] + "<br>" +
+            "Total visible: US$ " + formatter.format(total) + " millones"
           );
         });
 
         return {
           type: "bar",
-          name: sector,
+          name: legendLabel(sector),
+          legendgroup: sector,
           x: visibleYears,
           y: y,
           marker: { color: sectorColors[sector] || "#64748B" },
+          meta: { sector: sector, subsectors: sectorSubsectorLabel[sector] },
           customdata: hover,
           hovertemplate: "%{customdata}<extra></extra>"
         };
       });
 
       const annualTotals = visibleYears.map((year) => byYear.get(year) || 0);
-      const annualLabels = annualTotals.map((value) => value > 0 ? formatter.format(value) : "");
+      const annualLabels = totalLabels(annualTotals);
       annualTraces.push({
         type: "scatter",
         mode: "text",
@@ -260,7 +300,7 @@
         y: annualTotals,
         text: annualLabels,
         textposition: "top center",
-        textfont: { color: "#334155", size: annualProfile.textFontSize },
+        textfont: { color: "#334155", size: totalLabelFontSize(annualProfile) },
         cliponaxis: false,
         hoverinfo: "skip"
       });
@@ -296,43 +336,55 @@
 
       const cumulativeTraces = selectedSectors.map((sector) => {
         const y = visibleYears.map((year) => cumulativeBySector[sector][year] || 0);
-        const hover = visibleYears.map((year, i) =>
-          "<b>" + sector + "</b><br>" +
-          "Año: " + year + "<br>" +
-          "Acumulado del sector: US$ " + formatter.format(y[i]) + " millones<br>" +
-          "Acumulado total: US$ " + formatter.format(cumulativeTotal[year] || 0) + " millones"
-        );
-
         return {
-          type: "scatter",
-          mode: "lines",
-          name: sector,
+          type: "bar",
+          name: legendLabel(sector),
+          legendgroup: sector,
           x: visibleYears,
           y: y,
-          stackgroup: "planes-total",
-          line: { color: sectorColors[sector] || "#64748B", width: 1.5 },
-          fillcolor: sectorColors[sector] || "#64748B",
-          customdata: hover,
+          marker: { color: sectorColors[sector] || "#64748B" },
+          meta: { sector: sector },
+          customdata: visibleYears.map((year, i) => ({ year: year, value: y[i] })),
           hovertemplate: "%{customdata}<extra></extra>"
         };
       });
 
-      cumulativeTraces.push({
-        type: "scatter",
-        mode: "lines",
-        name: "Total acumulado",
-        x: visibleYears,
-        y: visibleYears.map((year) => cumulativeTotal[year] || 0),
-        line: { color: "#0F172A", width: 2.5 },
-        customdata: visibleYears.map((year) =>
-          "<b>Total acumulado</b><br>Año: " + year + "<br>US$ " + formatter.format(cumulativeTotal[year] || 0) + " millones"
-        ),
-        hovertemplate: "%{customdata}<extra></extra>"
+      const cumulativeTotals = visibleYears.map((year) => cumulativeTotal[year] || 0);
+      cumulativeTraces.forEach((trace) => {
+        trace.customdata = trace.customdata.map((d, i) => {
+          const share = cumulativeTotals[i] > 0 ? d.value / cumulativeTotals[i] : 0;
+          return (
+            "<b>" + trace.meta.sector + "</b><br>" +
+            "Año: " + d.year + "<br>" +
+            "Plan de inversión acumulado: US$ " + formatter.format(d.value) + " millones<br>" +
+            "Participación: " + pctFormatter.format(share) + "<br>" +
+            "Total acumulado visible: US$ " + formatter.format(cumulativeTotals[i]) + " millones"
+          );
+        });
       });
 
+      cumulativeTraces.push({
+        type: "scatter",
+        mode: "text",
+        name: "Total acumulado",
+        showlegend: false,
+        x: visibleYears,
+        y: cumulativeTotals,
+        text: totalLabels(cumulativeTotals),
+        textposition: "top center",
+        textfont: { color: "#334155", size: totalLabelFontSize(cumulativeProfile) },
+        cliponaxis: false,
+        hoverinfo: "skip"
+      });
+
+      const maxCumulative = Math.max.apply(null, cumulativeTotals.concat([0]));
       const cumulativeLayout = Object.assign({}, baseLayout, {
         height: cumulativeProfile.height,
-        hovermode: "x unified"
+        barmode: "stack",
+        bargap: 0.30,
+        yaxis: Object.assign({}, baseLayout.yaxis, {
+          range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
+        })
       });
 
       Promise.resolve(
@@ -364,23 +416,49 @@
           0
         )
       );
-      const labels = totals.map((value) => value > 0 ? formatter.format(value) : "");
+      const profile = responsive.getResponsivePlotConfig({
+        mobileHeight: 420,
+        tabletHeight: 440,
+        desktopHeight: 470
+      });
+      const labels = totalLabels(totals);
       const maxTotal = Math.max.apply(null, totals.concat([0]));
 
       syncingAnnualLegend = true;
-      Promise.resolve(
+
+      const hoverUpdates = annualChart.data
+        .map((trace, index) => ({ trace, index }))
+        .filter(({ trace }) => trace.type === "bar")
+        .map(({ trace, index }) => {
+          const hover = xValues.map((year, i) => {
+            const value = Number((trace.y || [])[i] || 0);
+            const total = totals[i] || 0;
+            const share = total > 0 ? value / total : 0;
+            const subsectors = trace.meta && trace.meta.subsectors ? trace.meta.subsectors : "Todos";
+            return (
+              "<b>" + (trace.meta && trace.meta.sector ? trace.meta.sector : trace.name) + "</b><br>" +
+              "Año: " + year + "<br>" +
+              "Monto: US$ " + formatter.format(value) + " millones<br>" +
+              "Participación: " + pctFormatter.format(share) + "<br>" +
+              "Subsectores: " + subsectors + "<br>" +
+              "Total visible: US$ " + formatter.format(total) + " millones"
+            );
+          });
+          return Plotly.restyle(annualChart, { customdata: [hover] }, [index]);
+        });
+
+      Promise.all(hoverUpdates.concat([
         Plotly.restyle(
           annualChart,
           { y: [totals], text: [labels] },
           [totalIndex]
-        )
-      )
-        .then(() => Plotly.relayout(annualChart, {
+        ),
+        Plotly.relayout(annualChart, {
           "yaxis.range": maxTotal > 0 ? [0, maxTotal * labelHeadroom()] : [0, 1]
-        }))
-        .finally(() => {
-          syncingAnnualLegend = false;
-        });
+        })
+      ])).finally(() => {
+        syncingAnnualLegend = false;
+      });
     }
 
     function syncCumulativeTotalWithLegend() {
@@ -393,11 +471,8 @@
 
       const totalTrace = cumulativeChart.data[totalIndex];
       const xValues = Array.from(totalTrace.x || []);
-      const visibleSectorTraces = cumulativeChart.data.filter((trace, index) =>
-        index !== totalIndex &&
-        trace.type === "scatter" &&
-        trace.stackgroup === "planes-total" &&
-        traceIsVisible(trace)
+      const visibleSectorTraces = cumulativeChart.data.filter((trace) =>
+        trace.type === "bar" && traceIsVisible(trace)
       );
 
       const totals = xValues.map((year, i) =>
@@ -406,23 +481,47 @@
           0
         )
       );
-      const hover = xValues.map((year, i) =>
-        "<b>Total acumulado</b><br>Año: " + year +
-        "<br>US$ " + formatter.format(totals[i] || 0) + " millones"
-      );
+      const profile = responsive.getResponsivePlotConfig({
+        mobileHeight: 420,
+        tabletHeight: 440,
+        desktopHeight: 470
+      });
+      const labels = totalLabels(totals);
+      const maxTotal = Math.max.apply(null, totals.concat([0]));
 
       syncingCumulativeLegend = true;
-      Promise.resolve(
+
+      const hoverUpdates = cumulativeChart.data
+        .map((trace, index) => ({ trace, index }))
+        .filter(({ trace }) => trace.type === "bar")
+        .map(({ trace, index }) => {
+          const hover = xValues.map((year, i) => {
+            const value = Number((trace.y || [])[i] || 0);
+            const total = totals[i] || 0;
+            const share = total > 0 ? value / total : 0;
+            return (
+              "<b>" + (trace.meta && trace.meta.sector ? trace.meta.sector : trace.name) + "</b><br>" +
+              "Año: " + year + "<br>" +
+              "Plan de inversión acumulado: US$ " + formatter.format(value) + " millones<br>" +
+              "Participación: " + pctFormatter.format(share) + "<br>" +
+              "Total acumulado visible: US$ " + formatter.format(total) + " millones"
+            );
+          });
+          return Plotly.restyle(cumulativeChart, { customdata: [hover] }, [index]);
+        });
+
+      Promise.all(hoverUpdates.concat([
         Plotly.restyle(
           cumulativeChart,
-          { y: [totals], customdata: [hover] },
+          { y: [totals], text: [labels] },
           [totalIndex]
-        )
-      )
-        .then(() => Plotly.relayout(cumulativeChart, { "yaxis.autorange": true }))
-        .finally(() => {
-          syncingCumulativeLegend = false;
-        });
+        ),
+        Plotly.relayout(cumulativeChart, {
+          "yaxis.range": maxTotal > 0 ? [0, maxTotal * labelHeadroom()] : [0, 1]
+        })
+      ])).finally(() => {
+        syncingCumulativeLegend = false;
+      });
     }
 
     function bindLegendSync() {
@@ -459,6 +558,12 @@
       renderCharts();
     }
 
+    function closeCompactMenu(input) {
+      if (!responsive.isMobile() || !input) return;
+      const details = input.closest("details");
+      if (details) details.open = false;
+    }
+
     yearStart.addEventListener("change", function () {
       if (Number(yearStart.value) > Number(yearEnd.value)) yearEnd.value = yearStart.value;
       renderCharts();
@@ -473,6 +578,7 @@
       sectorInputs.forEach((input) => { input.checked = sectorAll.checked; });
       refreshSubsectorAvailability(true);
       refreshControlsAndCharts();
+      closeCompactMenu(sectorAll);
     });
 
     sectorInputs.forEach((input) => {
@@ -481,6 +587,7 @@
         updateSummary(sectorSummary, sectorInputs, "Todos los sectores", "seleccionados");
         refreshSubsectorAvailability(true);
         renderCharts();
+        closeCompactMenu(input);
       });
     });
 
@@ -489,10 +596,14 @@
         if (!input.disabled) input.checked = subsectorAll.checked;
       });
       refreshControlsAndCharts();
+      closeCompactMenu(subsectorAll);
     });
 
     subsectorInputs.forEach((input) => {
-      input.addEventListener("change", refreshControlsAndCharts);
+      input.addEventListener("change", function () {
+        refreshControlsAndCharts();
+        closeCompactMenu(input);
+      });
     });
 
     resetButton.addEventListener("click", function () {

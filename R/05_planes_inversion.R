@@ -267,6 +267,11 @@ make_planes_inversion_module <- function(data) {
         htmltools::HTML(colors_json)
       ),
 
+      htmltools::tags$p(
+        class = "plans-interaction-note",
+        "Usá los filtros para elegir el período, uno o varios sectores y subsectores. También podés tocar las etiquetas de la leyenda debajo de cada gráfico para ocultar o volver a mostrar sectores sin cambiar el filtro."
+      ),
+
       htmltools::div(
         class = "plans-filter-panel",
         htmltools::div(
@@ -355,7 +360,7 @@ make_planes_inversion_module <- function(data) {
             type = "button",
             id = "plans-reset",
             class = "plans-reset-button",
-            "Limpiar filtros"
+            "Restablecer filtros"
           )
         )
       ),

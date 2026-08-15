@@ -1,0 +1,49 @@
+---
+title: "Fuentes y metodología"
+format:
+  html:
+    toc: false
+    page-layout: full
+---
+
+{{< include _partials/setup-core.qmd >}}
+
+::: page-lead
+[05 · METODOLOGÍA]{.page-kicker}
+
+# Fuentes y metodología
+
+Esta página documenta el alcance, las fuentes y los criterios utilizados para construir los indicadores del Monitor.
+:::
+
+::: {.page-subnav role="navigation" aria-label="En esta sección"}
+- [Alcance](#alcance)
+- [Fuentes](#fuentes)
+- [Variables monetarias](#variables-monetarias)
+- [Distribución territorial](#distribucion-territorial)
+:::
+
+::: method-box
+## Alcance {#alcance}
+
+El Monitor distingue entre proyectos aprobados y proyectos en evaluación de acuerdo con la información pública disponible a la fecha de actualización. La categoría **Proyectos en evaluación** reúne proyectos identificados públicamente como presentados, en análisis, pendientes de resolución o en evaluación que no cuentan con una resolución de aprobación publicada en el Boletín Oficial. Cuando el estado administrativo no puede verificarse mediante una fuente oficial, esa limitación debe interpretarse a partir de las fuentes consignadas en la ficha correspondiente.
+
+## Fuentes {#fuentes}
+
+**Proyectos aprobados.** Las principales fuentes son las resoluciones publicadas en el [**Boletín Oficial**](https://www.boletinoficial.gob.ar/) y el [**sitio oficial del RIGI**](https://www.argentina.gob.ar/economia/rigi). La identificación de las empresas involucradas en cada proyecto se complementa con datos de [**Globaris**](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708).
+
+**Proyectos en evaluación.** El relevamiento se construye a partir de distintas fuentes públicas, entre ellas [**Globaris**](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708), sitios web empresariales, anuncios públicos y medios periodísticos. Esta información se complementa con otras fuentes disponibles cuando resulta necesario. Las fuentes utilizadas se detallan en la ficha de cada proyecto para garantizar la trazabilidad de la información.
+
+**Empleo.** Los datos de empleo directo e indirecto corresponden a los valores informados en el [**sitio oficial del RIGI**](https://www.argentina.gob.ar/economia/rigi). No se imputan valores para proyectos sin información disponible.
+
+## Variables monetarias {#variables-monetarias}
+
+Los montos de inversión informados y los activos computables se expresan en **millones de USD**, salvo indicación en contrario. La denominación “monto de proyectos aprobados” refiere al monto informado para el conjunto de proyectos cuya adhesión al régimen fue aprobada y no implica que se trate de inversión efectivamente ejecutada.
+
+## Distribución territorial {#distribucion-territorial}
+
+Cuando un proyecto abarca más de una provincia, el monto de inversión, los activos computables y el empleo informado se distribuyen en partes iguales entre las provincias involucradas.
+
+**Última actualización:** `r indicadores$fecha_actualizacion_fmt`  
+**Última modificación del archivo fuente:** `r indicadores$fecha_modificacion_archivo_fmt`.
+:::

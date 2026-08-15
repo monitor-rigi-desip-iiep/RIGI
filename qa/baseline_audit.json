@@ -1,0 +1,262 @@
+{
+  "master": {
+    "metrics": {
+      "projects_total": 40,
+      "projects_approved": 21,
+      "projects_pending": 18,
+      "projects_rejected": 1,
+      "amount_total_mill_usd": 135190.0,
+      "amount_approved_mill_usd": 46708.0,
+      "amount_pending_mill_usd": 88209.0,
+      "amount_rejected_mill_usd": 273.0,
+      "assets_total_mill_usd": 30440.0,
+      "assets_approved_mill_usd": 30440.0,
+      "employment_approved": 95158.0,
+      "approved_with_employment": 21,
+      "peelp_approved": 5,
+      "peelp_approved_amount_mill_usd": 35059.0
+    },
+    "checks": {
+      "missing_columns": [],
+      "missing_id": 0,
+      "duplicate_id": 0,
+      "duplicate_project_name": 0,
+      "missing_sector": 0,
+      "missing_province": 0,
+      "invalid_cuit_among_present": 1,
+      "missing_cuit": 19,
+      "approved_without_resolution": 0,
+      "approved_without_resolution_link": 0,
+      "invalid_resolution_links": 0,
+      "duplicate_resolution_links": 0,
+      "approved_and_pending_overlap": 0,
+      "impossible_dates": {
+        "fecha_presentacion": 0,
+        "fecha_adhesion_rigi": 0,
+        "fecha_publicacion_bo": 0
+      },
+      "presentation_after_adhesion": 0,
+      "adhesion_after_publication": 0,
+      "numeric": {
+        "Monto (mill. USD)": {
+          "missing": 0,
+          "non_convertible": 0,
+          "negative": 0
+        },
+        "Monto (mill. USD) - aprobados resolución": {
+          "missing": 0,
+          "non_convertible": 0,
+          "negative": 0
+        },
+        "Activos Computables (mill. USD)": {
+          "missing": 19,
+          "non_convertible": 0,
+          "negative": 0
+        },
+        "Empleos (directos e indirectos)": {
+          "missing": 19,
+          "non_convertible": 0,
+          "negative": 0
+        }
+      },
+      "amount_concept_differences": [
+        {
+          "id_proyecto": 2,
+          "VPU": "Diablillos",
+          "Monto (mill. USD)": 764,
+          "Monto (mill. USD) - aprobados resolución": 482
+        },
+        {
+          "id_proyecto": 3,
+          "VPU": "Carbonatos Profundos (DCP)",
+          "Monto (mill. USD)": 665,
+          "Monto (mill. USD) - aprobados resolución": 520
+        },
+        {
+          "id_proyecto": 5,
+          "VPU": "Parque Solar El Quemado y Anexos",
+          "Monto (mill. USD)": 211,
+          "Monto (mill. USD) - aprobados resolución": 212
+        },
+        {
+          "id_proyecto": 6,
+          "VPU": "Proyecto de Licuefacción de Gas Natural (FLNG - Southern Energy)",
+          "Monto (mill. USD)": 15156,
+          "Monto (mill. USD) - aprobados resolución": 6878
+        },
+        {
+          "id_proyecto": 8,
+          "VPU": "PSJ Cobre Mendocino",
+          "Monto (mill. USD)": 891,
+          "Monto (mill. USD) - aprobados resolución": 613
+        },
+        {
+          "id_proyecto": 10,
+          "VPU": "Expansión Fase 1B",
+          "Monto (mill. USD)": 531,
+          "Monto (mill. USD) - aprobados resolución": 251
+        },
+        {
+          "id_proyecto": 12,
+          "VPU": "Vaca Muerta Oleoducto Sur (VMOS)",
+          "Monto (mill. USD)": 2900,
+          "Monto (mill. USD) - aprobados resolución": 3050
+        },
+        {
+          "id_proyecto": 13,
+          "VPU": "Ampliación Fases 8 y 9 del Sistema de Lixiviación en Valle de Mina Veladero",
+          "Monto (mill. USD)": 436,
+          "Monto (mill. USD) - aprobados resolución": 380
+        },
+        {
+          "id_proyecto": 17,
+          "VPU": "Ampliación Caucharí Olaroz",
+          "Monto (mill. USD)": 1241,
+          "Monto (mill. USD) - aprobados resolución": 1167
+        },
+        {
+          "id_proyecto": 25,
+          "VPU": "Proyecto Rincón de Aranda (RDA)",
+          "Monto (mill. USD)": 4522,
+          "Monto (mill. USD) - aprobados resolución": 4521
+        },
+        {
+          "id_proyecto": 37,
+          "VPU": "Hombre Muerto Oeste (HMW)",
+          "Monto (mill. USD)": 292,
+          "Monto (mill. USD) - aprobados resolución": 217
+        }
+      ]
+    },
+    "territorial": {
+      "total": {
+        "project_rows": 40,
+        "territorial_rows": 51,
+        "amount_original": 135190.0,
+        "amount_expanded": 135190.0,
+        "assets_original": 30440.0,
+        "assets_expanded": 30440.0,
+        "employment_original": 95158.0,
+        "employment_expanded": 95158.0
+      },
+      "approved": {
+        "project_rows": 21,
+        "territorial_rows": 25,
+        "amount_original": 46708.0,
+        "amount_expanded": 46708.0,
+        "assets_original": 30440.0,
+        "assets_expanded": 30440.0,
+        "employment_original": 95158.0,
+        "employment_expanded": 95158.0
+      },
+      "pending": {
+        "project_rows": 18,
+        "territorial_rows": 25,
+        "amount_original": 88209.0,
+        "amount_expanded": 88209.0,
+        "assets_original": null,
+        "assets_expanded": null,
+        "employment_original": null,
+        "employment_expanded": null
+      }
+    }
+  },
+  "plans": {
+    "rows": 264,
+    "years": [
+      2024,
+      2025,
+      2026,
+      2027,
+      2028,
+      2029,
+      2030,
+      2031,
+      2032,
+      2033,
+      2034,
+      2035,
+      2036,
+      2037,
+      2038,
+      2039,
+      2040,
+      2041,
+      2042,
+      2043,
+      2044,
+      2045,
+      2046,
+      2047,
+      2048,
+      2049,
+      2050,
+      2051,
+      2052,
+      2053,
+      2054,
+      2055,
+      2056
+    ],
+    "amount_total_mill_usd": 46024.0,
+    "exact_duplicates": 0,
+    "key_duplicates": 0,
+    "missing_amount": 0,
+    "negative_amount": 0,
+    "bad_sector_totals": 0,
+    "bad_annual_totals": 0
+  },
+  "imports": {
+    "rows": 1846,
+    "columns": 10,
+    "fob_is_numeric": true,
+    "fob_non_convertible": 0,
+    "fob_negative": 0,
+    "invalid_month": 0,
+    "period_outside_bounds": 0,
+    "exact_duplicates": 0,
+    "fob_total_usd": 291382529.31
+  },
+  "downloads": {
+    "base_completa": {
+      "csv_rows": 40,
+      "xlsx_rows": 40,
+      "columns": 26,
+      "same_shape": true,
+      "same_columns": true,
+      "same_values": true
+    },
+    "base_interactiva_aprobados": {
+      "csv_rows": 21,
+      "xlsx_rows": 21,
+      "columns": 26,
+      "same_shape": true,
+      "same_columns": true,
+      "same_values": true
+    },
+    "base_interactiva_pendientes": {
+      "csv_rows": 18,
+      "xlsx_rows": 18,
+      "columns": 26,
+      "same_shape": true,
+      "same_columns": true,
+      "same_values": true
+    },
+    "planes_inversion": {
+      "csv_rows": 264,
+      "xlsx_rows": 264,
+      "columns": 7,
+      "same_shape": true,
+      "same_columns": true,
+      "same_values": true
+    },
+    "importaciones_proyectos": {
+      "csv_rows": 1846,
+      "xlsx_rows": 1846,
+      "columns": 10,
+      "same_shape": true,
+      "same_columns": true,
+      "same_values": true
+    }
+  }
+}

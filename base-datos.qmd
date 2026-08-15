@@ -1,0 +1,35 @@
+---
+title: "Base de datos"
+format:
+  html:
+    toc: false
+    page-layout: full
+---
+
+{{< include _partials/setup-core.qmd >}}
+
+::: page-lead
+[04 · DATOS ABIERTOS]{.page-kicker}
+
+# Base de datos completa
+
+La base reúne la información sistematizada para el conjunto de proyectos incluidos en el Monitor, junto con las principales variables de identificación, características del proyecto, montos informados, localización, estado administrativo y fuentes disponibles.
+:::
+
+## Descargas {#descargas}
+
+```{r}
+make_download_links("total")
+```
+
+**Datos abiertos.** La base utilizada para la elaboración del Monitor se encuentra disponible para su descarga en formatos XLSX y CSV.
+
+## Fichas y buscador {#fichas}
+
+```{r}
+make_rigi_project_cards(
+  tablas$base_total,
+  table_type = "total",
+  caption = "Base de datos completa de proyectos"
+)
+```

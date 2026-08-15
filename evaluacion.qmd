@@ -1,0 +1,105 @@
+---
+title: "Proyectos en evaluación"
+format:
+  html:
+    toc: false
+    page-layout: full
+---
+
+{{< include _partials/setup-core.qmd >}}
+
+::: page-lead
+[02 · PROYECTOS EN EVALUACIÓN]{.page-kicker}
+
+# Proyectos en evaluación
+
+Esta sección reúne proyectos identificados públicamente como presentados al RIGI, en análisis, pendientes de resolución o en evaluación que, a la fecha de actualización del Monitor, no cuentan con una resolución de aprobación registrada.
+:::
+
+::: {.page-subnav role="navigation" aria-label="En esta sección"}
+- [Panorama](#panorama)
+- [Inversión](#inversion)
+- [Cronología](#cronologia)
+- [Fichas](#fichas)
+:::
+
+## Panorama {#panorama}
+
+### Indicadores principales
+
+```{r}
+make_kpi_cards_pendientes(indicadores)
+```
+
+## Inversión {#inversion}
+
+### Monto informado por sector
+
+```{r}
+plot_bar_monto(
+  tablas$sector_tbl_pendientes,
+  label_col = "sector_simplificado",
+  title = NULL,
+  fill_color = bar_color_pending
+)
+```
+
+### Monto informado por provincia
+
+```{r}
+make_province_note()
+```
+
+```{r}
+plot_bar_monto(
+  tablas$provincia_tbl_pendientes,
+  label_col = "provincia_simplificada",
+  title = NULL,
+  fill_color = bar_color_pending
+)
+```
+
+### Principales proyectos en evaluación por monto informado
+
+```{r}
+plot_top_proyectos_monto(
+  tablas$top_projects_pendientes,
+  title = NULL,
+  fill_color = bar_color_pending,
+  total_value = indicadores$monto_pendiente,
+  share_reference = "del monto informado en proyectos en evaluación"
+)
+```
+
+## Cronología de presentaciones {#cronologia}
+
+```{r}
+make_chart_context_note(
+  "Cada fila representa un proyecto, ordenado por fecha de presentación. ",
+  "El tamaño de la burbuja indica el monto de inversión. Tocá o pasá el cursor sobre una burbuja para consultar los detalles del proyecto."
+)
+```
+
+```{r}
+plot_timeline(
+  tablas$timeline_pendientes_tbl,
+  date_col = "fecha_presentacion",
+  title = NULL
+)
+```
+
+## Fichas de proyectos en evaluación {#fichas}
+
+```{r}
+make_download_links("pendientes")
+```
+
+**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formatos XLSX y CSV.
+
+```{r}
+make_rigi_project_cards(
+  tablas$base_pendientes,
+  table_type = "pendientes",
+  caption = "Base de datos de proyectos en evaluación"
+)
+```

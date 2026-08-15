@@ -1,6 +1,6 @@
 # Monitor de Proyectos RIGI
 
-**DESIP — Desarrollo e internacionalización productiva · IIEP (UBA-CONICET)**
+**DESIP · IIEP**
 
 El Monitor reúne y sistematiza información pública sobre los proyectos aprobados y en evaluación en el marco del Régimen de Incentivo para Grandes Inversiones (RIGI). La publicación ofrece indicadores, fichas de proyectos y bases descargables para facilitar la consulta, reutilización y análisis de la información.
 
@@ -19,6 +19,11 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
 
 ## Cambios de esta versión
 
+- El Monitor se organiza en seis páginas Quarto: resumen, aprobados, evaluación, comparación, base de datos y metodología.
+- La navegación global permanece visible, indica la página activa y se transforma en un menú `Contenido` accesible en pantallas pequeñas.
+- Las páginas extensas cuentan con un único índice interno; la portada conserva el resumen y deriva cada tema a su página correspondiente.
+- Los filtros de Planes de inversión e Importaciones se ubican en barras independientes por encima de los gráficos; las leyendas Plotly permanecen debajo del área de datos.
+- Los controles, fichas, tablas y contenedores de gráficos incorporan un tratamiento mobile-first para 320–430 px, tablet, notebook y escritorio.
 - El informe prioriza primero los **proyectos aprobados**.
 - Luego muestra los **proyectos en evaluación**.
 - Los montos se muestran en **millones de USD**, sin abreviaturas tipo `B`.
@@ -37,7 +42,7 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
 - Los gráficos muestran etiquetas directas con valor y participación, sin
   recuadros blancos ni títulos internos repetidos.
 - Se utiliza una paleta semántica: azul para inversión aprobada, naranja para
-  pendientes, verde petróleo para empleo y violeta para PEELP.
+  pendientes, verde petróleo para empleo y azul petróleo para PEELP.
 - Las fichas de proyectos en evaluación muestran fuentes individuales con
   enlaces seguros construidos automáticamente desde el Excel.
 - Las descargas conservan una representación trazable `Fuente [URL]` y también

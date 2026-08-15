@@ -1,0 +1,20 @@
+```{r setup-core}
+source("R/00_packages.R")
+source("R/01_load_data.R")
+source("R/02_clean_data.R")
+source("R/03_indicators.R")
+source("R/04_plots.R")
+
+raw_data <- load_proyectos()
+raw_sources <- load_fuentes_proyectos()
+project_sources <- build_project_sources(raw_data, raw_sources)
+proyectos <- clean_proyectos(raw_data) |>
+  attach_project_sources(project_sources)
+proyectos_prov <- expand_provincias(proyectos)
+file_update_time <- get_file_update_time()
+indicadores <- make_indicators(proyectos, proyectos_prov, file_update_time)
+tablas <- make_tables(proyectos, proyectos_prov)
+downloads <- create_download_files(proyectos)
+auditoria_fuentes <- make_source_audit(proyectos)
+resumen_ejecutivo <- make_summary_text(indicadores, tablas)
+```

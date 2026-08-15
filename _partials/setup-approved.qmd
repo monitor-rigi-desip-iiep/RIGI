@@ -1,0 +1,11 @@
+```{r setup-approved}
+source("R/05_planes_inversion.R")
+source("R/06_importaciones.R")
+
+planes_inversion <- load_planes_inversion()
+validate_planes_inversion(planes_inversion)
+planes_downloads <- create_planes_inversion_downloads(planes_inversion)
+importaciones_rigi <- load_importaciones_rigi()
+validate_importaciones_rigi(importaciones_rigi)
+importaciones_downloads <- create_importaciones_downloads(importaciones_rigi)
+```

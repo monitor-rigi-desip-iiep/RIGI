@@ -431,7 +431,7 @@ make_importaciones_module <- function(data, project_data) {
               type = "button",
               id = "impo-sector-reset",
               class = "impo-reset-button",
-              "Limpiar filtros"
+              "Restablecer filtros"
             )
           )
         ),
@@ -531,7 +531,7 @@ make_importaciones_module <- function(data, project_data) {
               type = "button",
               id = "impo-project-reset",
               class = "impo-reset-button",
-              "Limpiar filtros"
+              "Restablecer filtros"
             )
           )
         ),

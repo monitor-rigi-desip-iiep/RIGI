@@ -6,10 +6,10 @@ bar_color_pending <- "#F97316"         # naranja
 bar_color_compare_approved <- "#2563EB"
 bar_color_compare_pending <- "#F97316"
 bar_color_employment <- "#0F766E"      # verde petróleo
-bar_color_peelp <- "#7C3AED"           # violeta
+bar_color_peelp <- "#0E7490"           # azul petróleo
 bar_color_neutral <- "#475569"         # slate
-bar_color_timeline <- "#7C3AED"        # violeta
-bar_color_timeline_border <- "#4C1D95"
+bar_color_timeline <- "#164E9B"        # azul institucional
+bar_color_timeline_border <- "#0B2D5C"
 
 # Helpers de estética ---------------------------------------------------------
 
@@ -131,7 +131,9 @@ lock_plotly_interactions <- function(widget) {
 
 style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom = 65,
                          margin_top = 30, height = NULL, showlegend = NULL,
-                         text_position = NULL, mobile_min_width = NULL) {
+                         text_position = NULL, mobile_min_width = NULL,
+                         vertical_scroll = FALSE,
+                         hide_text_on_mobile = FALSE) {
   out <- plotly::ggplotly(p, tooltip = "text") |>
     plotly::layout(
       margin = list(l = margin_left, r = margin_right, b = margin_bottom, t = margin_top),
@@ -174,8 +176,15 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
       var originalTextSizes = (x.data || []).map(function(trace) {
         return trace.textfont && trace.textfont.size ? trace.textfont.size : 11;
       });
+      var originalTexts = (x.data || []).map(function(trace) {
+        if (Array.isArray(trace.text)) return trace.text.slice();
+        return trace.text == null ? trace.text : String(trace.text);
+      });
+      var hideTextOnMobile = %s;
+      var verticalScroll = %s;
       var resizeTimer = null;
       var lastHostWidth = -1;
+      var enhanceAttempts = 0;
 
       if (host) host.classList.add('rigi-static-plot-host');
 
@@ -192,13 +201,25 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
         return hint;
       }
 
+      function enhanceRigiPlot() {
+        if (window.RigiResponsive && window.RigiResponsive.enhanceStaticPlot) {
+          window.RigiResponsive.enhanceStaticPlot(el, {
+            verticalScroll: verticalScroll,
+            verticalHint: 'Deslizá verticalmente para ver todos los proyectos ↓'
+          });
+          return;
+        }
+        enhanceAttempts += 1;
+        if (enhanceAttempts < 12) window.setTimeout(enhanceRigiPlot, 100);
+      }
+
       function resizeRigiChart() {
         var compact = window.matchMedia('(max-width: 640px)').matches;
         var tablet = !compact && window.matchMedia('(max-width: 900px)').matches;
         var hostWidth = host ? host.clientWidth : el.getBoundingClientRect().width;
         lastHostWidth = hostWidth;
         var mobileMinWidth = %s;
-        var useScroll = compact && mobileMinWidth > 0 && hostWidth < mobileMinWidth - 2;
+        var useScroll = (compact || tablet) && mobileMinWidth > 0 && hostWidth < mobileMinWidth - 2;
 
         el.style.width = useScroll ? mobileMinWidth + 'px' : '100%%';
         el.style.minWidth = useScroll ? mobileMinWidth + 'px' : '0';
@@ -229,9 +250,26 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
 
         (x.data || []).forEach(function(trace, index) {
           if (trace.type === 'scatter' && String(trace.mode || '').indexOf('text') !== -1) {
-            Plotly.restyle(el, { 'textfont.size': compact ? 10 : originalTextSizes[index] }, [index]);
+            var update = { 'textfont.size': compact ? 10 : originalTextSizes[index] };
+            if (hideTextOnMobile) {
+              if (compact) {
+                update.text = [Array.isArray(originalTexts[index])
+                  ? originalTexts[index].map(function() { return ''; })
+                  : ''];
+              } else {
+                update.text = [originalTexts[index]];
+              }
+            }
+            Plotly.restyle(el, update, [index]);
           }
         });
+
+        if (window.RigiResponsive && window.RigiResponsive.enhanceStaticPlot) {
+          window.RigiResponsive.enhanceStaticPlot(el, {
+            verticalScroll: verticalScroll,
+            verticalHint: 'Deslizá verticalmente para ver todos los proyectos ↓'
+          });
+        }
       }
 
       function scheduleResize() {
@@ -241,7 +279,10 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
         resizeTimer = window.setTimeout(resizeRigiChart, 140);
       }
 
-      window.setTimeout(resizeRigiChart, 0);
+      window.setTimeout(function() {
+        resizeRigiChart();
+        enhanceRigiPlot();
+      }, 0);
 
       if (el._rigiResizeObserver) el._rigiResizeObserver.disconnect();
       if (typeof ResizeObserver !== 'undefined' && host) {
@@ -253,6 +294,8 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
         window.addEventListener('resize', scheduleResize, { passive: true });
       }
     }",
+    if (isTRUE(hide_text_on_mobile)) "true" else "false",
+    if (isTRUE(vertical_scroll)) "true" else "false",
     mobile_min_width,
     margin_left,
     margin_left,
@@ -415,6 +458,7 @@ make_kpi_cards_total <- function(ind) {
     class = "kpi-grid kpi-grid-status",
     make_kpi_card("Total de proyectos", fmt_integer(ind$n_total), "Universo de la base"),
     make_kpi_card("Monto total informado", fmt_currency_mill(ind$monto_total, accuracy = 1), "Millones de USD"),
+    make_kpi_card("Proyectos rechazados", fmt_integer(ind$n_rechazados), "Cantidad de proyectos"),
     make_kpi_card("Proyectos aprobados / total", fmt_pct(ind$participacion_proyectos_aprobados), "Participación en cantidad"),
     make_kpi_card("Monto de aprobados / total", fmt_pct(ind$participacion_monto_aprobado), "Participación en monto")
   )
@@ -1295,6 +1339,20 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
       )
     )
 
+  # Reproducimos la misma escala sqrt usada por ggplot para conocer el
+  # diámetro visual aproximado de cada burbuja. Esto permite desplazar la
+  # etiqueta desde el borde exterior del marcador, en lugar de desde su centro.
+  size_transformed <- sqrt(pmax(data_plot$monto_size, 0))
+  size_min <- min(size_transformed, na.rm = TRUE)
+  size_max <- max(size_transformed, na.rm = TRUE)
+  if (!is.finite(size_min) || !is.finite(size_max) || abs(size_max - size_min) < .Machine$double.eps) {
+    marker_size_mm <- rep(mean(c(4.5, 11.5)), nrow(data_plot))
+  } else {
+    marker_size_mm <- 4.5 + ((size_transformed - size_min) / (size_max - size_min)) * (11.5 - 4.5)
+  }
+  marker_diameter_px <- marker_size_mm * 96 / 25.4
+  data_plot$label_xshift_px <- round(marker_diameter_px / 2 + 7, 1)
+
   y_break_order <- order(data_plot$y_pos)
   date_min <- min(data_plot[[date_col]], na.rm = TRUE)
   date_max <- max(data_plot[[date_col]], na.rm = TRUE)
@@ -1318,16 +1376,9 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
       stroke = 0.7,
       alpha = 0.82
     ) +
-    ggplot2::geom_text(
-      ggplot2::aes(label = monto_label),
-      hjust = -0.16,
-      size = 2.75,
-      color = "#334155",
-      fontface = "bold",
-      show.legend = FALSE
-    ) +
     ggplot2::scale_size_continuous(
-      range = c(5, 14),
+      range = c(4.5, 11.5),
+      trans = "sqrt",
       name = "Monto del proyecto\n(millones de USD)",
       breaks = scales::breaks_pretty(n = 3),
       labels = function(x) fmt_number(x, accuracy = 1),
@@ -1341,7 +1392,7 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
     ggplot2::scale_x_date(
       date_breaks = "3 months",
       labels = format_month_year_es,
-      limits = c(date_min - 28, date_max + 105),
+      limits = c(date_min - 35, date_max + 180),
       expand = c(0, 0)
     ) +
     ggplot2::scale_y_continuous(
@@ -1372,16 +1423,73 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
       legend.key.width = grid::unit(0.62, "cm")
     )
 
-  style_plotly(
+  out <- style_plotly(
     p,
-    margin_left = smart_left_margin(data_plot$label_original, min_margin = 175, max_margin = 285),
-    margin_right = 58,
+    margin_left = smart_left_margin(data_plot$label_original, min_margin = 185, max_margin = 300),
+    margin_right = 110,
     margin_bottom = 72,
     margin_top = if (is.null(title)) 78 else 106,
-    height = smart_height(nrow(data_plot), min_height = 540, per_row = 34, max_height = 820),
+    height = max(620, 190 + nrow(data_plot) * 46),
     showlegend = TRUE,
-    text_position = "middle right"
+    mobile_min_width = 760,
+    vertical_scroll = TRUE,
+    hide_text_on_mobile = FALSE
   )
+
+  # Las etiquetas monetarias se agregan como anotaciones Plotly con xshift en
+  # píxeles. Así el texto comienza siempre después del borde derecho de cada
+  # burbuja, incluso cuando el tamaño del marcador cambia con el monto.
+  timeline_annotations <- lapply(seq_len(nrow(data_plot)), function(i) {
+    list(
+      x = as.character(data_plot[[date_col]][[i]]),
+      y = data_plot$y_pos[[i]],
+      xref = "x",
+      yref = "y",
+      text = paste0("<b>", data_plot$monto_label[[i]], "</b>"),
+      showarrow = FALSE,
+      xanchor = "left",
+      yanchor = "middle",
+      xshift = data_plot$label_xshift_px[[i]],
+      align = "left",
+      font = list(
+        family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        size = 10.5,
+        color = "#334155"
+      ),
+      bgcolor = "rgba(255,255,255,0)",
+      borderpad = 0
+    )
+  })
+
+  out <- out |>
+    plotly::layout(annotations = timeline_annotations)
+
+  timeline_labels_js <- "function(el, x) {
+    var resizeTimer = null;
+
+    function setTimelineLabels() {
+      var annotations = (el.layout && el.layout.annotations) || [];
+      if (!annotations.length || typeof Plotly === 'undefined') return;
+      var update = {};
+      annotations.forEach(function(annotation, index) {
+        update['annotations[' + index + '].visible'] = true;
+      });
+      Plotly.relayout(el, update);
+    }
+
+    setTimelineLabels();
+
+    if (el._rigiTimelineLabelResizeHandler) {
+      window.removeEventListener('resize', el._rigiTimelineLabelResizeHandler);
+    }
+    el._rigiTimelineLabelResizeHandler = function() {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(setTimelineLabels, 120);
+    };
+    window.addEventListener('resize', el._rigiTimelineLabelResizeHandler, { passive: true });
+  }"
+
+  htmlwidgets::onRender(out, timeline_labels_js)
 }
 
 make_datatable <- function(data, caption = NULL) {

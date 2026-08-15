@@ -1,6 +1,13 @@
 project:
   type: website
   output-dir: _site
+  render:
+    - index.qmd
+    - aprobados.qmd
+    - evaluacion.qmd
+    - comparacion.qmd
+    - base-datos.qmd
+    - metodologia.qmd
   preview:
     navigate: false
   resources:
@@ -15,28 +22,42 @@ website:
   site-url: "https://monitor-rigi-desip-iiep.github.io/RIGI/"
   repo-url: "https://github.com/monitor-rigi-desip-iiep/RIGI"
   page-footer:
-    left: "DESIP-IIEP"
-    right: "IIEP"
+    left: "DESIP · IIEP"
+    right: "Monitor de Proyectos RIGI"
   navbar:
-    background: "#0B132B"
+    title: "DESIP · IIEP"
+    pinned: true
+    collapse-below: lg
+    background: "#0B2D5C"
     foreground: "#FFFFFF"
     left:
       - href: index.qmd
-        text: Informe
+        text: Resumen
+      - href: aprobados.qmd
+        text: Aprobados
+      - href: evaluacion.qmd
+        text: En evaluación
+      - href: comparacion.qmd
+        text: Comparación
+      - href: base-datos.qmd
+        text: Base de datos
+      - href: metodologia.qmd
+        text: Metodología
 format:
   html:
     theme:
       - cosmo
     css: styles.css
-    toc: true
-    toc-location: left
-    toc-depth: 3
+    toc: false
     page-layout: full
     code-fold: true
     code-tools: false
     smooth-scroll: true
+    include-after-body: assets/rigi-after-body.html
 
 execute:
   echo: false
   warning: false
   message: false
+  cache: true
+  freeze: auto
