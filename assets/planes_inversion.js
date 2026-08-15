@@ -22,6 +22,7 @@
     }));
     const sectorColors = JSON.parse(colorNode.textContent || "{}");
     const responsive = window.RigiResponsive;
+    const plotConfig = responsive.getPlotlyInteractionConfig();
 
     const annualChart = document.getElementById("planes-annual-chart");
     const cumulativeChart = document.getElementById("planes-cumulative-chart");
@@ -166,6 +167,7 @@
       const baseLayout = {
         autosize: true,
         height: annualProfile.height,
+        dragmode: false,
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
         font: {
@@ -196,7 +198,8 @@
           tickfont: { size: annualProfile.tickFontSize },
           showgrid: false,
           zeroline: false,
-          automargin: true
+          automargin: true,
+          fixedrange: true
         },
         yaxis: {
           title: { text: "Millones de USD", standoff: annualProfile.mobile ? 4 : 10, font: { size: annualProfile.titleFontSize } },
@@ -205,6 +208,7 @@
           zeroline: false,
           rangemode: "tozero",
           automargin: true,
+          fixedrange: true,
           tickformat: ",.0f"
         }
       };
@@ -213,9 +217,9 @@
         const emptyLayout = Object.assign({}, baseLayout, {
           annotations: emptyAnnotation("No hay datos para los filtros seleccionados.")
         });
-        Plotly.react(annualChart, [], emptyLayout, { displayModeBar: false, responsive: true });
+        Plotly.react(annualChart, [], emptyLayout, plotConfig);
         Promise.resolve(
-          Plotly.react(cumulativeChart, [], emptyLayout, { displayModeBar: false, responsive: true })
+          Plotly.react(cumulativeChart, [], emptyLayout, plotConfig)
         ).then(bindLegendSync);
         return;
       }
@@ -270,7 +274,7 @@
         })
       });
 
-      Plotly.react(annualChart, annualTraces, annualLayout, { displayModeBar: false, responsive: true });
+      Plotly.react(annualChart, annualTraces, annualLayout, plotConfig);
 
       const cumulativeBySector = {};
       selectedSectors.forEach((sector) => {
@@ -332,7 +336,7 @@
       });
 
       Promise.resolve(
-        Plotly.react(cumulativeChart, cumulativeTraces, cumulativeLayout, { displayModeBar: false, responsive: true })
+        Plotly.react(cumulativeChart, cumulativeTraces, cumulativeLayout, plotConfig)
       ).then(bindLegendSync);
     }
 

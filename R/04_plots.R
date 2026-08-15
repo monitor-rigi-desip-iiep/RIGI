@@ -112,6 +112,23 @@ theme_rigi_chart <- function(base_size = 12) {
     )
 }
 
+lock_plotly_interactions <- function(widget) {
+  widget$x$layout$dragmode <- FALSE
+
+  axis_names <- grep("^[xy]axis[0-9]*$", names(widget$x$layout), value = TRUE)
+  for (axis_name in axis_names) {
+    widget$x$layout[[axis_name]]$fixedrange <- TRUE
+  }
+
+  widget |>
+    plotly::config(
+      displayModeBar = FALSE,
+      responsive = TRUE,
+      scrollZoom = FALSE,
+      doubleClick = FALSE
+    )
+}
+
 style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom = 65,
                          margin_top = 30, height = NULL, showlegend = NULL,
                          text_position = NULL, mobile_min_width = NULL) {
@@ -143,7 +160,7 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
   if (!is.null(height)) out <- out |> plotly::layout(height = height)
   if (!is.null(showlegend)) out <- out |> plotly::layout(showlegend = showlegend)
 
-  out <- out |> plotly::config(displayModeBar = FALSE, responsive = TRUE)
+  out <- lock_plotly_interactions(out)
 
   if (is.null(mobile_min_width)) {
     mobile_min_width <- if (
@@ -199,12 +216,15 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
 
         Plotly.Plots.resize(el);
         Plotly.relayout(el, {
+          'dragmode': false,
           'margin.l': nextLeft,
           'margin.r': nextRight,
           'margin.b': nextBottom,
           'font.size': compact ? 10 : (tablet ? 11 : 12),
           'yaxis.tickfont.size': compact ? 9.5 : (tablet ? 10 : 10.5),
-          'xaxis.tickfont.size': compact ? 9 : (tablet ? 9.5 : 10)
+          'xaxis.tickfont.size': compact ? 9 : (tablet ? 9.5 : 10),
+          'xaxis.fixedrange': true,
+          'yaxis.fixedrange': true
         });
 
         (x.data || []).forEach(function(trace, index) {
@@ -845,63 +865,74 @@ plot_peelp_share <- function(ind, title = NULL) {
   ) |>
     dplyr::mutate(
       participacion = monto_usd_mill / sum(monto_usd_mill),
-      etiqueta = ifelse(
-        participacion >= 0.08,
-        paste0(clasificacion, " · ", fmt_pct(participacion)),
-        ""
+      etiqueta = paste0(clasificacion, "<br>", fmt_pct(participacion)),
+      tooltip = paste0(
+        "<b>", clasificacion, "</b>",
+        "<br>Monto: ", fmt_currency_mill(monto_usd_mill, accuracy = 1),
+        "<br>Participación en el monto de proyectos aprobados: ", fmt_pct(participacion)
       )
     )
 
-  p <- ggplot2::ggplot(data_plot, ggplot2::aes(
-    x = participacion,
-    y = factor("Monto de proyectos aprobados", levels = "Monto de proyectos aprobados"),
-    fill = clasificacion,
-    text = paste0(
-      clasificacion,
-      "<br>Monto: ", fmt_currency_mill(monto_usd_mill, accuracy = 1),
-      "<br>Participación en el monto de proyectos aprobados: ", fmt_pct(participacion)
+  circular_plot <- plotly::plot_ly(
+    data = data_plot,
+    labels = ~clasificacion,
+    values = ~monto_usd_mill,
+    type = "pie",
+    sort = FALSE,
+    direction = "clockwise",
+    rotation = 90,
+    text = ~etiqueta,
+    textinfo = "text",
+    textposition = "inside",
+    insidetextorientation = "horizontal",
+    insidetextfont = list(
+      family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      color = c("#FFFFFF", "#0F172A"),
+      size = 13
+    ),
+    hovertext = ~tooltip,
+    hoverinfo = "text",
+    marker = list(
+      colors = c(bar_color_peelp, "#94A3B8"),
+      line = list(color = "#FFFFFF", width = 2)
     )
-  )) +
-    ggplot2::geom_col(width = 0.54) +
-    ggplot2::geom_text(
-      ggplot2::aes(label = etiqueta),
-      position = ggplot2::position_stack(vjust = 0.5),
-      color = "#FFFFFF",
-      size = 3.6,
-      fontface = "bold",
-      show.legend = FALSE
-    ) +
-    ggplot2::scale_fill_manual(
-      values = c("PEELP" = bar_color_peelp, "No PEELP" = "#94A3B8"),
-      breaks = c("PEELP", "No PEELP")
-    ) +
-    ggplot2::scale_x_continuous(
-      breaks = c(0, 0.25, 0.50, 0.75, 1),
-      labels = function(x) fmt_pct(x),
-      expand = c(0, 0)
-    ) +
-    ggplot2::labs(
-      title = wrap_title(title),
-      x = "Participación en el monto de proyectos aprobados",
-      y = NULL,
-      fill = NULL
-    ) +
-    theme_rigi_chart() +
-    ggplot2::theme(
-      panel.grid.major.y = ggplot2::element_blank(),
-      legend.position = "top",
-      axis.text.y = ggplot2::element_text(face = "bold", color = "#334155")
+  ) |>
+    plotly::layout(
+      title = if (is.null(title)) NULL else list(text = wrap_title(title)),
+      height = 330,
+      autosize = TRUE,
+      showlegend = TRUE,
+      dragmode = FALSE,
+      margin = list(
+        l = 16,
+        r = 16,
+        b = 70,
+        t = if (is.null(title)) 22 else 62
+      ),
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor = "rgba(0,0,0,0)",
+      font = list(
+        family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        color = "#334155",
+        size = 12
+      ),
+      legend = list(
+        orientation = "h",
+        x = 0.5,
+        xanchor = "center",
+        y = -0.04,
+        yanchor = "top",
+        font = list(size = 11)
+      ),
+      hoverlabel = list(
+        bgcolor = "#FFFFFF",
+        bordercolor = "#CBD5E1",
+        font = list(color = "#0F172A")
+      ),
+      uniformtext = list(mode = "hide", minsize = 11)
     )
 
-  style_plotly(
-    p,
-    margin_left = 118,
-    margin_right = 28,
-    margin_bottom = 54,
-    margin_top = if (is.null(title)) 42 else 76,
-    height = 270,
-    showlegend = TRUE
-  )
+  lock_plotly_interactions(circular_plot)
 }
 
 make_chart_context_note <- function(...) {

@@ -37,6 +37,15 @@
     };
   }
 
+  function getPlotlyInteractionConfig() {
+    return {
+      displayModeBar: false,
+      responsive: true,
+      scrollZoom: false,
+      doubleClick: false
+    };
+  }
+
   function findHint(wrapper, explicitHint) {
     if (explicitHint) return explicitHint;
     const id = wrapper && wrapper.dataset ? wrapper.dataset.scrollHint : "";
@@ -110,6 +119,7 @@
     isMobile: isMobile,
     isTablet: isTablet,
     getResponsivePlotConfig: getResponsivePlotConfig,
+    getPlotlyInteractionConfig: getPlotlyInteractionConfig,
     prepareScrollablePlot: prepareScrollablePlot,
     updateOverflowHint: updateOverflowHint,
     subscribe: subscribe

@@ -23,6 +23,7 @@
     const projectMetadataRows = JSON.parse(document.getElementById("importaciones-project-metadata").textContent || "[]");
     const projectMetadata = new Map(projectMetadataRows.map((d) => [String(d.project), d]));
     const responsive = window.RigiResponsive;
+    const plotConfig = responsive.getPlotlyInteractionConfig();
 
     const charts = {
       sectorMonthly: document.getElementById("impo-sector-monthly-chart"),
@@ -183,6 +184,7 @@
       return {
         autosize: true,
         height: profile.height,
+        dragmode: false,
         margin: {
           l: profile.leftMargin,
           r: profile.rightMargin,
@@ -257,6 +259,7 @@
       const layout = {
         autosize: true,
         height: profile.height,
+        dragmode: false,
         margin: { l: 20, r: 20, t: 20, b: 20 },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
@@ -272,7 +275,7 @@
           font: { color: "#64748B", size: 15 }
         }]
       };
-      Plotly.react(chart, [], layout, { displayModeBar: false, responsive: true });
+      Plotly.react(chart, [], layout, plotConfig);
     }
 
     function aggregate(rows, dimension) {
@@ -394,10 +397,7 @@
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.sectorMonthly, monthlyTraces, monthlyLayout, {
-        displayModeBar: false,
-        responsive: true
-      });
+      Plotly.react(charts.sectorMonthly, monthlyTraces, monthlyLayout, plotConfig);
 
       const cumulative = cumulativeSeries(selectedSectors, bySectorMonth);
       const cumulativeTraces = selectedSectors.map((sector) => {
@@ -435,10 +435,7 @@
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.sectorCumulative, cumulativeTraces, cumulativeLayout, {
-        displayModeBar: false,
-        responsive: true
-      });
+      Plotly.react(charts.sectorCumulative, cumulativeTraces, cumulativeLayout, plotConfig);
 
       bindSectorLegendSync();
     }
@@ -685,10 +682,7 @@
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.projectMonthly, monthlyTraces, monthlyLayout, {
-        displayModeBar: false,
-        responsive: true
-      });
+      Plotly.react(charts.projectMonthly, monthlyTraces, monthlyLayout, plotConfig);
 
       const cumulative = cumulativeSeries(projects, byProjectMonth);
       const cumulativeBars = projects.map((project) => {
@@ -721,10 +715,7 @@
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.projectCumulative, cumulativeTraces, cumulativeLayout, {
-        displayModeBar: false,
-        responsive: true
-      });
+      Plotly.react(charts.projectCumulative, cumulativeTraces, cumulativeLayout, plotConfig);
     }
 
     function refreshProjectControls() {
