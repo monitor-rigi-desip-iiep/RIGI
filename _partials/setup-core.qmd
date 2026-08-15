@@ -18,3 +18,6 @@ downloads <- create_download_files(proyectos)
 auditoria_fuentes <- make_source_audit(proyectos)
 resumen_ejecutivo <- make_summary_text(indicadores, tablas)
 ```
+
+<!-- Dependencia compartida por la navegación y los módulos interactivos. -->
+<script src="assets/rigi-responsive.js" defer></script>

@@ -4,12 +4,14 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "index.qmd"
-      - "presentation.qmd"
+      - "*.qmd"
+      - "_partials/**"
       - "_quarto.yml"
       - "styles.css"
+      - "assets/**"
       - "R/**"
       - "data/**"
+      - "downloads/**"
       - "DESCRIPTION"
       - ".github/workflows/render.yml"
   workflow_dispatch:
@@ -48,14 +50,69 @@ jobs:
             any::janitor
             any::lubridate
             any::plotly
+            any::htmlwidgets
             any::DT
             any::glue
             any::scales
             any::htmltools
             any::forcats
+            any::writexl
+            any::jsonlite
+
+      - name: Validate versioned frontend bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s _partials/setup-core.qmd
+          git ls-files --error-unmatch _partials/setup-core.qmd >/dev/null
+          grep -Fq '<script src="assets/rigi-responsive.js" defer></script>' _partials/setup-core.qmd
+          node --check assets/rigi-responsive.js
+          node --check assets/planes_inversion.js
+          node --check assets/importaciones.js
+
+      - name: Remove generated state from previous renders
+        shell: bash
+        run: |
+          rm -rf .quarto _freeze _site
+          find . -maxdepth 1 -type d -name '*_cache' -exec rm -rf {} +
 
       - name: Render Quarto project
         run: quarto render
+
+      - name: Verify rendered interactive modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          page="_site/aprobados.html"
+          test -s "$page"
+
+          for asset in \
+            assets/rigi-responsive.js \
+            assets/planes_inversion.js \
+            assets/importaciones.js; do
+            test -s "_site/$asset"
+          done
+
+          grep -Fq 'site_libs/plotly-main-' "$page"
+          grep -Fq 'assets/planes_inversion.js' "$page"
+          grep -Fq 'assets/importaciones.js' "$page"
+
+          responsive_count="$(grep -Fo 'assets/rigi-responsive.js' "$page" | wc -l | tr -d ' ')"
+          test "$responsive_count" -eq 1
+
+          for element_id in \
+            planes-inversion-module \
+            planes-inversion-data \
+            planes-annual-chart \
+            planes-cumulative-chart \
+            importaciones-module \
+            importaciones-data \
+            impo-sector-monthly-chart \
+            impo-sector-cumulative-chart \
+            impo-project-monthly-chart \
+            impo-project-cumulative-chart; do
+            grep -Fq "$element_id" "$page"
+          done
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

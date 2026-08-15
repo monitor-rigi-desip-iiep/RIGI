@@ -39,15 +39,17 @@ def main() -> int:
     workflow_text = read(".github/workflows/render.yml")
     workflow = yaml.safe_load(workflow_text)
     head_include = quarto["format"]["html"].get("include-in-header")
-    head_text = read(head_include) if head_include else ""
+    bootstrap_partial = "_partials/setup-core.qmd"
+    bootstrap_text = read(bootstrap_partial)
     plans_js = read("assets/planes_inversion.js")
     imports_js = read("assets/importaciones.js")
     modules_source = read("R/05_planes_inversion.R") + read("R/06_importaciones.R")
 
-    ignored = subprocess.run(
-        ["git", "check-ignore", "-q", str(head_include)],
+    bootstrap_tracked = subprocess.run(
+        ["git", "ls-files", "--error-unmatch", bootstrap_partial],
         cwd=ROOT,
         check=False,
+        capture_output=True,
     ).returncode == 0
 
     pages = [ROOT / page for page in quarto["project"]["render"]]
@@ -59,20 +61,14 @@ def main() -> int:
 
     push_paths = workflow[True]["push"]["paths"]
     packages = workflow["jobs"]["build"]["steps"][3]["with"]["packages"]
-    source_script_tags = sum(
-        path.read_text(encoding="utf-8").count(
-            '<script src="assets/rigi-responsive.js" defer></script>'
-        )
-        for path in ROOT.rglob("*")
-        if path.is_file()
-        and not any(part in {".git", ".quarto", "_site", "qa"} for part in path.parts)
-        and path.suffix in {".html", ".qmd"}
+    source_script_tags = bootstrap_text.count(
+        '<script src="assets/rigi-responsive.js" defer></script>'
     )
 
     checks = {
-        "global_head_include_declared": head_include == "assets/rigi-head.html",
-        "head_include_exists": bool(head_include) and (ROOT / head_include).is_file(),
-        "head_include_not_gitignored": not ignored,
+        "external_html_include_removed": head_include is None,
+        "bootstrap_partial_exists": (ROOT / bootstrap_partial).is_file(),
+        "bootstrap_partial_is_tracked": bootstrap_tracked,
         "responsive_script_loaded_once_in_sources": source_script_tags == 1,
         "no_page_format_overrides": not page_format_overrides,
         "project_site_url": quarto["website"]["site-url"].endswith("/RIGI/"),
@@ -128,6 +124,7 @@ def main() -> int:
 
     result = {
         "head_include": head_include,
+        "bootstrap_partial": bootstrap_partial,
         "page_format_overrides": page_format_overrides,
         "checks": checks,
         "javascript": javascript,

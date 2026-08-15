@@ -1,10 +1,11 @@
 {
-  "head_include": "assets/rigi-head.html",
+  "head_include": null,
+  "bootstrap_partial": "_partials/setup-core.qmd",
   "page_format_overrides": [],
   "checks": {
-    "global_head_include_declared": true,
-    "head_include_exists": true,
-    "head_include_not_gitignored": true,
+    "external_html_include_removed": true,
+    "bootstrap_partial_exists": true,
+    "bootstrap_partial_is_tracked": true,
     "responsive_script_loaded_once_in_sources": true,
     "no_page_format_overrides": true,
     "project_site_url": true,
