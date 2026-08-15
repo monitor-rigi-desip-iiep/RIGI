@@ -1,5 +1,5 @@
 ---
-title: "Datos del Monitor"
+title: "Base de datos"
 ---
 
 {{< include _partials/setup-core.qmd >}}
@@ -7,19 +7,20 @@ title: "Datos del Monitor"
 ::: page-lead
 [04 · DATOS ABIERTOS]{.page-kicker}
 
-# Datos del Monitor
+# Base de datos completa
 
 La base reúne la información sistematizada para el conjunto de proyectos incluidos en el Monitor, junto con las principales variables de identificación, características del proyecto, montos informados, localización, estado administrativo y fuentes disponibles.
 :::
 
-::: {.page-subnav role="navigation" aria-label="En esta página"}
-- [Explorar proyectos](#explorar)
-- [Descargar datos](#descargas)
-:::
+## Descargas {#descargas}
 
-## Explorar proyectos {#explorar}
+```{r}
+make_download_links("total")
+```
 
-Usá el buscador y los filtros para recorrer la base completa. El contador se actualiza con la selección y cada ficha permite consultar el detalle y las fuentes del proyecto.
+**Datos abiertos.** La base utilizada para la elaboración del Monitor se encuentra disponible para su descarga en formatos XLSX y CSV.
+
+## Fichas y buscador {#fichas}
 
 ```{r}
 make_rigi_project_cards(
@@ -28,11 +29,3 @@ make_rigi_project_cards(
   caption = "Base de datos completa de proyectos"
 )
 ```
-
-## Descargar datos {#descargas}
-
-```{r}
-make_download_catalog()
-```
-
-**Datos abiertos.** Las bases utilizadas para la elaboración del Monitor se encuentran disponibles en formatos XLSX y CSV.

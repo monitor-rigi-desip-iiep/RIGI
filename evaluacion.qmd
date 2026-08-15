@@ -12,49 +12,19 @@ title: "Proyectos en evaluación"
 Esta sección reúne proyectos identificados públicamente como presentados al RIGI, en análisis, pendientes de resolución o en evaluación que, a la fecha de actualización del Monitor, no cuentan con una resolución de aprobación registrada.
 :::
 
-::: {.page-subnav role="navigation" aria-label="En esta página"}
+::: {.page-subnav role="navigation" aria-label="En esta sección"}
 - [Panorama](#panorama)
 - [Inversión](#inversion)
-- [Presentaciones](#presentaciones)
-- [Proyectos](#proyectos)
+- [Cronología](#cronologia)
+- [Fichas](#fichas)
 :::
 
 ## Panorama {#panorama}
 
-```{r}
-htmltools::div(
-  class = "kpi-grid kpi-grid-pending",
-  make_kpi_card(
-    "Proyectos en evaluación",
-    fmt_integer(indicadores$n_pendientes),
-    "Cantidad de proyectos"
-  ),
-  make_kpi_card(
-    "Monto informado",
-    fmt_currency_mill(indicadores$monto_pendiente, accuracy = 1),
-    "Millones de USD"
-  ),
-  make_kpi_card(
-    "Monto promedio informado",
-    fmt_currency_mill(indicadores$monto_promedio_pendiente, accuracy = 1),
-    "Por proyecto en evaluación"
-  ),
-  make_kpi_card(
-    "Monto mediano informado",
-    fmt_currency_mill(indicadores$monto_mediano_pendiente, accuracy = 1),
-    "Por proyecto en evaluación"
-  )
-)
-```
+### Indicadores principales
 
 ```{r}
-if (is.na(indicadores$activos_pendientes)) {
-  htmltools::div(
-    class = "note-box",
-    htmltools::strong("Activos computables: "),
-    "información no disponible para este universo."
-  )
-}
+make_kpi_cards_pendientes(indicadores)
 ```
 
 ## Inversión {#inversion}
@@ -67,18 +37,6 @@ plot_bar_monto(
   label_col = "sector_simplificado",
   title = NULL,
   fill_color = bar_color_pending
-)
-```
-
-### Principales proyectos en evaluación por monto informado
-
-```{r}
-plot_top_proyectos_monto(
-  tablas$top_projects_pendientes,
-  title = NULL,
-  fill_color = bar_color_pending,
-  total_value = indicadores$monto_pendiente,
-  share_reference = "del monto informado en proyectos en evaluación"
 )
 ```
 
@@ -97,9 +55,19 @@ plot_bar_monto(
 )
 ```
 
-## Presentaciones {#presentaciones}
+### Principales proyectos en evaluación por monto informado
 
-### Cronología de presentaciones
+```{r}
+plot_top_proyectos_monto(
+  tablas$top_projects_pendientes,
+  title = NULL,
+  fill_color = bar_color_pending,
+  total_value = indicadores$monto_pendiente,
+  share_reference = "del monto informado en proyectos en evaluación"
+)
+```
+
+## Cronología de presentaciones {#cronologia}
 
 ```{r}
 make_chart_context_note(
@@ -108,7 +76,6 @@ make_chart_context_note(
 )
 ```
 
-::: {.timeline-desktop}
 ```{r}
 plot_timeline(
   tablas$timeline_pendientes_tbl,
@@ -116,23 +83,14 @@ plot_timeline(
   title = NULL
 )
 ```
-:::
 
-::: {.timeline-mobile}
-```{r}
-make_mobile_pending_timeline(tablas$timeline_pendientes_tbl)
-```
-:::
-
-## Proyectos {#proyectos}
-
-Buscá y filtrá los proyectos para consultar su información disponible, sus fuentes y sus enlaces asociados.
+## Fichas de proyectos en evaluación {#fichas}
 
 ```{r}
 make_download_links("pendientes")
 ```
 
-**Datos abiertos.** La información utilizada en esta página se encuentra disponible para descarga en formatos XLSX y CSV.
+**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formatos XLSX y CSV.
 
 ```{r}
 make_rigi_project_cards(

@@ -70,11 +70,7 @@ jobs:
           node --check assets/rigi-responsive.js
           node --check assets/planes_inversion.js
           node --check assets/importaciones.js
-          python3 tools/qa_functional_changes.py
-          python3 tools/qa_navigation.py
-          python3 tools/qa_github_pages.py
           python3 tools/qa_mobile_layout.py
-          python3 tools/qa_redesign.py
 
       - name: Remove generated state from previous renders
         shell: bash

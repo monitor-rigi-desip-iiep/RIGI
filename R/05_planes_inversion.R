@@ -188,7 +188,33 @@ create_planes_inversion_downloads <- function(data, download_dir = "downloads") 
 }
 
 planes_sector_colors <- function(sectors) {
-  rigi_sector_colors(sectors)
+  preferred <- c(
+    "Energía Eléctrica" = "#F97316",
+    "Petróleo y Gas" = "#0F766E",
+    "Minería" = "#7C3AED",
+    "Siderurgia" = "#BE123C",
+    "Infraestructura" = "#2563EB"
+  )
+
+  fallback <- c(
+    "#1D4ED8", "#EA580C", "#0D9488", "#6D28D9", "#64748B",
+    "#0284C7", "#C2410C", "#15803D", "#9333EA", "#334155"
+  )
+
+  sectors <- unique(as.character(sectors))
+  out <- setNames(rep(NA_character_, length(sectors)), sectors)
+
+  fallback_i <- 1L
+  for (sector in sectors) {
+    if (sector %in% names(preferred)) {
+      out[[sector]] <- preferred[[sector]]
+    } else {
+      out[[sector]] <- fallback[[fallback_i]]
+      fallback_i <- if (fallback_i >= length(fallback)) 1L else fallback_i + 1L
+    }
+  }
+
+  out
 }
 
 make_planes_checkbox <- function(name, value, label, class_name) {
@@ -250,31 +276,7 @@ make_planes_inversion_module <- function(data) {
 
       htmltools::tags$p(
         class = "plans-interaction-note",
-        "Elegí una vista y usá los filtros para explorar el período, los sectores y los subsectores. La leyenda permite ocultar o volver a mostrar sectores sin cambiar el filtro."
-      ),
-
-      htmltools::div(
-        class = "plans-view-switch rigi-segmented-control",
-        role = "group",
-        `aria-label` = "Vista de planes de inversión",
-        htmltools::tags$button(
-          type = "button",
-          id = "plans-view-annual",
-          class = "plans-view-button is-active",
-          `data-plans-view` = "annual",
-          `aria-controls` = "plans-annual-panel",
-          `aria-pressed` = "true",
-          "Por año"
-        ),
-        htmltools::tags$button(
-          type = "button",
-          id = "plans-view-cumulative",
-          class = "plans-view-button",
-          `data-plans-view` = "cumulative",
-          `aria-controls` = "plans-cumulative-panel",
-          `aria-pressed` = "false",
-          "Acumulado"
-        )
+        "Usá los filtros para elegir el período, uno o varios sectores y subsectores. También podés tocar las etiquetas de la leyenda debajo de cada gráfico para ocultar o volver a mostrar sectores sin cambiar el filtro."
       ),
 
       htmltools::div(
@@ -371,12 +373,8 @@ make_planes_inversion_module <- function(data) {
       ),
 
       htmltools::div(
-        id = "plans-annual-panel",
-        class = "plans-chart-card plans-chart-panel",
-        `data-plans-panel` = "annual",
-        role = "tabpanel",
-        `aria-labelledby` = "plans-view-annual",
-        htmltools::tags$h3("¿Cuánto se prevé invertir cada año?"),
+        class = "plans-chart-card",
+        htmltools::tags$h3("Planes de inversión por año"),
         htmltools::div(
           class = "rigi-plot-scroll",
           `data-scroll-hint` = "planes-annual-scroll-hint",
@@ -394,12 +392,7 @@ make_planes_inversion_module <- function(data) {
       ),
 
       htmltools::div(
-        id = "plans-cumulative-panel",
-        class = "plans-chart-card plans-chart-panel",
-        `data-plans-panel` = "cumulative",
-        role = "tabpanel",
-        `aria-labelledby` = "plans-view-cumulative",
-        hidden = "hidden",
+        class = "plans-chart-card",
         htmltools::tags$h3("Planes de inversión acumulados"),
         htmltools::div(
           class = "rigi-plot-scroll",

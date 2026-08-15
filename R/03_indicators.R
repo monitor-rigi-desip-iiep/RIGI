@@ -49,13 +49,6 @@ fmt_currency_mill <- function(x, accuracy = 1) {
   out
 }
 
-fmt_currency_short <- function(x, accuracy = 1) {
-  if (length(x) == 0) return(character(0))
-  out <- paste0("USD ", fmt_number(x, accuracy = accuracy), " M")
-  out[is.na(x) | is.nan(x)] <- "No informado"
-  out
-}
-
 fmt_pct <- function(x, accuracy = 0.1) {
   if (length(x) == 0) return(character(0))
   out <- scales::percent(x, accuracy = accuracy, decimal.mark = ",")
@@ -131,54 +124,6 @@ make_indicators <- function(data, data_prov, file_update_time) {
     dplyr::pull(provincia_simplificada) |>
     first_or_sd()
 
-  sectores_aprobados_concentracion <- aprobados |>
-    dplyr::filter(!is.na(monto_usd_mill)) |>
-    dplyr::group_by(sector_simplificado) |>
-    dplyr::summarise(monto = sum(monto_usd_mill, na.rm = TRUE), .groups = "drop") |>
-    dplyr::arrange(dplyr::desc(monto))
-
-  sectores_top_dos <- sectores_aprobados_concentracion |>
-    dplyr::slice_head(n = 2)
-
-  nombres_sectores_top_dos <- if (nrow(sectores_top_dos) > 0) {
-    paste(sectores_top_dos$sector_simplificado, collapse = " y ")
-  } else {
-    "No informado"
-  }
-
-  participacion_sectores_top_dos <- ratio_or_na(
-    sum_or_na(sectores_top_dos$monto),
-    sum_or_na(aprobados$monto_usd_mill)
-  )
-
-  proyectos_aprobados_concentracion <- aprobados |>
-    dplyr::filter(!is.na(monto_usd_mill), monto_usd_mill >= 0) |>
-    dplyr::arrange(dplyr::desc(monto_usd_mill)) |>
-    dplyr::mutate(
-      participacion = chart_share(monto_usd_mill),
-      participacion_acumulada = cumsum(dplyr::coalesce(participacion, 0))
-    )
-
-  participacion_top_cinco <- proyectos_aprobados_concentracion |>
-    dplyr::slice_head(n = 5) |>
-    dplyr::summarise(valor = sum(participacion, na.rm = TRUE)) |>
-    dplyr::pull(valor)
-
-  proyectos_hasta_75 <- if (nrow(proyectos_aprobados_concentracion) == 0) {
-    NA_integer_
-  } else {
-    which(proyectos_aprobados_concentracion$participacion_acumulada >= 0.75)[1]
-  }
-
-  participacion_hasta_75 <- if (
-    is.na(proyectos_hasta_75) ||
-    nrow(proyectos_aprobados_concentracion) == 0
-  ) {
-    NA_real_
-  } else {
-    proyectos_aprobados_concentracion$participacion_acumulada[[proyectos_hasta_75]]
-  }
-
   tibble::tibble(
     fecha_actualizacion = Sys.Date(),
     fecha_actualizacion_fmt = fmt_date(Sys.Date()),
@@ -210,15 +155,6 @@ make_indicators <- function(data, data_prov, file_update_time) {
       monto_aprobados_exportacion_largo_plazo,
       monto_aprobado
     ),
-    ratio_monto_pendiente_aprobado = ratio_or_na(
-      sum_or_na(pendientes$monto_usd_mill),
-      sum_or_na(aprobados$monto_usd_mill)
-    ),
-    sectores_top_dos_aprobados = nombres_sectores_top_dos,
-    participacion_sectores_top_dos_aprobados = participacion_sectores_top_dos,
-    participacion_top_cinco_aprobados = participacion_top_cinco,
-    n_proyectos_hasta_75_aprobados = proyectos_hasta_75,
-    participacion_proyectos_hasta_75_aprobados = participacion_hasta_75,
     sector_top_aprobado = sector_top_aprobado,
     provincia_top_aprobada = provincia_top_aprobada,
     empleo_top_proyecto = empleo_top_proyecto,
@@ -294,15 +230,6 @@ make_tables <- function(data, data_prov) {
     top_projects_aprobados = aprobados |>
       dplyr::arrange(dplyr::desc(monto_usd_mill)) |>
       dplyr::slice_head(n = 10),
-
-    projects_pareto_aprobados = aprobados |>
-      dplyr::filter(!is.na(monto_usd_mill), monto_usd_mill >= 0) |>
-      dplyr::arrange(dplyr::desc(monto_usd_mill), proyecto) |>
-      dplyr::mutate(
-        ranking = dplyr::row_number(),
-        participacion = chart_share(monto_usd_mill),
-        participacion_acumulada = cumsum(dplyr::coalesce(participacion, 0))
-      ),
 
     top_projects_pendientes = pendientes |>
       dplyr::arrange(dplyr::desc(monto_usd_mill)) |>

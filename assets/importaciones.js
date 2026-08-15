@@ -100,11 +100,6 @@
         card: document.getElementById("impo-project-info")
       }
     };
-    const viewButtons = Array.from(root.querySelectorAll("[data-impo-view]"));
-    const breakdownButtons = Array.from(root.querySelectorAll("[data-impo-breakdown]"));
-    const chartPanels = Array.from(root.querySelectorAll("[data-impo-chart-panel]"));
-    const sectorSubsection = root.querySelector(".impo-subsection--sector");
-    const projectSubsection = root.querySelector(".impo-subsection--project");
 
     const observedMonths = rawData.map((d) => d.month).filter(Boolean).sort();
     const minMonth = observedMonths[0];
@@ -125,59 +120,6 @@
     let syncingSectorMonthly = false;
     let syncingSectorCumulative = false;
     let projectCardOpen = false;
-    let activeView = "monthly";
-    let activeBreakdown = "sector";
-
-    function activeChart() {
-      if (activeBreakdown === "project") {
-        return activeView === "cumulative" ? charts.projectCumulative : charts.projectMonthly;
-      }
-      return activeView === "cumulative" ? charts.sectorCumulative : charts.sectorMonthly;
-    }
-
-    function resizeActiveChart() {
-      const chart = activeChart();
-      if (!chart || typeof Plotly.Plots === "undefined") return;
-      window.requestAnimationFrame(function () {
-        window.requestAnimationFrame(function () {
-          Plotly.Plots.resize(chart);
-          updateViewportScale(chart);
-        });
-      });
-    }
-
-    function renderActiveBreakdown() {
-      if (activeBreakdown === "project") renderProjectCharts();
-      else renderSectorCharts();
-      resizeActiveChart();
-    }
-
-    function setExplorerState(options) {
-      const opts = options || {};
-      activeView = opts.view === "cumulative" ? "cumulative" : (opts.view === "monthly" ? "monthly" : activeView);
-      activeBreakdown = opts.breakdown === "project" ? "project" : (opts.breakdown === "sector" ? "sector" : activeBreakdown);
-      root.dataset.activeView = activeView;
-      root.dataset.activeBreakdown = activeBreakdown;
-
-      viewButtons.forEach((button) => {
-        const selected = button.dataset.impoView === activeView;
-        button.classList.toggle("is-active", selected);
-        button.setAttribute("aria-pressed", selected ? "true" : "false");
-      });
-      breakdownButtons.forEach((button) => {
-        const selected = button.dataset.impoBreakdown === activeBreakdown;
-        button.classList.toggle("is-active", selected);
-        button.setAttribute("aria-pressed", selected ? "true" : "false");
-      });
-
-      if (sectorSubsection) sectorSubsection.hidden = activeBreakdown !== "sector";
-      if (projectSubsection) projectSubsection.hidden = activeBreakdown !== "project";
-      chartPanels.forEach((panel) => {
-        panel.hidden = panel.dataset.impoChartPanel !== activeBreakdown + "-" + activeView;
-      });
-
-      if (opts.render !== false) renderActiveBreakdown();
-    }
 
     function monthSequence(start, end) {
       if (!start || !end) return [];
@@ -1061,18 +1003,6 @@
       renderProjectCharts();
     });
 
-    viewButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-        setExplorerState({ view: button.dataset.impoView });
-      });
-    });
-
-    breakdownButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-        setExplorerState({ breakdown: button.dataset.impoBreakdown });
-      });
-    });
-
     document.addEventListener("click", function (event) {
       root.querySelectorAll(".impo-multiselect[open]").forEach((details) => {
         if (!details.contains(event.target)) details.removeAttribute("open");
@@ -1083,7 +1013,8 @@
     });
 
     responsive.subscribe("importaciones", function () {
-      renderActiveBreakdown();
+      renderSectorCharts();
+      renderProjectCharts();
     });
 
     // ---------------------------------------------------------------------
@@ -1094,7 +1025,8 @@
     updateMasterCheckbox(controls.project.sectorAll, controls.project.sectorInputs);
     updateSummary(controls.project.sectorSummary, controls.project.sectorInputs, "Todos los sectores");
     refreshProjectAvailability({ selectAll: true });
-    setExplorerState({ view: "monthly", breakdown: "sector" });
+    renderSectorCharts();
+    renderProjectCharts();
   }
 
   if (document.readyState === "loading") {

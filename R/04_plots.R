@@ -6,39 +6,10 @@ bar_color_pending <- "#F97316"         # naranja
 bar_color_compare_approved <- "#2563EB"
 bar_color_compare_pending <- "#F97316"
 bar_color_employment <- "#0F766E"      # verde petróleo
-bar_color_peelp <- "#6D4DB3"           # acento PEELP
+bar_color_peelp <- "#0E7490"           # azul petróleo
 bar_color_neutral <- "#475569"         # slate
 bar_color_timeline <- "#164E9B"        # azul institucional
 bar_color_timeline_border <- "#0B2D5C"
-
-rigi_sector_palette <- c(
-  "Petróleo y Gas" = "#0F766E",
-  "Minería" = "#6D28D9",
-  "Energía" = "#F97316",
-  "Energía Eléctrica" = "#F97316",
-  "Infraestructura" = "#2563EB",
-  "Siderurgia" = "#BE123C",
-  "Forestoindustria" = "#15803D",
-  "Turismo" = "#0284C7"
-)
-
-rigi_sector_colors <- function(sectors) {
-  sectors <- unique(as.character(sectors))
-  fallback <- c("#475569", "#0369A1", "#B45309", "#047857", "#4338CA", "#64748B")
-  out <- setNames(rep(NA_character_, length(sectors)), sectors)
-  fallback_i <- 1L
-
-  for (sector in sectors) {
-    if (sector %in% names(rigi_sector_palette)) {
-      out[[sector]] <- rigi_sector_palette[[sector]]
-    } else {
-      out[[sector]] <- fallback[[fallback_i]]
-      fallback_i <- if (fallback_i >= length(fallback)) 1L else fallback_i + 1L
-    }
-  }
-
-  out
-}
 
 # Helpers de estética ---------------------------------------------------------
 
@@ -431,65 +402,6 @@ make_download_links <- function(type = c("aprobados", "pendientes", "total")) {
   )
 }
 
-make_download_catalog <- function() {
-  datasets <- list(
-    list(
-      title = "Base completa",
-      description = "Todos los proyectos incluidos en el Monitor.",
-      stem = "base_completa"
-    ),
-    list(
-      title = "Proyectos aprobados",
-      description = "Universo de proyectos con resolución de aprobación.",
-      stem = "base_interactiva_aprobados"
-    ),
-    list(
-      title = "Proyectos en evaluación",
-      description = "Proyectos relevados sin resolución de aprobación publicada.",
-      stem = "base_interactiva_pendientes"
-    ),
-    list(
-      title = "Planes de inversión",
-      description = "Distribución anual informada de los planes de inversión.",
-      stem = "planes_inversion"
-    ),
-    list(
-      title = "Importaciones",
-      description = "Registros aduaneros identificados para proyectos RIGI.",
-      stem = "importaciones_proyectos"
-    )
-  )
-
-  htmltools::div(
-    class = "download-catalog",
-    lapply(datasets, function(item) {
-      htmltools::article(
-        class = "download-catalog__item",
-        htmltools::div(
-          class = "download-catalog__copy",
-          htmltools::strong(item$title),
-          htmltools::p(item$description)
-        ),
-        htmltools::div(
-          class = "download-catalog__actions",
-          htmltools::a(
-            "XLSX",
-            href = paste0("downloads/", item$stem, ".xlsx"),
-            download = paste0(item$stem, ".xlsx"),
-            class = "download-button"
-          ),
-          htmltools::a(
-            "CSV",
-            href = paste0("downloads/", item$stem, ".csv"),
-            download = paste0(item$stem, ".csv"),
-            class = "download-button"
-          )
-        )
-      )
-    })
-  )
-}
-
 make_kpi_card <- function(label, value, sublabel = NULL) {
   htmltools::div(
     class = "kpi-card",
@@ -503,9 +415,11 @@ make_kpi_cards_aprobados <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-approved",
     make_kpi_card("Proyectos aprobados", fmt_integer(ind$n_aprobados), "Cantidad de proyectos"),
-    make_kpi_card("Monto aprobado", fmt_currency_short(ind$monto_aprobado, accuracy = 1), "Monto informado"),
-    make_kpi_card("Activos computables", fmt_currency_short(ind$activos_aprobados, accuracy = 1), "Proyectos aprobados"),
-    make_kpi_card("Empleo informado", fmt_integer(ind$empleos_aprobados), "Directo e indirecto, de manera agregada")
+    make_kpi_card("Monto de proyectos aprobados", fmt_currency_mill(ind$monto_aprobado, accuracy = 1), "Millones de USD"),
+    make_kpi_card("Activos computables", fmt_currency_mill(ind$activos_aprobados, accuracy = 1), "Proyectos aprobados · millones de USD"),
+    make_kpi_card("Empleo informado", fmt_integer(ind$empleos_aprobados), "Directos e indirectos"),
+    make_kpi_card("Monto promedio informado", fmt_currency_mill(ind$monto_promedio_aprobado, accuracy = 1), "Por proyecto aprobado"),
+    make_kpi_card("Monto mediano informado", fmt_currency_mill(ind$monto_mediano_aprobado, accuracy = 1), "Por proyecto aprobado")
   )
 }
 
@@ -513,12 +427,11 @@ make_kpi_cards_empleo_aprobado <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-employment",
     make_kpi_card("Empleo informado", fmt_integer(ind$empleos_aprobados), "Directos e indirectos"),
-    make_kpi_card(
-      "Cobertura",
-      paste0(fmt_integer(ind$n_aprobados_con_empleo), " de ", fmt_integer(ind$n_aprobados)),
-      "Proyectos aprobados con empleo informado"
-    ),
-    make_kpi_card("Proyecto con mayor empleo", ind$empleo_top_proyecto, "Entre aprobados")
+    make_kpi_card("Empleo promedio informado", fmt_integer(ind$empleos_promedio_aprobados), "Por proyecto aprobado"),
+    make_kpi_card("Empleo mediano informado", fmt_integer(ind$empleos_mediana_aprobados), "Por proyecto aprobado"),
+    make_kpi_card("Proyecto con mayor empleo", ind$empleo_top_proyecto, "Entre aprobados"),
+    make_kpi_card("Sector con mayor empleo", ind$empleo_top_sector, "Entre aprobados"),
+    make_kpi_card("Provincia con mayor empleo", ind$empleo_top_provincia, "Asignación en partes iguales si es multiprovincial")
   )
 }
 
@@ -538,237 +451,10 @@ make_kpi_cards_pendientes <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-pending",
     make_kpi_card("Proyectos en evaluación", fmt_integer(ind$n_pendientes), "Cantidad de proyectos"),
-    make_kpi_card("Monto informado", fmt_currency_short(ind$monto_pendiente, accuracy = 1), "Proyectos en evaluación"),
-    make_kpi_card("Monto promedio", fmt_currency_short(ind$monto_promedio_pendiente, accuracy = 1), "Por proyecto en evaluación"),
-    make_kpi_card("Monto mediano", fmt_currency_short(ind$monto_mediano_pendiente, accuracy = 1), "Por proyecto en evaluación")
-  )
-}
-
-make_home_kpis <- function(ind) {
-  htmltools::div(
-    class = "kpi-grid executive-kpis",
-    make_kpi_card("Proyectos relevados", fmt_integer(ind$n_total), "Universo del Monitor"),
-    make_kpi_card(
-      "Aprobados",
-      fmt_integer(ind$n_aprobados),
-      fmt_currency_short(ind$monto_aprobado, accuracy = 1)
-    ),
-    make_kpi_card(
-      "En evaluación",
-      fmt_integer(ind$n_pendientes),
-      fmt_currency_short(ind$monto_pendiente, accuracy = 1)
-    ),
-    make_kpi_card("Empleo informado", fmt_integer(ind$empleos_aprobados), "Proyectos aprobados"),
-    make_kpi_card(
-      "PEELP",
-      fmt_integer(ind$n_aprobados_exportacion_largo_plazo),
-      paste0(fmt_pct(ind$participacion_monto_aprobados_exportacion_largo_plazo), " del monto aprobado")
-    )
-  )
-}
-
-make_home_insights <- function(ind) {
-  insights <- list(
-    list(
-      value = paste0(fmt_number(ind$ratio_monto_pendiente_aprobado, accuracy = 0.1), "×"),
-      text = paste0(
-        "El monto informado de los proyectos en evaluación equivale a ",
-        fmt_number(ind$ratio_monto_pendiente_aprobado, accuracy = 0.1),
-        " veces el monto aprobado."
-      )
-    ),
-    list(
-      value = fmt_pct(ind$participacion_sectores_top_dos_aprobados),
-      text = paste0(
-        ind$sectores_top_dos_aprobados,
-        " concentran esa proporción del monto informado de los proyectos aprobados."
-      )
-    ),
-    list(
-      value = fmt_pct(ind$participacion_proyectos_hasta_75_aprobados),
-      text = paste0(
-        fmt_integer(ind$n_proyectos_hasta_75_aprobados),
-        " proyectos de mayor monto alcanzan esa proporción de la inversión aprobada; ",
-        fmt_integer(ind$n_aprobados_exportacion_largo_plazo),
-        " proyectos están clasificados como PEELP."
-      )
-    )
-  )
-
-  htmltools::div(
-    class = "story-insights",
-    lapply(seq_along(insights), function(i) {
-      htmltools::article(
-        class = "story-insight",
-        htmltools::span(class = "story-insight__index", sprintf("%02d", i)),
-        htmltools::strong(class = "story-insight__value", insights[[i]]$value),
-        htmltools::p(insights[[i]]$text)
-      )
-    })
-  )
-}
-
-make_status_mini_plot <- function(ind, metric = c("projects", "amount")) {
-  metric <- match.arg(metric)
-  values <- if (metric == "projects") {
-    c(ind$n_aprobados, ind$n_pendientes)
-  } else {
-    c(ind$monto_aprobado, ind$monto_pendiente)
-  }
-  labels <- if (metric == "projects") fmt_integer(values) else fmt_currency_short(values, accuracy = 1)
-  axis_title <- if (metric == "projects") "Cantidad de proyectos" else "Monto informado · millones de USD"
-
-  data_plot <- tibble::tibble(
-    estado = factor(c("Aprobados", "En evaluación"), levels = c("En evaluación", "Aprobados")),
-    valor = values,
-    etiqueta = labels,
-    color = c(bar_color_approved, bar_color_pending)
-  )
-
-  widget <- plotly::plot_ly(
-    data = data_plot,
-    x = ~valor,
-    y = ~estado,
-    type = "bar",
-    orientation = "h",
-    marker = list(color = data_plot$color),
-    text = ~etiqueta,
-    textposition = "outside",
-    cliponaxis = FALSE,
-    hovertext = ~paste0("<b>", estado, "</b><br>", axis_title, ": ", etiqueta),
-    hoverinfo = "text"
-  ) |>
-    plotly::layout(
-      height = 250,
-      autosize = TRUE,
-      dragmode = FALSE,
-      showlegend = FALSE,
-      margin = list(l = 102, r = 96, t = 12, b = 42),
-      paper_bgcolor = "rgba(0,0,0,0)",
-      plot_bgcolor = "rgba(0,0,0,0)",
-      font = list(family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color = "#334155"),
-      xaxis = list(title = axis_title, showgrid = FALSE, zeroline = FALSE, fixedrange = TRUE),
-      yaxis = list(title = NULL, fixedrange = TRUE),
-      hoverlabel = list(bgcolor = "#FFFFFF", bordercolor = "#CBD5E1", font = list(color = "#0F172A"))
-    )
-
-  lock_plotly_interactions(widget)
-}
-
-make_home_status_comparison <- function(ind) {
-  htmltools::div(
-    class = "home-comparison-grid",
-    htmltools::section(
-      class = "home-comparison-panel",
-      htmltools::h3("Cantidad de proyectos"),
-      make_status_mini_plot(ind, "projects")
-    ),
-    htmltools::section(
-      class = "home-comparison-panel",
-      htmltools::h3("Monto informado"),
-      make_status_mini_plot(ind, "amount")
-    )
-  )
-}
-
-make_concentration_row <- function(row, max_amount) {
-  amount <- as.numeric(row$monto_usd_mill[[1]])
-  share <- as.numeric(row$participacion[[1]])
-  cumulative <- as.numeric(row$participacion_acumulada[[1]])
-  previous <- as.numeric(row$participacion_acumulada_anterior[[1]])
-  width <- if (is.finite(max_amount) && max_amount > 0) 100 * amount / max_amount else 0
-  threshold <- dplyr::case_when(
-    previous < 0.50 && cumulative >= 0.50 ~ "Alcanza 50% acumulado",
-    previous < 0.75 && cumulative >= 0.75 ~ "Alcanza 75% acumulado",
-    TRUE ~ NA_character_
-  )
-
-  htmltools::article(
-    class = paste(
-      "concentration-row",
-      if (isTRUE(row$proyecto_exportacion_estrategia_largo_plazo_si[[1]])) "is-peelp" else ""
-    ),
-    htmltools::div(
-      class = "concentration-row__project",
-      htmltools::span(class = "concentration-row__rank", paste0(row$ranking[[1]], ".")),
-      htmltools::strong(row$proyecto[[1]]),
-      if (isTRUE(row$proyecto_exportacion_estrategia_largo_plazo_si[[1]])) {
-        htmltools::span(class = "concentration-row__peelp", "PEELP")
-      }
-    ),
-    htmltools::div(
-      class = "concentration-row__visual",
-      htmltools::div(
-        class = "concentration-row__track",
-        htmltools::span(
-          class = "concentration-row__bar",
-          style = paste0("width:", sprintf("%.2f", width), "%;"),
-          `aria-label` = paste0("Participación individual: ", fmt_pct(share))
-        )
-      ),
-      htmltools::span(class = "concentration-row__amount", fmt_currency_short(amount, accuracy = 1))
-    ),
-    htmltools::div(
-      class = "concentration-row__shares",
-      htmltools::span(paste0(fmt_pct(share), " individual")),
-      htmltools::strong(paste0(fmt_pct(cumulative), " acumulado")),
-      if (!is.na(threshold)) htmltools::span(class = "concentration-row__threshold", threshold)
-    )
-  )
-}
-
-make_investment_concentration <- function(data, preview_n = 8) {
-  if (nrow(data) == 0 || all(is.na(data$monto_usd_mill))) {
-    return(empty_plot_message("No hay datos suficientes para calcular la concentración."))
-  }
-
-  data_plot <- data |>
-    dplyr::filter(!is.na(monto_usd_mill), monto_usd_mill >= 0) |>
-    dplyr::arrange(dplyr::desc(monto_usd_mill), proyecto) |>
-    dplyr::mutate(
-      ranking = dplyr::row_number(),
-      participacion = chart_share(monto_usd_mill),
-      participacion_acumulada = cumsum(dplyr::coalesce(participacion, 0)),
-      participacion_acumulada_anterior = dplyr::lag(participacion_acumulada, default = 0)
-    )
-
-  max_amount <- max(data_plot$monto_usd_mill, na.rm = TRUE)
-  n_75 <- which(data_plot$participacion_acumulada >= 0.75)[1]
-  n_75 <- if (length(n_75) == 0 || is.na(n_75)) nrow(data_plot) else n_75
-  share_75 <- data_plot$participacion_acumulada[[n_75]]
-  preview_n <- min(max(1L, as.integer(preview_n)), nrow(data_plot))
-  visible_rows <- data_plot |> dplyr::slice_head(n = preview_n)
-  remaining_rows <- data_plot |> dplyr::slice(-(seq_len(preview_n)))
-
-  htmltools::div(
-    class = "concentration-module",
-    htmltools::p(
-      class = "chart-insight",
-      htmltools::strong(paste0(fmt_integer(n_75), " proyectos")),
-      paste0(" explican el ", fmt_pct(share_75), " del monto aprobado informado.")
-    ),
-    htmltools::div(
-      class = "concentration-chart",
-      `aria-label` = "Ranking acumulativo de inversión aprobada",
-      lapply(seq_len(nrow(visible_rows)), function(i) {
-        make_concentration_row(visible_rows[i, , drop = FALSE], max_amount)
-      }),
-      if (nrow(remaining_rows) > 0) {
-        htmltools::tags$details(
-          class = "concentration-more",
-          htmltools::tags$summary(
-            paste0("Ver los ", fmt_integer(nrow(remaining_rows)), " proyectos restantes")
-          ),
-          lapply(seq_len(nrow(remaining_rows)), function(i) {
-            make_concentration_row(remaining_rows[i, , drop = FALSE], max_amount)
-          })
-        )
-      }
-    ),
-    htmltools::p(
-      class = "chart-source",
-      "La barra representa el monto individual. La columna derecha muestra la participación individual y acumulada. PEELP se identifica como atributo del proyecto."
-    )
+    make_kpi_card("Monto informado", fmt_currency_mill(ind$monto_pendiente, accuracy = 1), "Proyectos en evaluación · millones de USD"),
+    make_kpi_card("Activos computables informados", fmt_currency_mill(ind$activos_pendientes, accuracy = 1), "Proyectos en evaluación · millones de USD"),
+    make_kpi_card("Monto promedio informado", fmt_currency_mill(ind$monto_promedio_pendiente, accuracy = 1), "Por proyecto en evaluación"),
+    make_kpi_card("Monto mediano informado", fmt_currency_mill(ind$monto_mediano_pendiente, accuracy = 1), "Por proyecto en evaluación")
   )
 }
 
@@ -807,8 +493,6 @@ plot_bar_monto <- function(data, label_col, title = NULL, subtitle = NULL, fill_
       etiqueta = chart_monto_label(monto_usd_mill, participacion)
     )
 
-  is_sector_plot <- identical(label_col, "sector_simplificado")
-
   p <- ggplot2::ggplot(data_plot, ggplot2::aes(
     x = monto_usd_mill,
     y = label,
@@ -818,17 +502,8 @@ plot_bar_monto <- function(data, label_col, title = NULL, subtitle = NULL, fill_
       "<br>Participación: ", fmt_pct(participacion),
       "<br>Proyectos/incidencias: ", fmt_integer(count_info)
     )
-  ))
-
-  if (is_sector_plot) {
-    p <- p +
-      ggplot2::geom_col(ggplot2::aes(fill = label_original), width = 0.64, alpha = 0.96) +
-      ggplot2::scale_fill_manual(values = rigi_sector_colors(data_plot$label_original), guide = "none")
-  } else {
-    p <- p + ggplot2::geom_col(fill = fill_color, width = 0.64, alpha = 0.96)
-  }
-
-  p <- p +
+  )) +
+    ggplot2::geom_col(fill = fill_color, width = 0.64, alpha = 0.96) +
     ggplot2::geom_text(
       ggplot2::aes(label = etiqueta),
       hjust = -0.06,
@@ -1127,44 +802,18 @@ plot_compare_aprobado_pendiente <- function(aprobado_tbl, pendiente_tbl, label_c
 
   if (nrow(data_plot) == 0) return(empty_plot_message())
 
-  is_sector_plot <- identical(label_col, "sector_simplificado")
-
   p <- ggplot2::ggplot(data_plot, ggplot2::aes(
     x = monto_usd_mill,
     y = label,
-    group = estado,
+    fill = estado,
     text = paste0(
       label_original,
       "<br>", estado,
       "<br>Monto: ", fmt_currency_mill(monto_usd_mill, accuracy = 1),
       "<br>Participación dentro de la categoría: ", fmt_pct(participacion)
     )
-  ))
-
-  if (is_sector_plot) {
-    p <- p +
-      ggplot2::geom_col(
-        ggplot2::aes(fill = label_original, alpha = estado),
-        position = ggplot2::position_dodge(width = 0.72),
-        width = 0.60
-      ) +
-      ggplot2::scale_fill_manual(values = rigi_sector_colors(data_plot$label_original), guide = "none") +
-      ggplot2::scale_alpha_manual(
-        values = c("Aprobado" = 1, "En evaluación" = 0.52),
-        name = NULL
-      )
-  } else {
-    p <- p +
-      ggplot2::geom_col(
-        ggplot2::aes(fill = estado),
-        position = ggplot2::position_dodge(width = 0.72),
-        width = 0.60,
-        alpha = 0.96
-      ) +
-      ggplot2::scale_fill_manual(values = c("Aprobado" = bar_color_compare_approved, "En evaluación" = bar_color_compare_pending))
-  }
-
-  p <- p +
+  )) +
+    ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.72), width = 0.60, alpha = 0.96) +
     ggplot2::geom_text(
       ggplot2::aes(label = etiqueta),
       position = ggplot2::position_dodge(width = 0.72),
@@ -1174,6 +823,7 @@ plot_compare_aprobado_pendiente <- function(aprobado_tbl, pendiente_tbl, label_c
       color = "#334155",
       show.legend = FALSE
     ) +
+    ggplot2::scale_fill_manual(values = c("Aprobado" = bar_color_compare_approved, "En evaluación" = bar_color_compare_pending)) +
     ggplot2::scale_x_continuous(
       breaks = scales::breaks_pretty(n = 4),
       labels = function(x) fmt_number(x, accuracy = 1),
@@ -1747,43 +1397,6 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
     mobile_min_width = 760,
     vertical_scroll = TRUE,
     hide_text_on_mobile = FALSE
-  )
-}
-
-make_mobile_pending_timeline <- function(data) {
-  if (nrow(data) == 0 || all(is.na(data$fecha_presentacion))) {
-    return(empty_plot_message("No hay fechas de presentación disponibles."))
-  }
-
-  data_plot <- data |>
-    dplyr::filter(!is.na(fecha_presentacion)) |>
-    dplyr::arrange(fecha_presentacion, proyecto)
-
-  htmltools::tags$ol(
-    class = "pending-timeline-mobile",
-    `aria-label` = "Cronología de presentaciones",
-    lapply(seq_len(nrow(data_plot)), function(i) {
-      row <- data_plot[i, , drop = FALSE]
-      htmltools::tags$li(
-        class = "pending-timeline-mobile__item",
-        htmltools::tags$time(
-          datetime = as.character(row$fecha_presentacion[[1]]),
-          fmt_date(row$fecha_presentacion[[1]])
-        ),
-        htmltools::tags$strong(row$proyecto[[1]]),
-        htmltools::tags$p(
-          paste(
-            fmt_currency_short(row$monto_usd_mill[[1]], accuracy = 1),
-            dplyr::coalesce(row$sector_simplificado[[1]], "No informado"),
-            sep = " · "
-          )
-        ),
-        htmltools::tags$p(
-          class = "pending-timeline-mobile__location",
-          dplyr::coalesce(row$provincia_original[[1]], "No informado")
-        )
-      )
-    })
   )
 }
 

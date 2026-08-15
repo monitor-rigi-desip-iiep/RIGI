@@ -72,8 +72,6 @@
     const sectorSummary = document.getElementById("plans-sector-summary");
     const subsectorSummary = document.getElementById("plans-subsector-summary");
     const resetButton = document.getElementById("plans-reset");
-    const viewButtons = Array.from(root.querySelectorAll("[data-plans-view]"));
-    const viewPanels = Array.from(root.querySelectorAll("[data-plans-panel]"));
 
     const sectorInputs = Array.from(root.querySelectorAll(".plans-sector-option"));
     const subsectorInputs = Array.from(root.querySelectorAll(".plans-subsector-option"));
@@ -96,42 +94,6 @@
     const pctFormatter = new Intl.NumberFormat("es-AR", { style: "percent", maximumFractionDigits: 1 });
     let syncingAnnualLegend = false;
     let syncingCumulativeLegend = false;
-    let activeView = "annual";
-
-    function activeChart() {
-      return activeView === "cumulative" ? cumulativeChart : annualChart;
-    }
-
-    function resizeActiveChart() {
-      const chart = activeChart();
-      if (!chart || typeof Plotly.Plots === "undefined") return;
-      window.requestAnimationFrame(function () {
-        Plotly.Plots.resize(chart);
-      });
-    }
-
-    function setActiveView(view, options) {
-      const next = view === "cumulative" ? "cumulative" : "annual";
-      const opts = options || {};
-      activeView = next;
-      root.dataset.activeView = next;
-
-      viewButtons.forEach((button) => {
-        const selected = button.dataset.plansView === next;
-        button.classList.toggle("is-active", selected);
-        button.setAttribute("aria-pressed", selected ? "true" : "false");
-      });
-      viewPanels.forEach((panel) => {
-        panel.hidden = panel.dataset.plansPanel !== next;
-      });
-
-      if (opts.focus) {
-        const selected = viewButtons.find((button) => button.dataset.plansView === next);
-        if (selected) selected.focus();
-      }
-      if (opts.render) renderCharts();
-      else resizeActiveChart();
-    }
 
     function selectedValues(inputs) {
       return inputs.filter((input) => input.checked && !input.disabled).map((input) => input.value);
@@ -706,29 +668,14 @@
       refreshControlsAndCharts();
     });
 
-    viewButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-        setActiveView(button.dataset.plansView, { render: true });
-      });
-      button.addEventListener("keydown", function (event) {
-        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        event.preventDefault();
-        setActiveView(activeView === "annual" ? "cumulative" : "annual", { focus: true, render: true });
-      });
-    });
-
     document.addEventListener("click", function (event) {
       root.querySelectorAll(".plans-multiselect[open]").forEach((details) => {
         if (!details.contains(event.target)) details.removeAttribute("open");
       });
     });
 
-    responsive.subscribe("planes-inversion", function () {
-      renderCharts();
-      resizeActiveChart();
-    });
+    responsive.subscribe("planes-inversion", renderCharts);
 
-    setActiveView("annual");
     refreshSubsectorAvailability(true);
     refreshControlsAndCharts();
   }

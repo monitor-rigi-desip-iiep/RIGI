@@ -13,13 +13,15 @@ title: "Proyectos aprobados"
 Esta sección reúne los proyectos cuya adhesión al RIGI ha sido aprobada. Los indicadores presentan información sobre monto de inversión, activos computables, importaciones, planes de inversión, empleo informado, distribución sectorial y territorial y principales hitos administrativos.
 :::
 
-::: {.page-subnav role="navigation" aria-label="En esta página"}
+::: {.page-subnav role="navigation" aria-label="En esta sección"}
 - [Panorama](#panorama)
 - [Inversión](#inversion)
-- [Ejecución](#ejecucion)
+- [Planes](#planes)
+- [Importaciones](#importaciones)
 - [Empleo](#empleo)
-- [Cronología](#cronologia)
-- [Proyectos](#proyectos)
+- [PEELP](#peelp)
+- [Hitos](#hitos)
+- [Fichas](#fichas)
 :::
 
 ## Panorama {#panorama}
@@ -32,7 +34,7 @@ make_kpi_cards_aprobados(indicadores)
 
 ## Inversión {#inversion}
 
-### ¿En qué sectores se concentra?
+### Monto de inversión por sector
 
 ```{r}
 make_chart_context_note("Las etiquetas muestran el monto informado y su participación sobre el monto total de inversión de los proyectos aprobados.")
@@ -47,13 +49,7 @@ plot_bar_monto(
 )
 ```
 
-### ¿Qué proyectos explican la inversión?
-
-```{r}
-make_investment_concentration(tablas$projects_pareto_aprobados)
-```
-
-### ¿Dónde se localiza?
+### Monto de inversión por provincia
 
 ```{r}
 make_province_note()
@@ -68,11 +64,23 @@ plot_bar_monto(
 )
 ```
 
-## Ejecución {#ejecucion}
+### Principales proyectos aprobados por monto
 
-La información disponible permite seguir dos dimensiones complementarias: cuándo está previsto invertir y qué evidencia aduanera de ejecución puede observarse.
+```{r}
+make_chart_context_note("Los tres primeros puestos se destacan por intensidad de color. Cada etiqueta muestra el monto informado y su participación sobre el monto total de los proyectos aprobados.")
+```
 
-### Planes de inversión {#planes}
+```{r}
+plot_top_proyectos_monto(
+  tablas$top_projects_aprobados,
+  title = NULL,
+  fill_color = bar_color_approved,
+  total_value = indicadores$monto_aprobado,
+  share_reference = "del monto informado de proyectos aprobados"
+)
+```
+
+## Planes de inversión {#planes}
 
 Los planes de inversión presentan la distribución anual de los montos de inversión informados para los proyectos aprobados, desagregados por sector y subsector. La información se expresa en millones de dólares y permite analizar tanto el flujo anual previsto como su evolución acumulada a lo largo del tiempo.
 
@@ -80,7 +88,7 @@ Los planes de inversión presentan la distribución anual de los montos de inver
 make_planes_inversion_module(planes_inversion)
 ```
 
-### Importaciones {#importaciones}
+## Importaciones {#importaciones}
 
 Esta sección presenta la evolución mensual de las importaciones asociadas a los proyectos identificados en la base, a partir de registros aduaneros. Los valores se expresan en millones de USD FOB y pueden analizarse por período, sector y proyecto.
 
@@ -88,7 +96,7 @@ Esta sección presenta la evolución mensual de las importaciones asociadas a lo
 make_importaciones_module(importaciones_rigi, proyectos)
 ```
 
-## Empleo {#empleo}
+## Empleo informado {#empleo}
 
 ```{r}
 make_kpi_cards_empleo_aprobado(indicadores)
@@ -145,7 +153,45 @@ plot_bar_empleo(
 ```
 :::
 
-## Cronología {#cronologia}
+## Proyectos de exportación estratégica de largo plazo (PEELP) {#peelp}
+
+Esta sección reúne los proyectos aprobados clasificados como **Proyectos de Exportación Estratégica de Largo Plazo (PEELP)**.
+
+```{r}
+make_kpi_cards_exportacion_largo_plazo(indicadores)
+```
+
+### Participación en el monto de proyectos aprobados
+
+```{r}
+plot_peelp_share(indicadores)
+```
+
+### Principales proyectos PEELP por monto
+
+```{r}
+plot_top_proyectos_monto(
+  tablas$aprobados_exportacion_largo_plazo,
+  title = NULL,
+  fill_color = bar_color_peelp,
+  total_value = indicadores$monto_aprobado,
+  share_reference = "del monto informado de proyectos aprobados"
+)
+```
+
+### Fichas de proyectos PEELP
+
+```{r}
+make_rigi_project_cards(
+  tablas$aprobados_exportacion_largo_plazo,
+  table_type = "aprobados",
+  caption = "Fichas de proyectos aprobados PEELP",
+  widget_key = "peelp",
+  show_classification_filter = FALSE
+)
+```
+
+## Hitos del RIGI {#hitos}
 
 Desde la creación del RIGI hasta el último proyecto aprobado. Seleccioná un hito para desplegar su información documental; podés mantener varios abiertos al mismo tiempo.
 
@@ -153,7 +199,7 @@ Desde la creación del RIGI hasta el último proyecto aprobado. Seleccioná un h
 make_rigi_milestones_timeline(tablas$timeline_aprobados_tbl)
 ```
 
-## Proyectos {#proyectos}
+## Fichas de proyectos aprobados {#fichas}
 
 ```{r}
 make_download_links("aprobados")
