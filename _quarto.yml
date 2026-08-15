@@ -53,7 +53,7 @@ format:
     code-fold: true
     code-tools: false
     smooth-scroll: true
-    include-after-body: assets/rigi-after-body.html
+    include-in-header: assets/rigi-head.html
 
 execute:
   echo: false

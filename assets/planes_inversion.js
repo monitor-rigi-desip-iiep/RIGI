@@ -1,15 +1,54 @@
 (function () {
   "use strict";
 
+  const INIT_RETRY_DELAY_MS = 100;
+  const INIT_MAX_ATTEMPTS = 100;
+  const RESPONSIVE_SCRIPT_URL = new URL("assets/rigi-responsive.js", document.baseURI).href;
+  let initAttempts = 0;
+  let initRetryTimer = null;
+  let initErrorReported = false;
+
+  function missingDependencies() {
+    const missing = [];
+    if (typeof window.Plotly === "undefined") missing.push("window.Plotly");
+    if (typeof window.RigiResponsive === "undefined") missing.push("window.RigiResponsive");
+    return missing;
+  }
+
+  function retryInitialization(root, missing) {
+    initAttempts += 1;
+    if (initAttempts < INIT_MAX_ATTEMPTS) {
+      if (initRetryTimer === null) {
+        initRetryTimer = window.setTimeout(function () {
+          initRetryTimer = null;
+          initPlansInvestment();
+        }, INIT_RETRY_DELAY_MS);
+      }
+      return;
+    }
+
+    root.dataset.initializationError = missing.join(", ");
+    if (!initErrorReported) {
+      initErrorReported = true;
+      console.error(
+        "[Monitor RIGI] No se pudo inicializar Planes de inversión. " +
+        "Dependencias faltantes: " + missing.join(", ") + ". " +
+        "Script responsive esperado: " + RESPONSIVE_SCRIPT_URL
+      );
+    }
+  }
+
   function initPlansInvestment() {
     const root = document.getElementById("planes-inversion-module");
     if (!root || root.dataset.initialized === "true") return;
 
-    if (typeof window.Plotly === "undefined" || typeof window.RigiResponsive === "undefined") {
-      window.setTimeout(initPlansInvestment, 100);
+    const missing = missingDependencies();
+    if (missing.length > 0) {
+      retryInitialization(root, missing);
       return;
     }
 
+    delete root.dataset.initializationError;
     root.dataset.initialized = "true";
 
     const dataNode = document.getElementById("planes-inversion-data");

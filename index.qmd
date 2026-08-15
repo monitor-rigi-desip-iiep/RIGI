@@ -1,9 +1,5 @@
 ---
 title: "Monitor de Proyectos RIGI"
-format:
-  html:
-    toc: false
-    page-layout: full
 execute:
   echo: false
   warning: false

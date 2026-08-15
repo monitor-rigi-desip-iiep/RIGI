@@ -1,0 +1,19 @@
+{
+  "checked_at": "2026-08-15",
+  "url": "https://monitor-rigi-desip-iiep.github.io/RIGI/aprobados.html",
+  "http_status": 200,
+  "responsive_script_tag_present": false,
+  "plans_script_tag_present": true,
+  "imports_script_tag_present": true,
+  "plans_initialized": null,
+  "imports_initialized": null,
+  "chart_children": {
+    "planes-annual-chart": 0,
+    "planes-cumulative-chart": 0,
+    "impo-sector-monthly-chart": 0,
+    "impo-sector-cumulative-chart": 0,
+    "impo-project-monthly-chart": 0,
+    "impo-project-cumulative-chart": 0
+  },
+  "conclusion": "Los módulos esperan window.RigiResponsive, pero el HTML publicado no carga assets/rigi-responsive.js."
+}

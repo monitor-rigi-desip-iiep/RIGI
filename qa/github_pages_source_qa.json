@@ -1,0 +1,39 @@
+{
+  "head_include": "assets/rigi-head.html",
+  "page_format_overrides": [],
+  "checks": {
+    "global_head_include_declared": true,
+    "head_include_exists": true,
+    "head_include_not_gitignored": true,
+    "responsive_script_loaded_once_in_sources": true,
+    "no_page_format_overrides": true,
+    "project_site_url": true,
+    "all_module_scripts_are_resources": true,
+    "all_interactive_ids_are_generated": true,
+    "plans_wait_is_bounded": true,
+    "imports_wait_is_bounded": true,
+    "modules_remain_idempotent": true,
+    "ci_trigger_coverage": true,
+    "ci_dependency_coverage": true,
+    "ci_removes_generated_state": true,
+    "quarto_cache_and_freeze_disabled": true,
+    "javascript_syntax_rigi-responsive": true,
+    "javascript_syntax_planes_inversion": true,
+    "javascript_syntax_importaciones": true
+  },
+  "javascript": {
+    "assets/rigi-responsive.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/planes_inversion.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/importaciones.js": {
+      "ok": true,
+      "stderr": ""
+    }
+  },
+  "failed": []
+}

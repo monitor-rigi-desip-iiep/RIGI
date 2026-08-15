@@ -1,9 +1,5 @@
 ---
 title: "Proyectos aprobados"
-format:
-  html:
-    toc: false
-    page-layout: full
 ---
 
 {{< include _partials/setup-core.qmd >}}
