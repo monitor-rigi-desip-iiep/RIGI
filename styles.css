@@ -426,30 +426,30 @@ input {
   background: var(--rigi-blue);
 }
 
-.rigi-milestone__institutional-content,
 .rigi-milestone__details {
   grid-area: content;
   min-width: 0;
 }
 
-.rigi-milestone__institutional-content {
-  padding: 0.25rem 0.85rem 0.15rem 0.35rem;
-}
-
 .rigi-milestone__institutional-title {
-  margin: 0;
-  color: var(--rigi-navy);
-  font-size: 1.08rem;
+  display: block;
+  color: #172033;
+  font-size: 1.02rem;
   font-weight: 850;
   letter-spacing: -0.012em;
-  line-height: 1.35;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  transition: color 160ms ease;
 }
 
 .rigi-milestone__institutional-description {
-  margin: 0.42rem 0 0;
+  display: block;
+  margin-top: 0.42rem;
   color: var(--rigi-muted);
-  font-size: 0.94rem;
+  font-size: 0.9rem;
+  font-weight: 500;
   line-height: 1.62;
+  overflow-wrap: anywhere;
 }
 
 .rigi-milestone__details {
@@ -603,8 +603,23 @@ input {
   color: #1D4ED8;
 }
 
+.rigi-milestone--institutional:hover .rigi-milestone__institutional-title,
+.rigi-milestone--institutional:focus-within .rigi-milestone__institutional-title,
+.rigi-milestone--institutional:has(.rigi-milestone__details[open]) .rigi-milestone__institutional-title {
+  color: #1D4ED8;
+}
+
+.rigi-milestone--institutional:hover .rigi-milestone__node,
+.rigi-milestone--institutional:focus-within .rigi-milestone__node,
+.rigi-milestone--institutional:has(.rigi-milestone__details[open]) .rigi-milestone__node {
+  box-shadow: 0 0 0 4px #FFFFFF, 0 0 0 7px rgba(37, 99, 235, 0.16);
+  transform: translateX(-50%) scale(1.05);
+}
+
 .rigi-milestone--project:hover .rigi-milestone__chevron,
 .rigi-milestone--project:focus-within .rigi-milestone__chevron,
+.rigi-milestone--institutional:hover .rigi-milestone__chevron,
+.rigi-milestone--institutional:focus-within .rigi-milestone__chevron,
 .rigi-milestone__details[open] .rigi-milestone__chevron {
   border-color: var(--rigi-blue);
 }
@@ -1525,12 +1540,13 @@ main.content table:not(.dataTable) {
     top: 0.06rem;
   }
 
-  .rigi-milestone__institutional-content {
-    padding: 0.05rem 0.2rem 0 0;
+  .rigi-milestone__institutional-title {
+    font-size: 0.96rem;
   }
 
-  .rigi-milestone__institutional-title {
-    font-size: 1rem;
+  .rigi-milestone__institutional-description {
+    font-size: 0.85rem;
+    line-height: 1.58;
   }
 
   .rigi-milestone__summary {

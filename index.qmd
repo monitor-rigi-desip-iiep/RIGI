@@ -277,7 +277,7 @@ make_rigi_project_cards(
 
 <p class="rigi-milestones-subtitle">
 
-Desde la sanción de la Ley de Bases hasta el último proyecto aprobado.
+Desde la creación del RIGI hasta el último proyecto aprobado.
 
 </p>
 

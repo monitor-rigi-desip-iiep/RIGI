@@ -998,13 +998,41 @@ timeline_fmt_monto <- function(x) {
   paste0("US$ ", formatted, " millones")
 }
 
-make_rigi_institutional_milestone <- function(date_label, datetime, title, description) {
+make_rigi_institutional_milestone <- function(date, title, description, details = NULL, url = NULL) {
+  event_date <- as.Date(date)
+  date_label <- timeline_fmt_date_es(event_date)
+
+  norm_link_tag <- if (is.null(url) || is.na(url) || !nzchar(stringr::str_trim(url))) {
+    NULL
+  } else {
+    htmltools::tags$a(
+      class = "rigi-milestone__norm-link",
+      href = url,
+      target = "_blank",
+      rel = "noopener noreferrer",
+      `aria-label` = paste0(title, ": ver norma oficial (se abre en una nueva pestaña)"),
+      "Ver norma ",
+      htmltools::tags$span(`aria-hidden` = "true", "↗")
+    )
+  }
+
+  panel_content <- if (is.null(details) || is.na(details) || !nzchar(stringr::str_trim(details))) {
+    norm_link_tag
+  } else {
+    htmltools::tagList(
+      htmltools::tags$h4("Alcance normativo"),
+      htmltools::tags$p(class = "rigi-milestone__description", details),
+      norm_link_tag
+    )
+  }
+
   htmltools::tags$li(
     class = "rigi-milestone rigi-milestone--institutional",
     `data-timeline-kind` = "institutional",
+    `data-event-date` = format(event_date, "%Y-%m-%d"),
     htmltools::tags$time(
       class = "rigi-milestone__date",
-      datetime = datetime,
+      datetime = format(event_date, "%Y-%m-%d"),
       date_label
     ),
     htmltools::tags$div(
@@ -1012,10 +1040,30 @@ make_rigi_institutional_milestone <- function(date_label, datetime, title, descr
       `aria-hidden` = "true",
       htmltools::tags$span(class = "rigi-milestone__node")
     ),
-    htmltools::tags$div(
-      class = "rigi-milestone__institutional-content",
-      htmltools::tags$h3(class = "rigi-milestone__institutional-title", title),
-      htmltools::tags$p(class = "rigi-milestone__institutional-description", description)
+    htmltools::tags$details(
+      class = "rigi-milestone__details rigi-milestone__details--institutional",
+      htmltools::tags$summary(
+        class = "rigi-milestone__summary",
+        htmltools::tags$span(
+          class = "rigi-milestone__summary-copy",
+          htmltools::tags$span(
+            class = "rigi-milestone__institutional-title",
+            htmltools::tags$strong(title)
+          ),
+          htmltools::tags$span(
+            class = "rigi-milestone__institutional-description",
+            description
+          )
+        ),
+        htmltools::tags$span(
+          class = "rigi-milestone__chevron",
+          `aria-hidden` = "true"
+        )
+      ),
+      htmltools::tags$div(
+        class = "rigi-milestone__panel",
+        panel_content
+      )
     )
   )
 }
@@ -1146,29 +1194,82 @@ make_rigi_milestones_timeline <- function(data) {
     ) |>
     dplyr::select(-.project_sort)
 
-  fixed_events <- list(
-    make_rigi_institutional_milestone(
-      date_label = "Jul 2024",
-      datetime = "2024-07",
-      title = "Ley de Bases · RIGI creado",
-      description = "Se promulga la Ley 27.742 que crea el Régimen de Incentivo para Grandes Inversiones."
-    ),
-    make_rigi_institutional_milestone(
-      date_label = "Oct 2024",
-      datetime = "2024-10",
-      title = "Reglamentación",
-      description = "El Ejecutivo reglamenta el régimen y se habilita la presentación de proyectos. Llegan las primeras solicitudes."
-    )
+  normative_events <- tibble::tribble(
+    ~date, ~title, ~description, ~details, ~url,
+    as.Date("2024-07-08"),
+    "Ley 27.742 · Creación del RIGI",
+    "Se crea el Régimen de Incentivo para Grandes Inversiones (RIGI) en el Título VII de la Ley de Bases y Puntos de Partida para la Libertad de los Argentinos.",
+    "El Título VII de la Ley 27.742 (artículos 164 a 228) establece el RIGI, sus objetivos, sujetos, requisitos, incentivos y garantías aplicables a los Vehículos de Proyecto Único que adhieran al régimen.",
+    "https://www.boletinoficial.gob.ar/detalleAviso/primera/310189/20240708",
+    as.Date("2024-08-23"),
+    "Decreto 749/2024 · Reglamentación del RIGI",
+    "Se aprueba la reglamentación del Título VII de la Ley 27.742, estableciendo las disposiciones necesarias para la implementación del régimen, sus requisitos, procedimientos y marco operativo.",
+    "El Decreto 749/2024 aprueba la reglamentación de los artículos 164 a 228 de la Ley 27.742 y dispone que las normas complementarias sean dictadas por la Autoridad de Aplicación y los organismos competentes.",
+    "https://www.boletinoficial.gob.ar/detalleAviso/primera/312707/20240823",
+    as.Date("2024-10-22"),
+    "Resolución 1074/2024 · Implementación operativa del RIGI",
+    "Se aprueban los procedimientos para la adhesión al régimen a través de Trámites a Distancia (TAD) y se establecen disposiciones operativas vinculadas con proveedores, importaciones y procedimientos aduaneros.",
+    "La resolución aprueba los procedimientos administrativos de implementación del RIGI mediante TAD y establece reglas operativas sobre bienes susceptibles de importación, origen nacional, Ventanilla Única de Comercio Exterior y garantías aduaneras.",
+    "https://www.boletinoficial.gob.ar/detalleAviso/primera/315906/20241022",
+    as.Date("2026-02-19"),
+    "Decreto 105/2026 · Ampliación y prórroga del RIGI",
+    "Se prorroga por un año el plazo de adhesión al régimen y se incorporan los nuevos desarrollos de explotación y producción de hidrocarburos líquidos y gaseosos costa adentro entre las actividades elegibles del sector de petróleo y gas.",
+    "La prórroga rige por un año a partir del 8 de julio de 2026. Para los nuevos desarrollos de hidrocarburos líquidos y gaseosos costa adentro, el decreto fija un monto mínimo de inversión en activos computables de US$ 600 millones.",
+    "https://www.boletinoficial.gob.ar/detalleAviso/primera/338519/20260219",
+    as.Date("2026-04-13"),
+    "Resolución 484/2026 · Adecuación del criterio de larga maduración",
+    "Se eleva del 30% al 35% el umbral máximo del cociente utilizado para determinar el carácter de largo plazo de las inversiones.",
+    "La adecuación se realiza tras la incorporación de nuevos desarrollos de hidrocarburos costa adentro y la revisión técnica de los sectores comprendidos en el RIGI. El cociente compara el valor presente del flujo neto de caja esperado —excluidas inversiones— durante los primeros tres años desde el primer desembolso de capital con el valor presente neto de las inversiones de capital planeadas para ese mismo período. El nuevo máximo de 35% se aplica simultáneamente a todos los sectores comprendidos en el RIGI.",
+    "https://www.boletinoficial.gob.ar/detalleAviso/primera/340620/20260413"
   )
 
-  project_events <- lapply(
-    seq_len(nrow(data)),
-    function(i) make_rigi_project_milestone(data[i, , drop = FALSE])
+  normative_entries <- lapply(
+    seq_len(nrow(normative_events)),
+    function(i) {
+      row <- normative_events[i, , drop = FALSE]
+      list(
+        sort_date = row$date[[1]],
+        sort_kind = 0L,
+        sort_label = row$title[[1]],
+        tag = make_rigi_institutional_milestone(
+          date = row$date[[1]],
+          title = row$title[[1]],
+          description = row$description[[1]],
+          details = row$details[[1]],
+          url = row$url[[1]]
+        )
+      )
+    }
   )
+
+  project_entries <- lapply(
+    seq_len(nrow(data)),
+    function(i) {
+      project_date <- as.Date(data$fecha_adhesion_rigi[[i]])
+      list(
+        sort_date = project_date,
+        sort_kind = 1L,
+        sort_label = timeline_text_or_sd(data$proyecto[i]),
+        tag = make_rigi_project_milestone(data[i, , drop = FALSE])
+      )
+    }
+  )
+
+  all_entries <- c(normative_entries, project_entries)
+  if (length(all_entries) > 0) {
+    sort_dates <- vapply(
+      all_entries,
+      function(x) if (is.na(x$sort_date)) Inf else as.numeric(x$sort_date),
+      numeric(1)
+    )
+    sort_kinds <- vapply(all_entries, function(x) x$sort_kind, integer(1))
+    sort_labels <- stringr::str_to_lower(vapply(all_entries, function(x) x$sort_label, character(1)))
+    all_entries <- all_entries[order(sort_dates, sort_kinds, sort_labels)]
+  }
 
   htmltools::tags$ol(
     class = "rigi-milestones",
-    do.call(htmltools::tagList, c(fixed_events, project_events))
+    do.call(htmltools::tagList, lapply(all_entries, `[[`, "tag"))
   )
 }
 
