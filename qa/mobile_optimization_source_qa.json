@@ -1,0 +1,24 @@
+{
+  "checks": {
+    "horizontal_mobile_left_margin_capped": true,
+    "horizontal_mobile_right_labels_reserved": true,
+    "horizontal_full_tooltips_preserved": true,
+    "imports_mobile_period_width_compact": true,
+    "imports_scroll_only_for_long_series": true,
+    "imports_mobile_height_compact": true,
+    "imports_viewport_range_present": true,
+    "imports_viewport_scroll_throttled": true,
+    "imports_scroll_listener_passive": true,
+    "imports_listener_idempotent": true,
+    "imports_month_two_line_labels": true,
+    "plotly_responsive": true,
+    "plotly_scroll_zoom_disabled": true,
+    "plotly_double_click_disabled": true,
+    "plotly_fixed_ranges": true,
+    "mobile_sticky_anchor_offset": true,
+    "mobile_import_chart_height_css": true,
+    "mobile_back_to_top_safe_area": true,
+    "css_braces_balanced": true
+  },
+  "failed": []
+}

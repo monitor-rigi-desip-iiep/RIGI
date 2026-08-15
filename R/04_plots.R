@@ -226,10 +226,18 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
         el.style.maxWidth = 'none';
 
         var plotWidth = useScroll ? mobileMinWidth : Math.max(1, hostWidth);
-        var nextLeft = compact
-          ? (useScroll ? %s : Math.max(68, Math.min(%s, Math.round(plotWidth * 0.34))))
-          : %s;
-        var nextRight = compact ? 12 : (tablet ? Math.min(%s, 24) : %s);
+        var originalLeft = %s;
+        var originalRight = %s;
+        // En un lienzo angosto los nombres largos no deben consumir la mitad
+        // del área de datos. Las etiquetas ya llegan envueltas desde R y el
+        // texto completo permanece disponible en el tooltip.
+        var mobileLeftCap = Math.max(120, Math.min(168, Math.round(plotWidth * 0.36)));
+        var nextLeft = compact ? Math.min(originalLeft, mobileLeftCap) : originalLeft;
+        // Se reserva espacio real para monto y participación a la derecha en
+        // lugar de recortarlos contra el borde del viewport móvil.
+        var nextRight = compact
+          ? Math.max(56, Math.min(84, originalRight + 32))
+          : (tablet ? Math.min(originalRight, 24) : originalRight);
         var nextBottom = compact ? Math.min(%s, 54) : %s;
         var hint = getHint();
         if (host) host.classList.toggle('is-overflowing', useScroll);
@@ -298,9 +306,6 @@ style_plotly <- function(p, margin_left = 150, margin_right = 35, margin_bottom 
     if (isTRUE(vertical_scroll)) "true" else "false",
     mobile_min_width,
     margin_left,
-    margin_left,
-    margin_left,
-    margin_right,
     margin_right,
     margin_bottom,
     margin_bottom

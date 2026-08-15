@@ -4513,14 +4513,68 @@ main.content {
 }
 
 @media (max-width: 991.98px) {
+  :root {
+    --rigi-mobile-local-nav-height: 46px;
+    --rigi-mobile-anchor-gap: 14px;
+  }
+
+  html {
+    scroll-padding-top: calc(
+      var(--rigi-global-nav-height) +
+      var(--rigi-mobile-local-nav-height) +
+      var(--rigi-mobile-anchor-gap)
+    );
+  }
+
   .mobile-section-contents {
     position: sticky !important;
     top: var(--rigi-global-nav-height);
     z-index: 1035;
+    isolation: isolate;
+    overflow: visible;
+    background: #FFFFFF;
+    box-shadow: 0 3px 10px rgba(11, 45, 92, 0.08);
+  }
+
+  .mobile-section-contents > summary {
+    min-width: 0;
+    min-height: var(--rigi-mobile-local-nav-height);
+    max-height: var(--rigi-mobile-local-nav-height);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  section[id],
+  h1[id],
+  h2[id],
+  h3[id] {
+    scroll-margin-top: calc(
+      var(--rigi-global-nav-height) +
+      var(--rigi-mobile-local-nav-height) +
+      var(--rigi-mobile-anchor-gap)
+    );
   }
 }
 
 @media (max-width: 640px) {
+  .impo-chart-card {
+    padding-inline: 0.25rem;
+  }
+
+  .impo-chart {
+    min-height: 390px;
+  }
+
+  .rigi-scroll-hint {
+    padding-right: 3.25rem;
+  }
+
+  .back-to-top {
+    right: max(0.7rem, env(safe-area-inset-right));
+    bottom: max(0.7rem, calc(env(safe-area-inset-bottom) + 0.55rem));
+  }
+
   .impo-project-dropdown__menu {
     position: static;
     width: 100%;

@@ -285,11 +285,11 @@
 
     function prepareImportChart(chart, months) {
       const profile = responsive.prepareScrollablePlot(chart, months.length, {
-        mobilePixelsPerPeriod: 62,
-        tabletPixelsPerPeriod: 58,
-        scrollThreshold: 10,
-        mobileHeight: 420,
-        tabletHeight: 440,
+        mobilePixelsPerPeriod: 50,
+        tabletPixelsPerPeriod: 52,
+        scrollThreshold: 6,
+        mobileHeight: 390,
+        tabletHeight: 420,
         desktopHeight: 470
       });
       return profile;
@@ -299,6 +299,63 @@
       if (responsive.isMobile()) return 1.22;
       if (responsive.isTablet()) return 1.19;
       return 1.17;
+    }
+
+    function viewportPeriodRange(chart, count) {
+      const wrapper = chart ? chart.closest(".rigi-plot-scroll") : null;
+      const total = Math.max(0, Number(count) || 0);
+      if (!chart || !wrapper || total === 0) return { start: 0, end: total };
+
+      const overflowing = wrapper.scrollWidth > wrapper.clientWidth + 2;
+      if (!responsive.isMobile() || !overflowing) return { start: 0, end: total };
+
+      const leftMargin = Number(chart.layout && chart.layout.margin && chart.layout.margin.l) || 54;
+      const rightMargin = Number(chart.layout && chart.layout.margin && chart.layout.margin.r) || 12;
+      const chartWidth = Math.max(chart.offsetWidth || wrapper.scrollWidth, leftMargin + rightMargin + 1);
+      const plotWidth = Math.max(1, chartWidth - leftMargin - rightMargin);
+      const visibleLeft = Math.max(0, wrapper.scrollLeft - leftMargin);
+      const visibleRight = Math.min(plotWidth, wrapper.scrollLeft + wrapper.clientWidth - leftMargin);
+      const start = Math.max(0, Math.floor((visibleLeft / plotWidth) * total));
+      const end = Math.min(total, Math.max(start + 1, Math.ceil((visibleRight / plotWidth) * total)));
+      return { start: start, end: end };
+    }
+
+    function viewportYRange(chart, totals) {
+      const values = Array.isArray(totals) ? totals : [];
+      const periodRange = viewportPeriodRange(chart, values.length);
+      const visibleValues = values.slice(periodRange.start, periodRange.end);
+      const maxVisible = Math.max.apply(null, visibleValues.concat([0]));
+      return maxVisible > 0 ? [0, maxVisible * labelHeadroom()] : [0, 1];
+    }
+
+    function updateViewportScale(chart) {
+      if (!chart || !Array.isArray(chart._rigiViewportTotals)) return;
+      if (chart._rigiViewportScaleFrame) {
+        window.cancelAnimationFrame(chart._rigiViewportScaleFrame);
+      }
+      chart._rigiViewportScaleFrame = window.requestAnimationFrame(function () {
+        chart._rigiViewportScaleFrame = null;
+        Plotly.relayout(chart, { "yaxis.range": viewportYRange(chart, chart._rigiViewportTotals) });
+      });
+    }
+
+    function bindViewportScale(chart, totals) {
+      if (!chart) return;
+      chart._rigiViewportTotals = Array.isArray(totals) ? totals.slice() : [];
+      const wrapper = chart.closest(".rigi-plot-scroll");
+      if (!wrapper) return;
+
+      if (chart._rigiViewportWrapper && chart._rigiViewportWrapper !== wrapper && chart._rigiViewportScrollHandler) {
+        chart._rigiViewportWrapper.removeEventListener("scroll", chart._rigiViewportScrollHandler);
+      }
+      if (!chart._rigiViewportScrollHandler) {
+        chart._rigiViewportScrollHandler = function () { updateViewportScale(chart); };
+      }
+      if (chart._rigiViewportWrapper !== wrapper) {
+        wrapper.addEventListener("scroll", chart._rigiViewportScrollHandler, { passive: true });
+        chart._rigiViewportWrapper = wrapper;
+      }
+      updateViewportScale(chart);
     }
 
     function renderEmpty(chart, message) {
@@ -322,7 +379,8 @@
           font: { color: "#64748B", size: 15 }
         }]
       };
-      Plotly.react(chart, [], layout, plotConfig);
+      Promise.resolve(Plotly.react(chart, [], layout, plotConfig))
+        .then(function () { bindViewportScale(chart, []); });
     }
 
     function aggregate(rows, dimension) {
@@ -462,7 +520,8 @@
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.sectorMonthly, monthlyTraces, monthlyLayout, plotConfig);
+      Promise.resolve(Plotly.react(charts.sectorMonthly, monthlyTraces, monthlyLayout, plotConfig))
+        .then(function () { bindViewportScale(charts.sectorMonthly, monthlyTotals); });
 
       const cumulative = cumulativeSeries(selectedSectors, bySectorMonth);
       const cumulativeTraces = selectedSectors.map((sector) => {
@@ -502,7 +561,8 @@
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.sectorCumulative, cumulativeTraces, cumulativeLayout, plotConfig);
+      Promise.resolve(Plotly.react(charts.sectorCumulative, cumulativeTraces, cumulativeLayout, plotConfig))
+        .then(function () { bindViewportScale(charts.sectorCumulative, cumulativeTotals); });
 
       bindSectorLegendSync();
     }
@@ -517,8 +577,6 @@
       const xValues = Array.from(chart.data[totalIndex].x || []);
       const visibleBars = chart.data.filter((trace) => trace.type === "bar" && traceIsVisible(trace));
       const totals = totalsFromBars(visibleBars);
-      const maxTotal = Math.max.apply(null, totals.concat([0]));
-
       if (cumulative) syncingSectorCumulative = true;
       else syncingSectorMonthly = true;
 
@@ -543,8 +601,10 @@
 
       Promise.all(updates.concat([
         Plotly.restyle(chart, { y: [totals], text: [totals.map(barLabel)] }, [totalIndex]),
-        Plotly.relayout(chart, { "yaxis.range": maxTotal > 0 ? [0, maxTotal * labelHeadroom()] : [0, 1] })
-      ])).finally(() => {
+        Plotly.relayout(chart, { "yaxis.range": viewportYRange(chart, totals) })
+      ])).then(() => {
+        bindViewportScale(chart, totals);
+      }).finally(() => {
         if (cumulative) syncingSectorCumulative = false;
         else syncingSectorMonthly = false;
       });
@@ -769,7 +829,8 @@
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.projectMonthly, monthlyTraces, monthlyLayout, plotConfig);
+      Promise.resolve(Plotly.react(charts.projectMonthly, monthlyTraces, monthlyLayout, plotConfig))
+        .then(function () { bindViewportScale(charts.projectMonthly, monthlyTotals); });
 
       const cumulative = cumulativeSeries(projects, byProjectMonth);
       const cumulativeBars = projects.map((project) => {
@@ -802,7 +863,8 @@
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
       });
-      Plotly.react(charts.projectCumulative, cumulativeTraces, cumulativeLayout, plotConfig);
+      Promise.resolve(Plotly.react(charts.projectCumulative, cumulativeTraces, cumulativeLayout, plotConfig))
+        .then(function () { bindViewportScale(charts.projectCumulative, cumulativeTotals); });
     }
 
     function refreshProjectControls() {

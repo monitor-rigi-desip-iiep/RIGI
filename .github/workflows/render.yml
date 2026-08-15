@@ -12,6 +12,7 @@ on:
       - "R/**"
       - "data/**"
       - "downloads/**"
+      - "tools/**"
       - "DESCRIPTION"
       - ".github/workflows/render.yml"
   workflow_dispatch:
@@ -69,6 +70,7 @@ jobs:
           node --check assets/rigi-responsive.js
           node --check assets/planes_inversion.js
           node --check assets/importaciones.js
+          python3 tools/qa_mobile_layout.py
 
       - name: Remove generated state from previous renders
         shell: bash
