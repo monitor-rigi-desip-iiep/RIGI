@@ -48,7 +48,11 @@
         sectorSummary: document.getElementById("impo-project-sector-filter-summary"),
         reset: document.getElementById("impo-project-reset"),
         sectorInputs: Array.from(root.querySelectorAll(".impo-project-sector-filter-option")),
-        chips: Array.from(root.querySelectorAll(".impo-project-chip")),
+        details: document.getElementById("impo-project-details"),
+        summary: document.getElementById("impo-project-summary"),
+        search: document.getElementById("impo-project-search"),
+        empty: document.getElementById("impo-project-empty"),
+        inputs: Array.from(root.querySelectorAll(".impo-project-option-input")),
         selectAll: document.getElementById("impo-project-select-all"),
         clear: document.getElementById("impo-project-clear"),
         status: document.getElementById("impo-project-selection-status"),
@@ -540,24 +544,38 @@
       return selectedValues(controls.project.sectorInputs);
     }
 
-    function compatibleProjectChips() {
+    function compatibleProjectInputs() {
       const selectedSectors = projectSectorFilters();
-      return controls.project.chips.filter((chip) => selectedSectors.includes(projectSector(chip.dataset.project)));
+      return controls.project.inputs.filter((input) => selectedSectors.includes(projectSector(input.value)));
     }
 
-    function selectedProjectChips() {
-      return controls.project.chips.filter(
-        (chip) => !chip.hidden && chip.getAttribute("aria-pressed") === "true"
-      );
+    function selectedProjectInputs() {
+      return controls.project.inputs.filter((input) => !input.disabled && input.checked);
     }
 
     function selectedProjects() {
-      return selectedProjectChips().map((chip) => chip.dataset.project);
+      return selectedProjectInputs().map((input) => input.value);
     }
 
-    function setChipSelected(chip, selected) {
-      chip.setAttribute("aria-pressed", selected ? "true" : "false");
-      chip.classList.toggle("is-selected", selected);
+    function normalizeProjectSearch(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleLowerCase("es");
+    }
+
+    function filterProjectOptions() {
+      const query = normalizeProjectSearch(controls.project.search.value.trim());
+      let visibleCount = 0;
+      controls.project.inputs.forEach((input) => {
+        const wrapper = input.closest(".impo-project-option");
+        if (!wrapper) return;
+        const sectorVisible = wrapper.dataset.sectorVisible !== "false";
+        const matches = !query || normalizeProjectSearch(input.value).includes(query);
+        wrapper.hidden = !sectorVisible || !matches;
+        if (!wrapper.hidden) visibleCount += 1;
+      });
+      controls.project.empty.hidden = visibleCount > 0;
     }
 
     function hideProjectCard() {
@@ -621,17 +639,21 @@
     }
 
     function updateProjectStatus() {
-      const compatible = compatibleProjectChips();
-      const selected = selectedProjectChips();
-      controls.project.status.textContent = selected.length === compatible.length && compatible.length > 0
-        ? compatible.length + " proyectos seleccionados (todos los visibles)"
-        : selected.length + " de " + compatible.length + " proyectos seleccionados";
-      window.requestAnimationFrame(function () {
-        responsive.updateOverflowHint(
-          document.getElementById("impo-project-chips"),
-          document.getElementById("impo-project-chips-scroll-hint")
-        );
-      });
+      const compatible = compatibleProjectInputs();
+      const selected = selectedProjectInputs();
+      if (compatible.length > 0 && selected.length === compatible.length) {
+        controls.project.summary.textContent = "Todos los proyectos";
+        controls.project.status.textContent = compatible.length + " proyectos seleccionados (todos los disponibles)";
+      } else if (selected.length === 0) {
+        controls.project.summary.textContent = "Ningún proyecto seleccionado";
+        controls.project.status.textContent = "0 de " + compatible.length + " proyectos seleccionados";
+      } else if (selected.length === 1) {
+        controls.project.summary.textContent = "1 proyecto seleccionado";
+        controls.project.status.textContent = "1 de " + compatible.length + " proyectos seleccionados";
+      } else {
+        controls.project.summary.textContent = selected.length + " proyectos seleccionados";
+        controls.project.status.textContent = selected.length + " de " + compatible.length + " proyectos seleccionados";
+      }
     }
 
     function refreshProjectAvailability(options) {
@@ -641,19 +663,21 @@
         rawData.filter((d) => selectedSectors.includes(d.sector)).map((d) => d.project)
       );
 
-      controls.project.chips.forEach((chip) => {
-        const allowed = compatible.has(chip.dataset.project);
-        chip.hidden = !allowed;
-        chip.disabled = !allowed;
-        if (!allowed) setChipSelected(chip, false);
+      controls.project.inputs.forEach((input) => {
+        const wrapper = input.closest(".impo-project-option");
+        const allowed = compatible.has(input.value);
+        input.disabled = !allowed;
+        if (wrapper) wrapper.dataset.sectorVisible = allowed ? "true" : "false";
+        if (!allowed) input.checked = false;
       });
 
-      const visible = compatibleProjectChips();
-      const selected = selectedProjectChips();
+      const visible = compatibleProjectInputs();
+      const selected = selectedProjectInputs();
       if (opts.selectAll || (visible.length > 0 && selected.length === 0 && opts.ensureSelection !== false)) {
-        visible.forEach((chip) => setChipSelected(chip, true));
+        visible.forEach((input) => { input.checked = true; });
       }
 
+      filterProjectOptions();
       updateMasterCheckbox(controls.project.sectorAll, controls.project.sectorInputs);
       updateSummary(controls.project.sectorSummary, controls.project.sectorInputs, "Todos los sectores");
       updateProjectStatus();
@@ -825,25 +849,26 @@
       });
     });
 
-    controls.project.chips.forEach((chip) => {
-      chip.addEventListener("click", function () {
-        if (chip.disabled || chip.hidden) return;
-        setChipSelected(chip, chip.getAttribute("aria-pressed") !== "true");
+    controls.project.inputs.forEach((input) => {
+      input.addEventListener("change", function () {
+        if (input.disabled) return;
         updateProjectStatus();
         updateProjectCardControls();
         renderProjectCharts();
       });
     });
 
+    controls.project.search.addEventListener("input", filterProjectOptions);
+
     controls.project.selectAll.addEventListener("click", function () {
-      compatibleProjectChips().forEach((chip) => setChipSelected(chip, true));
+      compatibleProjectInputs().forEach((input) => { input.checked = true; });
       updateProjectStatus();
       updateProjectCardControls();
       renderProjectCharts();
     });
 
     controls.project.clear.addEventListener("click", function () {
-      compatibleProjectChips().forEach((chip) => setChipSelected(chip, false));
+      compatibleProjectInputs().forEach((input) => { input.checked = false; });
       updateProjectStatus();
       updateProjectCardControls();
       renderProjectCharts();
@@ -863,10 +888,12 @@
       controls.project.start.value = minMonth;
       controls.project.end.value = maxMonth;
       controls.project.sectorInputs.forEach((input) => { input.checked = true; });
-      controls.project.chips.forEach((chip) => {
-        chip.hidden = false;
-        chip.disabled = false;
-        setChipSelected(chip, true);
+      controls.project.search.value = "";
+      controls.project.inputs.forEach((input) => {
+        input.disabled = false;
+        input.checked = true;
+        const wrapper = input.closest(".impo-project-option");
+        if (wrapper) wrapper.dataset.sectorVisible = "true";
       });
       updateMasterCheckbox(controls.project.sectorAll, controls.project.sectorInputs);
       updateSummary(controls.project.sectorSummary, controls.project.sectorInputs, "Todos los sectores");
@@ -879,15 +906,14 @@
       root.querySelectorAll(".impo-multiselect[open]").forEach((details) => {
         if (!details.contains(event.target)) details.removeAttribute("open");
       });
+      if (controls.project.details.open && !controls.project.details.contains(event.target)) {
+        controls.project.details.removeAttribute("open");
+      }
     });
 
     responsive.subscribe("importaciones", function () {
       renderSectorCharts();
       renderProjectCharts();
-      responsive.updateOverflowHint(
-        document.getElementById("impo-project-chips"),
-        document.getElementById("impo-project-chips-scroll-hint")
-      );
     });
 
     // ---------------------------------------------------------------------

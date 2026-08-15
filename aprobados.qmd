@@ -197,7 +197,7 @@ make_rigi_project_cards(
 
 ## Hitos del RIGI {#hitos}
 
-Desde la creación del RIGI hasta el último proyecto aprobado.
+Desde la creación del RIGI hasta el último proyecto aprobado. Seleccioná un hito para desplegar su información documental; podés mantener varios abiertos al mismo tiempo.
 
 ```{r}
 make_rigi_milestones_timeline(tablas$timeline_aprobados_tbl)

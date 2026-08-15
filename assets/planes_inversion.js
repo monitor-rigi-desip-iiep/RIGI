@@ -40,6 +40,17 @@
     const minYear = Math.min.apply(null, observedYears);
     const maxYear = Math.max.apply(null, observedYears);
     const allYears = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
+    const availableYears = Array.from(new Set(observedYears)).sort((a, b) => a - b);
+    const requestedStart = Number(root.dataset.defaultYearStart);
+    const requestedEnd = Number(root.dataset.defaultYearEnd);
+    const defaultStartYear = availableYears.includes(requestedStart) ? requestedStart : availableYears[0];
+    const eligibleEndYears = availableYears.filter((year) => year >= defaultStartYear);
+    const defaultEndYear = eligibleEndYears.includes(requestedEnd)
+      ? requestedEnd
+      : eligibleEndYears.reduce((closest, year) =>
+          Math.abs(year - 2034) < Math.abs(closest - 2034) ? year : closest,
+        eligibleEndYears[0]
+      );
     const formatter = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 1 });
     const pctFormatter = new Intl.NumberFormat("es-AR", { style: "percent", maximumFractionDigits: 1 });
     let syncingAnnualLegend = false;
@@ -607,8 +618,8 @@
     });
 
     resetButton.addEventListener("click", function () {
-      yearStart.value = String(minYear);
-      yearEnd.value = String(maxYear);
+      yearStart.value = String(defaultStartYear);
+      yearEnd.value = String(defaultEndYear);
       sectorInputs.forEach((input) => { input.checked = true; });
       sectorAll.checked = true;
       sectorAll.indeterminate = false;

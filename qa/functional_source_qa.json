@@ -1,0 +1,44 @@
+{
+  "checks": {
+    "plans_default_start_2024": true,
+    "plans_default_end_2034": true,
+    "plans_defaults_exposed_to_js": true,
+    "plans_reset_uses_defaults": true,
+    "timeline_has_no_amount_annotations": true,
+    "timeline_keeps_amount_tooltip": true,
+    "timeline_help_updated": true,
+    "hero_publication_label_removed": true,
+    "imports_dropdown_markup": true,
+    "imports_chips_removed": true,
+    "imports_multiple_selection": true,
+    "imports_search": true,
+    "imports_escape_and_aria": true,
+    "milestones_use_details": true,
+    "milestones_metadata_preserved": true,
+    "sticky_subnavigation": true,
+    "no_global_horizontal_scroll_container": true,
+    "ci_clean_render": true,
+    "ci_trigger_coverage": true,
+    "ci_package_coverage": true,
+    "project_resources": true,
+    "javascript_syntax_rigi-responsive": true,
+    "javascript_syntax_planes_inversion": true,
+    "javascript_syntax_importaciones": true,
+    "interactive_module_ids_in_sources": true
+  },
+  "javascript": {
+    "assets/rigi-responsive.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/planes_inversion.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/importaciones.js": {
+      "ok": true,
+      "stderr": ""
+    }
+  },
+  "failed": []
+}

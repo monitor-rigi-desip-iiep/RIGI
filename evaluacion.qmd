@@ -76,7 +76,7 @@ plot_top_proyectos_monto(
 ```{r}
 make_chart_context_note(
   "Cada fila representa un proyecto, ordenado por fecha de presentación. ",
-  "El tamaño de la burbuja indica el monto de inversión. Tocá o pasá el cursor sobre una burbuja para consultar los detalles del proyecto."
+  "El tamaño de la burbuja representa el monto informado. Tocá o pasá el cursor para consultar el monto y los demás datos del proyecto."
 )
 ```
 

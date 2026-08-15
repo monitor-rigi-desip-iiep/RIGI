@@ -195,6 +195,11 @@
       links.forEach(function (link) { link.removeAttribute("aria-current"); });
       const active = byId.get(visible[0].target.id) || [];
       active.forEach(function (link) { link.setAttribute("aria-current", "location"); });
+      const mobileSummary = document.querySelector(".mobile-section-contents > summary");
+      const activeLabel = active.length ? active[0].textContent.trim() : "";
+      if (mobileSummary) {
+        mobileSummary.textContent = activeLabel ? "En esta sección · " + activeLabel : "En esta sección";
+      }
     }, { rootMargin: "-22% 0px -68% 0px", threshold: 0 });
     byId.forEach(function (_, id) {
       const section = document.getElementById(id);
@@ -227,7 +232,9 @@
   }
 
   function setupAccessibleDetails() {
-    document.querySelectorAll(".plans-multiselect, .impo-multiselect").forEach(setupDetailsMenu);
+    document.querySelectorAll(
+      ".plans-multiselect, .impo-multiselect, .impo-project-dropdown, .rigi-milestone__details"
+    ).forEach(setupDetailsMenu);
     document.addEventListener("keydown", function (event) {
       if (event.key !== "Escape") return;
       document.querySelectorAll("details[open]").forEach(function (details) {
@@ -246,6 +253,10 @@
       const toggler = document.querySelector(".navbar-toggler[aria-expanded='true']");
       if (collapse && toggler) toggler.click();
       document.querySelectorAll(".mobile-section-contents[open]").forEach(function (details) {
+        details.open = false;
+        syncDetailsAria(details);
+      });
+      document.querySelectorAll(".impo-project-dropdown[open]").forEach(function (details) {
         details.open = false;
         syncDetailsAria(details);
       });

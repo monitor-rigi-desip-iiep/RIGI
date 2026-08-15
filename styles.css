@@ -4263,3 +4263,303 @@ h3[id] {
     grid-column: auto;
   }
 }
+
+/* Corrección funcional · navegación, selectores y acordeón ---------------- */
+html,
+body {
+  overflow-x: clip;
+}
+
+#quarto-content,
+.page-columns,
+main.content {
+  overflow: visible;
+}
+
+.page-subnav {
+  position: sticky !important;
+  top: var(--rigi-global-nav-height);
+  z-index: 1035;
+  isolation: isolate;
+}
+
+.impo-project-selector {
+  position: relative;
+  z-index: 30;
+}
+
+.impo-project-dropdown {
+  position: relative;
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.impo-project-dropdown > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.65rem 2.6rem 0.65rem 0.85rem;
+  border: 1px solid #B8C7DA;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: var(--rigi-navy);
+  font-weight: 760;
+  cursor: pointer;
+  list-style: none;
+}
+
+.impo-project-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+.impo-project-dropdown > summary::after {
+  position: absolute;
+  right: 0.9rem;
+  color: var(--rigi-blue);
+  content: "⌄";
+  transition: transform 160ms ease;
+}
+
+.impo-project-dropdown[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.impo-project-dropdown__menu {
+  position: static;
+  z-index: 70;
+  display: grid;
+  width: min(46rem, 100%);
+  max-width: 100%;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid #B8C7DA;
+  border-radius: 8px;
+  background: #FFFFFF;
+  box-shadow: none;
+}
+
+.impo-project-search-label {
+  display: grid;
+  gap: 0.3rem;
+  color: #45556C;
+  font-size: 0.78rem;
+  font-weight: 780;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.impo-project-search {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 7px;
+  background: #FFFFFF;
+  color: #172033;
+  font-size: 0.94rem;
+}
+
+.impo-project-selector__actions {
+  justify-content: flex-start;
+}
+
+.impo-project-options {
+  display: grid;
+  max-height: min(44vh, 20rem);
+  overflow-y: auto;
+  border-top: 1px solid var(--rigi-border);
+  border-bottom: 1px solid var(--rigi-border);
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.impo-project-option {
+  display: grid;
+  grid-template-columns: 1.1rem 0.75rem minmax(0, 1fr);
+  min-height: 44px;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.52rem 0.35rem;
+  border-bottom: 1px solid #EDF2F7;
+  color: #26364D;
+  cursor: pointer;
+}
+
+.impo-project-option:hover,
+.impo-project-option:focus-within {
+  background: var(--rigi-blue-soft);
+}
+
+.impo-project-option[hidden],
+.impo-project-empty[hidden] {
+  display: none !important;
+}
+
+.impo-project-option__swatch {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 50%;
+}
+
+.impo-project-option__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.impo-project-empty {
+  margin: 0;
+  padding: 0.8rem 0.35rem;
+  color: var(--rigi-muted);
+  font-size: 0.88rem;
+}
+
+.rigi-milestones--accordion {
+  display: block;
+  margin: 1rem 0 2rem;
+  padding: 0;
+  border-top: 1px solid var(--rigi-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rigi-milestones--accordion .rigi-milestone {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--rigi-border);
+}
+
+.rigi-milestones--accordion .rigi-milestone__details {
+  border: 0;
+  border-radius: 0;
+  background: #FFFFFF;
+  box-shadow: none;
+}
+
+.rigi-milestones--accordion .rigi-milestone__details[open] {
+  border: 0;
+  background: var(--rigi-surface-soft);
+  box-shadow: none;
+}
+
+.rigi-milestones--accordion .rigi-milestone__summary {
+  min-height: 54px;
+  align-items: center;
+  padding: 0.7rem 0.5rem;
+}
+
+.rigi-milestone__summary-main {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.rigi-milestones--accordion .rigi-milestone__date {
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  color: #52657F;
+  font-size: 0.8rem;
+  font-weight: 760;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.rigi-milestones--accordion .rigi-milestone__project-title,
+.rigi-milestones--accordion .rigi-milestone__institutional-title {
+  min-width: 0;
+  color: var(--rigi-navy);
+  font-size: 0.94rem;
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+}
+
+.rigi-milestones--accordion .rigi-milestone__panel {
+  padding: 0 2.75rem 1rem 10.95rem;
+  border-top: 0;
+}
+
+.rigi-milestone__metadata {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.rigi-milestone__metadata > div {
+  min-width: 0;
+}
+
+.rigi-milestone__metadata dt {
+  color: #61728A;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rigi-milestone__metadata dd {
+  margin: 0.15rem 0 0;
+  color: #26364D;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+  .mobile-section-contents {
+    position: sticky !important;
+    top: var(--rigi-global-nav-height);
+    z-index: 1035;
+  }
+}
+
+@media (max-width: 640px) {
+  .impo-project-dropdown__menu {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin-top: 0.35rem;
+    box-shadow: none;
+  }
+
+  .impo-project-options {
+    max-height: min(52vh, 19rem);
+  }
+
+  .impo-project-selector__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .rigi-milestone__summary-main {
+    grid-template-columns: 1fr;
+    gap: 0.22rem;
+  }
+
+  .rigi-milestones--accordion .rigi-milestone__summary {
+    min-height: 58px;
+    padding: 0.65rem 0.35rem;
+  }
+
+  .rigi-milestones--accordion .rigi-milestone__panel {
+    padding: 0 2.35rem 0.9rem 0.35rem;
+  }
+
+  .rigi-milestone__metadata {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .impo-project-dropdown > summary::after {
+    transition: none;
+  }
+}

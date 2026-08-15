@@ -16,7 +16,7 @@ execute:
 ::: hero-grid
 ::: hero-copy
 ::: hero-eyebrow
-PUBLICACIÓN ESTADÍSTICA · DESIP · IIEP
+DESIP · IIEP
 :::
 
 # Monitor de Proyectos RIGI

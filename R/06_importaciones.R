@@ -491,7 +491,7 @@ make_importaciones_module <- function(data, project_data) {
           ),
           htmltools::tags$p(
             class = "impo-interaction-note",
-            "Seleccioná uno, varios o todos los proyectos con las etiquetas inferiores. Si dejás un único proyecto seleccionado, podés desplegar su ficha resumida."
+            "Abrí la lista de proyectos para seleccionar uno, varios o todos. Si dejás un único proyecto seleccionado, podés desplegar su ficha resumida."
           )
         ),
         htmltools::div(
@@ -537,58 +537,87 @@ make_importaciones_module <- function(data, project_data) {
         ),
         htmltools::div(
           class = "impo-project-selector",
-          htmltools::div(
-            class = "impo-project-selector__header",
-            htmltools::div(
-              htmltools::tags$span(class = "impo-filter-label", "Proyecto"),
-              htmltools::tags$p(
-                id = "impo-project-selection-status",
-                class = "impo-project-selection-status",
-                paste0(length(projects), " proyectos seleccionados")
-              )
+          htmltools::tags$span(class = "impo-filter-label", "Proyectos"),
+          htmltools::tags$details(
+            id = "impo-project-details",
+            class = "impo-project-dropdown",
+            htmltools::tags$summary(
+              id = "impo-project-summary",
+              `aria-controls` = "impo-project-menu",
+              `aria-expanded` = "false",
+              "Todos los proyectos"
             ),
             htmltools::div(
-              class = "impo-project-selector__actions",
-              htmltools::tags$button(
-                type = "button",
-                id = "impo-project-select-all",
-                class = "impo-secondary-button",
-                "Seleccionar todos"
+              id = "impo-project-menu",
+              class = "impo-project-dropdown__menu",
+              htmltools::tags$label(
+                class = "impo-project-search-label",
+                `for` = "impo-project-search",
+                htmltools::tags$span("Buscar proyecto"),
+                htmltools::tags$input(
+                  type = "search",
+                  id = "impo-project-search",
+                  class = "impo-project-search",
+                  placeholder = "Escribí un nombre",
+                  autocomplete = "off"
+                )
               ),
-              htmltools::tags$button(
-                type = "button",
-                id = "impo-project-clear",
-                class = "impo-secondary-button",
-                "Limpiar selección"
+              htmltools::div(
+                class = "impo-project-selector__actions",
+                htmltools::tags$button(
+                  type = "button",
+                  id = "impo-project-select-all",
+                  class = "impo-secondary-button",
+                  "Seleccionar todos"
+                ),
+                htmltools::tags$button(
+                  type = "button",
+                  id = "impo-project-clear",
+                  class = "impo-secondary-button",
+                  "Limpiar selección"
+                )
+              ),
+              htmltools::div(
+                id = "impo-project-options",
+                class = "impo-project-options",
+                role = "group",
+                `aria-label` = "Proyectos disponibles",
+                lapply(seq_along(projects), function(i) {
+                  project <- projects[[i]]
+                  htmltools::tags$label(
+                    class = "impo-project-option",
+                    `data-project` = project,
+                    htmltools::tags$input(
+                      type = "checkbox",
+                      id = paste0("impo-project-option-", i),
+                      class = "impo-project-option-input",
+                      value = project,
+                      checked = "checked"
+                    ),
+                    htmltools::tags$span(
+                      class = "impo-project-option__swatch",
+                      style = paste0("background-color:", project_colors[[project]], ";"),
+                      `aria-hidden` = "true"
+                    ),
+                    htmltools::tags$span(
+                      class = "impo-project-option__label",
+                      project
+                    )
+                  )
+                }),
+                htmltools::tags$p(
+                  id = "impo-project-empty",
+                  class = "impo-project-empty",
+                  hidden = "hidden",
+                  "No hay proyectos que coincidan con la búsqueda."
+                )
               )
             )
           ),
-          htmltools::div(
-            id = "impo-project-chips",
-            class = "impo-project-chips",
-            `aria-label` = "Selección de proyectos",
-            lapply(projects, function(project) {
-              htmltools::tags$button(
-                type = "button",
-                class = "impo-project-chip is-selected",
-                `data-project` = project,
-                `aria-pressed` = "true",
-                htmltools::tags$span(
-                  class = "impo-project-chip__swatch",
-                  style = paste0("background-color:", project_colors[[project]], ";")
-                ),
-                htmltools::tags$span(
-                  class = "impo-project-chip__label",
-                  project
-                )
-              )
-            })
-          ),
           htmltools::tags$p(
-            id = "impo-project-chips-scroll-hint",
-            class = "rigi-scroll-hint impo-project-chips-scroll-hint",
-            hidden = "hidden",
-            "Deslizá las etiquetas para ver más proyectos →"
+            id = "impo-project-selection-status",
+            class = "impo-project-selection-status",
+            paste0(length(projects), " proyectos seleccionados (todos los disponibles)")
           ),
           htmltools::div(
             class = "impo-project-card-controls",

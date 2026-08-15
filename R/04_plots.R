@@ -1060,43 +1060,25 @@ make_rigi_institutional_milestone <- function(date, title, description, details 
     )
   }
 
-  panel_content <- if (is.null(details) || is.na(details) || !nzchar(stringr::str_trim(details))) {
-    norm_link_tag
-  } else {
-    htmltools::tagList(
-      htmltools::tags$h4("Alcance normativo"),
-      htmltools::tags$p(class = "rigi-milestone__description", details),
-      norm_link_tag
-    )
-  }
-
   htmltools::tags$li(
     class = "rigi-milestone rigi-milestone--institutional",
     `data-timeline-kind` = "institutional",
     `data-event-date` = format(event_date, "%Y-%m-%d"),
-    htmltools::tags$time(
-      class = "rigi-milestone__date",
-      datetime = format(event_date, "%Y-%m-%d"),
-      date_label
-    ),
-    htmltools::tags$div(
-      class = "rigi-milestone__track",
-      `aria-hidden` = "true",
-      htmltools::tags$span(class = "rigi-milestone__node")
-    ),
     htmltools::tags$details(
       class = "rigi-milestone__details rigi-milestone__details--institutional",
       htmltools::tags$summary(
         class = "rigi-milestone__summary",
+        `aria-expanded` = "false",
         htmltools::tags$span(
-          class = "rigi-milestone__summary-copy",
+          class = "rigi-milestone__summary-main",
+          htmltools::tags$time(
+            class = "rigi-milestone__date",
+            datetime = format(event_date, "%Y-%m-%d"),
+            date_label
+          ),
           htmltools::tags$span(
             class = "rigi-milestone__institutional-title",
             htmltools::tags$strong(title)
-          ),
-          htmltools::tags$span(
-            class = "rigi-milestone__institutional-description",
-            description
           )
         ),
         htmltools::tags$span(
@@ -1106,9 +1088,23 @@ make_rigi_institutional_milestone <- function(date, title, description, details 
       ),
       htmltools::tags$div(
         class = "rigi-milestone__panel",
-        panel_content
+        htmltools::tags$p(class = "rigi-milestone__description", description),
+        if (!is.null(details) && !is.na(details) && nzchar(stringr::str_trim(details))) {
+          htmltools::tagList(
+            htmltools::tags$h4("Alcance normativo"),
+            htmltools::tags$p(class = "rigi-milestone__description", details)
+          )
+        },
+        norm_link_tag
       )
     )
+  )
+}
+
+rigi_milestone_metadata_item <- function(label, value) {
+  htmltools::tags$div(
+    htmltools::tags$dt(label),
+    htmltools::tags$dd(value)
   )
 }
 
@@ -1127,7 +1123,7 @@ make_rigi_project_milestone <- function(row) {
   norm_link <- timeline_text_or_sd(row$link_norma)
 
   date_tag <- if (adhesion_missing) {
-    htmltools::tags$div(
+    htmltools::tags$span(
       class = "rigi-milestone__date rigi-milestone__date--missing",
       "Fecha de adhesión s/d"
     )
@@ -1161,33 +1157,19 @@ make_rigi_project_milestone <- function(row) {
     `data-timeline-kind` = "project",
     `data-project-row-id` = timeline_text_or_sd(row$row_id),
     `data-adhesion-date` = if (adhesion_missing) "" else format(adhesion_date, "%Y-%m-%d"),
-    date_tag,
-    htmltools::tags$div(
-      class = "rigi-milestone__track",
-      `aria-hidden` = "true",
-      htmltools::tags$span(class = "rigi-milestone__node")
-    ),
     htmltools::tags$details(
       class = "rigi-milestone__details",
       htmltools::tags$summary(
         class = "rigi-milestone__summary",
+        `aria-expanded` = "false",
         htmltools::tags$span(
-          class = "rigi-milestone__summary-copy",
+          class = "rigi-milestone__summary-main",
+          date_tag,
           htmltools::tags$span(
             class = "rigi-milestone__project-title",
             htmltools::tags$strong(approval_rule),
             htmltools::tags$span(`aria-hidden` = "true", " · "),
             htmltools::tags$strong(project_name)
-          ),
-          htmltools::tags$span(
-            class = "rigi-milestone__meta",
-            paste0(
-              "Sector: ", sector,
-              " · Provincia: ", province,
-              " · Monto: ", amount,
-              " · Presentación: ", presentation_date,
-              " · Titular: ", owner
-            )
           )
         ),
         htmltools::tags$span(
@@ -1197,10 +1179,16 @@ make_rigi_project_milestone <- function(row) {
       ),
       htmltools::tags$div(
         class = "rigi-milestone__panel",
+        htmltools::tags$dl(
+          class = "rigi-milestone__metadata",
+          rigi_milestone_metadata_item("Sector", sector),
+          rigi_milestone_metadata_item("Provincia", province),
+          rigi_milestone_metadata_item("Monto", amount),
+          rigi_milestone_metadata_item("Presentación", presentation_date),
+          rigi_milestone_metadata_item("Titular", owner)
+        ),
         htmltools::tags$h4("Descripción del proyecto"),
         htmltools::tags$p(class = "rigi-milestone__description", description),
-        htmltools::tags$h4("Titular del proyecto"),
-        htmltools::tags$p(owner),
         norm_link_tag
       )
     )
@@ -1312,7 +1300,7 @@ make_rigi_milestones_timeline <- function(data) {
   }
 
   htmltools::tags$ol(
-    class = "rigi-milestones",
+    class = "rigi-milestones rigi-milestones--accordion",
     do.call(htmltools::tagList, lapply(all_entries, `[[`, "tag"))
   )
 }
@@ -1331,27 +1319,8 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
         is.na(monto_usd_mill) | monto_usd_mill <= 0,
         1,
         monto_usd_mill
-      ),
-      monto_label = dplyr::if_else(
-        is.na(monto_usd_mill),
-        "Monto s/d",
-        paste0("US$ ", fmt_number(monto_usd_mill, accuracy = 1), " M")
       )
     )
-
-  # Reproducimos la misma escala sqrt usada por ggplot para conocer el
-  # diámetro visual aproximado de cada burbuja. Esto permite desplazar la
-  # etiqueta desde el borde exterior del marcador, en lugar de desde su centro.
-  size_transformed <- sqrt(pmax(data_plot$monto_size, 0))
-  size_min <- min(size_transformed, na.rm = TRUE)
-  size_max <- max(size_transformed, na.rm = TRUE)
-  if (!is.finite(size_min) || !is.finite(size_max) || abs(size_max - size_min) < .Machine$double.eps) {
-    marker_size_mm <- rep(mean(c(4.5, 11.5)), nrow(data_plot))
-  } else {
-    marker_size_mm <- 4.5 + ((size_transformed - size_min) / (size_max - size_min)) * (11.5 - 4.5)
-  }
-  marker_diameter_px <- marker_size_mm * 96 / 25.4
-  data_plot$label_xshift_px <- round(marker_diameter_px / 2 + 7, 1)
 
   y_break_order <- order(data_plot$y_pos)
   date_min <- min(data_plot[[date_col]], na.rm = TRUE)
@@ -1382,17 +1351,12 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
       name = "Monto del proyecto\n(millones de USD)",
       breaks = scales::breaks_pretty(n = 3),
       labels = function(x) fmt_number(x, accuracy = 1),
-      guide = ggplot2::guide_legend(
-        title.position = "top",
-        direction = "horizontal",
-        nrow = 1,
-        label.position = "bottom"
-      )
+      guide = "none"
     ) +
     ggplot2::scale_x_date(
       date_breaks = "3 months",
       labels = format_month_year_es,
-      limits = c(date_min - 35, date_max + 180),
+      limits = c(date_min - 35, date_max + 45),
       expand = c(0, 0)
     ) +
     ggplot2::scale_y_continuous(
@@ -1414,82 +1378,21 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
         lineheight = 0.92
       ),
       panel.grid.major.y = ggplot2::element_line(color = "#EEF2F7", linewidth = 0.45),
-      legend.position = "top",
-      legend.direction = "horizontal",
-      legend.justification = "left",
-      legend.text = ggplot2::element_text(size = 9),
-      legend.title = ggplot2::element_text(size = 9.5, face = "bold", color = "#334155"),
-      legend.spacing.x = grid::unit(0.12, "cm"),
-      legend.key.width = grid::unit(0.62, "cm")
+      legend.position = "none"
     )
 
-  out <- style_plotly(
+  style_plotly(
     p,
     margin_left = smart_left_margin(data_plot$label_original, min_margin = 185, max_margin = 300),
-    margin_right = 110,
+    margin_right = 40,
     margin_bottom = 72,
-    margin_top = if (is.null(title)) 78 else 106,
+    margin_top = if (is.null(title)) 42 else 70,
     height = max(620, 190 + nrow(data_plot) * 46),
-    showlegend = TRUE,
+    showlegend = FALSE,
     mobile_min_width = 760,
     vertical_scroll = TRUE,
     hide_text_on_mobile = FALSE
   )
-
-  # Las etiquetas monetarias se agregan como anotaciones Plotly con xshift en
-  # píxeles. Así el texto comienza siempre después del borde derecho de cada
-  # burbuja, incluso cuando el tamaño del marcador cambia con el monto.
-  timeline_annotations <- lapply(seq_len(nrow(data_plot)), function(i) {
-    list(
-      x = as.character(data_plot[[date_col]][[i]]),
-      y = data_plot$y_pos[[i]],
-      xref = "x",
-      yref = "y",
-      text = paste0("<b>", data_plot$monto_label[[i]], "</b>"),
-      showarrow = FALSE,
-      xanchor = "left",
-      yanchor = "middle",
-      xshift = data_plot$label_xshift_px[[i]],
-      align = "left",
-      font = list(
-        family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        size = 10.5,
-        color = "#334155"
-      ),
-      bgcolor = "rgba(255,255,255,0)",
-      borderpad = 0
-    )
-  })
-
-  out <- out |>
-    plotly::layout(annotations = timeline_annotations)
-
-  timeline_labels_js <- "function(el, x) {
-    var resizeTimer = null;
-
-    function setTimelineLabels() {
-      var annotations = (el.layout && el.layout.annotations) || [];
-      if (!annotations.length || typeof Plotly === 'undefined') return;
-      var update = {};
-      annotations.forEach(function(annotation, index) {
-        update['annotations[' + index + '].visible'] = true;
-      });
-      Plotly.relayout(el, update);
-    }
-
-    setTimelineLabels();
-
-    if (el._rigiTimelineLabelResizeHandler) {
-      window.removeEventListener('resize', el._rigiTimelineLabelResizeHandler);
-    }
-    el._rigiTimelineLabelResizeHandler = function() {
-      window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(setTimelineLabels, 120);
-    };
-    window.addEventListener('resize', el._rigiTimelineLabelResizeHandler, { passive: true });
-  }"
-
-  htmlwidgets::onRender(out, timeline_labels_js)
 }
 
 make_datatable <- function(data, caption = NULL) {

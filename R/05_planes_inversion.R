@@ -238,7 +238,12 @@ make_planes_inversion_module <- function(data) {
     dplyr::select(anio, sector, subsector, monto_mill_usd) |>
     dplyr::arrange(anio, sector, subsector)
 
-  years <- seq(min(data_client$anio, na.rm = TRUE), max(data_client$anio, na.rm = TRUE))
+  years <- sort(unique(data_client$anio[!is.na(data_client$anio)]))
+  default_year_start <- if (2024L %in% years) 2024L else min(years)
+  eligible_end_years <- years[years >= default_year_start]
+  default_year_end <- eligible_end_years[
+    which.min(abs(eligible_end_years - 2034L))
+  ]
   sectors <- sort(unique(data_client$sector))
   subsectors <- sort(unique(data_client$subsector))
   sector_colors <- planes_sector_colors(sectors)
@@ -256,6 +261,8 @@ make_planes_inversion_module <- function(data) {
     htmltools::div(
       id = "planes-inversion-module",
       class = "plans-module",
+      `data-default-year-start` = default_year_start,
+      `data-default-year-end` = default_year_end,
       htmltools::tags$script(
         type = "application/json",
         id = "planes-inversion-data",
@@ -282,7 +289,7 @@ make_planes_inversion_module <- function(data) {
             class = "plans-select",
             lapply(years, function(y) {
               attrs <- list(value = y)
-              if (y == min(years)) attrs$selected <- "selected"
+              if (y == default_year_start) attrs$selected <- "selected"
               do.call(htmltools::tags$option, c(list(as.character(y)), attrs))
             })
           )
@@ -295,7 +302,7 @@ make_planes_inversion_module <- function(data) {
             class = "plans-select",
             lapply(years, function(y) {
               attrs <- list(value = y)
-              if (y == max(years)) attrs$selected <- "selected"
+              if (y == default_year_end) attrs$selected <- "selected"
               do.call(htmltools::tags$option, c(list(as.character(y)), attrs))
             })
           )
