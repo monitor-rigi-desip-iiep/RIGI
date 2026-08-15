@@ -12,24 +12,45 @@ title: "Comparación por estado administrativo"
 Esta página permite comparar el universo relevado por estado administrativo, sector y provincia sin alterar los criterios de cálculo del Monitor.
 :::
 
-::: {.page-subnav role="navigation" aria-label="En esta sección"}
+::: {.page-subnav role="navigation" aria-label="En esta página"}
 - [Panorama](#panorama)
 - [Sectores](#sectores)
-- [Provincias](#provincias)
-- [Composición](#composicion)
+- [Territorio](#territorio)
 :::
 
-## Panorama general {#panorama}
+## Panorama {#panorama}
 
 ```{r}
-make_kpi_cards_total(indicadores)
+htmltools::div(
+  class = "kpi-grid kpi-grid-status",
+  make_kpi_card(
+    "Proyectos aprobados",
+    fmt_integer(indicadores$n_aprobados),
+    paste0(
+      "Monto informado: ",
+      fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)
+    )
+  ),
+  make_kpi_card(
+    "Proyectos en evaluación",
+    fmt_integer(indicadores$n_pendientes),
+    paste0(
+      "Monto informado: ",
+      fmt_currency_mill(indicadores$monto_pendiente, accuracy = 1)
+    )
+  )
+)
 ```
+
+### Monto informado por estado administrativo
 
 ```{r}
 plot_compare_counts_montos(indicadores, title = NULL)
 ```
 
-## Comparación por sector {#sectores}
+## Sectores {#sectores}
+
+El gráfico utiliza una escala común para facilitar la comparación de los montos informados en cada sector.
 
 ```{r}
 plot_compare_aprobado_pendiente(
@@ -40,7 +61,13 @@ plot_compare_aprobado_pendiente(
 )
 ```
 
-## Comparación por provincia {#provincias}
+## Territorio {#territorio}
+
+### Comparación por provincia
+
+```{r}
+make_province_note()
+```
 
 ```{r}
 plot_compare_aprobado_pendiente(
@@ -49,10 +76,4 @@ plot_compare_aprobado_pendiente(
   label_col = "provincia_simplificada",
   title = NULL
 )
-```
-
-## Composición del universo por estado administrativo {#composicion}
-
-```{r}
-plot_estado(tablas$estado_tbl, title = NULL)
 ```

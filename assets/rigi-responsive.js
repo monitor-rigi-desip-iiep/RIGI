@@ -120,25 +120,34 @@
     try { window.Plotly.relayout(chart, update); } catch (error) { /* R ya aplica el mismo bloqueo. */ }
   }
 
-  function addInteractiveBadge(section) {
+  function interactionCueText() {
+    return isMobile()
+      ? "Explorá · Tocá para ver detalles"
+      : "Explorá · Pasá el cursor para ver detalles";
+  }
+
+  function addInteractionCue(section) {
     if (!section) return;
     let heading = null;
     try { heading = section.querySelector(":scope > h2, :scope > h3"); }
     catch (error) { heading = section.querySelector("h2, h3"); }
-    if (!heading || heading.querySelector(".interactive-badge")) return;
-    const badge = document.createElement("span");
-    badge.className = "interactive-badge";
-    badge.textContent = "INTERACTIVO";
-    heading.appendChild(badge);
+    if (!heading || heading.querySelector(".interaction-cue")) return;
+    const cue = document.createElement("span");
+    cue.className = "interaction-cue";
+    cue.textContent = interactionCueText();
+    heading.appendChild(cue);
   }
 
   function decorateInteractiveSections() {
     document.querySelectorAll(".plans-module, .impo-module").forEach(function (widget) {
-      addInteractiveBadge(widget.closest("section"));
+      addInteractionCue(widget.closest("section"));
     });
     document.querySelectorAll(".js-plotly-plot, .rigi-project-cards, .dataTables_wrapper").forEach(function (widget) {
       if (widget.closest(".plans-module, .impo-module")) return;
-      addInteractiveBadge(widget.closest("section"));
+      addInteractionCue(widget.closest("section"));
+    });
+    document.querySelectorAll(".interaction-cue").forEach(function (cue) {
+      cue.textContent = interactionCueText();
     });
     document.querySelectorAll(".js-plotly-plot").forEach(lockPlotlyChart);
   }
@@ -167,10 +176,10 @@
     const details = document.createElement("details");
     details.className = "mobile-section-contents";
     const summary = document.createElement("summary");
-    summary.textContent = "En esta sección";
+    summary.textContent = "En esta página";
     const nav = document.createElement("nav");
     nav.id = "mobile-section-links";
-    nav.setAttribute("aria-label", "En esta sección");
+    nav.setAttribute("aria-label", "En esta página");
     summary.setAttribute("aria-controls", nav.id);
     Array.from(source.childNodes).forEach(function (node) { nav.appendChild(node.cloneNode(true)); });
     details.appendChild(summary);
@@ -198,7 +207,7 @@
       const mobileSummary = document.querySelector(".mobile-section-contents > summary");
       const activeLabel = active.length ? active[0].textContent.trim() : "";
       if (mobileSummary) {
-        mobileSummary.textContent = activeLabel ? "En esta sección · " + activeLabel : "En esta sección";
+        mobileSummary.textContent = activeLabel ? "En esta página · " + activeLabel : "En esta página";
       }
     }, { rootMargin: "-22% 0px -68% 0px", threshold: 0 });
     byId.forEach(function (_, id) {

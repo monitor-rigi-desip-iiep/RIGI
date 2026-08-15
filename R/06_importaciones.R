@@ -302,6 +302,25 @@ make_importaciones_module <- function(data, project_data) {
   project_colors <- importaciones_project_colors(projects)
   project_metadata <- build_importaciones_project_metadata(projects, project_data)
 
+  approved_projects <- project_data |>
+    dplyr::filter(.data$aprobado) |>
+    dplyr::transmute(project = stringr::str_squish(as.character(.data$proyecto))) |>
+    dplyr::filter(!is.na(.data$project), .data$project != "") |>
+    dplyr::distinct(.data$project) |>
+    dplyr::pull(.data$project)
+  covered_approved_projects <- intersect(projects, approved_projects)
+  month_abbreviations <- c(
+    "ene", "feb", "mar", "abr", "may", "jun",
+    "jul", "ago", "sep", "oct", "nov", "dic"
+  )
+  format_coverage_month <- function(value) {
+    paste0(month_abbreviations[[as.integer(format(value, "%m"))]], " ", format(value, "%Y"))
+  }
+  coverage_label <- paste0(
+    "Cobertura: ", length(covered_approved_projects), " de ", length(approved_projects),
+    " proyectos aprobados · ", format_coverage_month(min_month), "–", format_coverage_month(max_month)
+  )
+
   data_json <- jsonlite::toJSON(
     data_client,
     dataframe = "rows",
@@ -377,10 +396,85 @@ make_importaciones_module <- function(data, project_data) {
         htmltools::HTML(project_metadata_json)
       ),
 
+      htmltools::div(
+        class = "impo-coverage",
+        htmltools::tags$p(
+          class = "impo-coverage__headline",
+          htmltools::strong(coverage_label)
+        ),
+        htmltools::tags$p(
+          class = "impo-coverage__note",
+          "La ausencia de importaciones identificadas no implica ausencia de inversión o ejecución del proyecto. ",
+          htmltools::tags$a(
+            "ⓘ Metodología",
+            href = "metodologia.html#importaciones"
+          )
+        )
+      ),
+
+      htmltools::div(
+        class = "impo-explorer-switches",
+        htmltools::div(
+          class = "impo-switch-group",
+          htmltools::tags$span(class = "impo-filter-label", "Vista"),
+          htmltools::div(
+            class = "impo-view-switch rigi-segmented-control",
+            role = "group",
+            `aria-label` = "Vista temporal de importaciones",
+            htmltools::tags$button(
+              type = "button",
+              id = "impo-view-monthly",
+              class = "impo-view-button is-active",
+              `data-impo-view` = "monthly",
+              `aria-controls` = "impo-sector-monthly-panel impo-project-monthly-panel",
+              `aria-pressed` = "true",
+              "Mensual"
+            ),
+            htmltools::tags$button(
+              type = "button",
+              id = "impo-view-cumulative",
+              class = "impo-view-button",
+              `data-impo-view` = "cumulative",
+              `aria-controls` = "impo-sector-cumulative-panel impo-project-cumulative-panel",
+              `aria-pressed` = "false",
+              "Acumulado"
+            )
+          )
+        ),
+        htmltools::div(
+          class = "impo-switch-group",
+          htmltools::tags$span(class = "impo-filter-label", "Desagregar por"),
+          htmltools::div(
+            class = "impo-breakdown-switch rigi-segmented-control",
+            role = "group",
+            `aria-label` = "Desagregación de importaciones",
+            htmltools::tags$button(
+              type = "button",
+              id = "impo-breakdown-sector",
+              class = "impo-breakdown-button is-active",
+              `data-impo-breakdown` = "sector",
+              `aria-controls` = "impo-sector-subsection",
+              `aria-pressed` = "true",
+              "Sector"
+            ),
+            htmltools::tags$button(
+              type = "button",
+              id = "impo-breakdown-project",
+              class = "impo-breakdown-button",
+              `data-impo-breakdown` = "project",
+              `aria-controls` = "impo-project-subsection",
+              `aria-pressed` = "false",
+              "Proyecto"
+            )
+          )
+        )
+      ),
+
       # -------------------------------------------------------------------
       # Subsección: importaciones por sector
       # -------------------------------------------------------------------
       htmltools::tags$section(
+        id = "impo-sector-subsection",
         class = "impo-subsection impo-subsection--sector",
         htmltools::div(
           class = "impo-subsection__header",
@@ -436,7 +530,10 @@ make_importaciones_module <- function(data, project_data) {
           )
         ),
         htmltools::div(
-          class = "impo-chart-card",
+          id = "impo-sector-monthly-panel",
+          class = "impo-chart-card impo-chart-panel",
+          `data-impo-chart-panel` = "sector-monthly",
+          role = "tabpanel",
           htmltools::tags$h4("Importaciones mensuales por sector"),
           htmltools::div(
             class = "rigi-plot-scroll",
@@ -454,7 +551,11 @@ make_importaciones_module <- function(data, project_data) {
           )
         ),
         htmltools::div(
-          class = "impo-chart-card",
+          id = "impo-sector-cumulative-panel",
+          class = "impo-chart-card impo-chart-panel",
+          `data-impo-chart-panel` = "sector-cumulative",
+          role = "tabpanel",
+          hidden = "hidden",
           htmltools::tags$h4("Importaciones acumuladas por sector"),
           htmltools::div(
             class = "rigi-plot-scroll",
@@ -481,7 +582,9 @@ make_importaciones_module <- function(data, project_data) {
       # Subsección: importaciones por proyecto
       # -------------------------------------------------------------------
       htmltools::tags$section(
+        id = "impo-project-subsection",
         class = "impo-subsection impo-subsection--project",
+        hidden = "hidden",
         htmltools::div(
           class = "impo-subsection__header",
           htmltools::tags$h3(class = "impo-view-title", "Importaciones por proyecto"),
@@ -641,7 +744,10 @@ make_importaciones_module <- function(data, project_data) {
           )
         ),
         htmltools::div(
-          class = "impo-chart-card",
+          id = "impo-project-monthly-panel",
+          class = "impo-chart-card impo-chart-panel",
+          `data-impo-chart-panel` = "project-monthly",
+          role = "tabpanel",
           htmltools::tags$h4("Importaciones mensuales por proyecto"),
           htmltools::div(
             class = "rigi-plot-scroll",
@@ -659,7 +765,11 @@ make_importaciones_module <- function(data, project_data) {
           )
         ),
         htmltools::div(
-          class = "impo-chart-card",
+          id = "impo-project-cumulative-panel",
+          class = "impo-chart-card impo-chart-panel",
+          `data-impo-chart-panel` = "project-cumulative",
+          role = "tabpanel",
+          hidden = "hidden",
           htmltools::tags$h4("Importaciones acumuladas por proyecto"),
           htmltools::div(
             class = "rigi-plot-scroll",

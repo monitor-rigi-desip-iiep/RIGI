@@ -12,11 +12,18 @@ title: "Fuentes y metodología"
 Esta página documenta el alcance, las fuentes y los criterios utilizados para construir los indicadores del Monitor.
 :::
 
-::: {.page-subnav role="navigation" aria-label="En esta sección"}
+::: {.page-subnav role="navigation" aria-label="En esta página"}
 - [Alcance](#alcance)
+- [Estados administrativos](#estados-administrativos)
 - [Fuentes](#fuentes)
 - [Variables monetarias](#variables-monetarias)
 - [Distribución territorial](#distribucion-territorial)
+- [Planes de inversión](#planes-inversion)
+- [Importaciones](#importaciones)
+- [Empleo](#empleo)
+- [Datos faltantes](#datos-faltantes)
+- [Limitaciones](#limitaciones-generales)
+- [Actualización](#actualizacion)
 :::
 
 ::: method-box
@@ -24,13 +31,35 @@ Esta página documenta el alcance, las fuentes y los criterios utilizados para c
 
 El Monitor distingue entre proyectos aprobados y proyectos en evaluación de acuerdo con la información pública disponible a la fecha de actualización. La categoría **Proyectos en evaluación** reúne proyectos identificados públicamente como presentados, en análisis, pendientes de resolución o en evaluación que no cuentan con una resolución de aprobación publicada en el Boletín Oficial. Cuando el estado administrativo no puede verificarse mediante una fuente oficial, esa limitación debe interpretarse a partir de las fuentes consignadas en la ficha correspondiente.
 
+## Estados administrativos {#estados-administrativos}
+
+**Aprobados.** Reúne los proyectos cuyo estado administrativo indica que su adhesión al régimen fue aprobada. Para estos casos, la fecha operativa de aprobación prioriza la fecha de aprobación informada y, cuando corresponde, la publicación en el Boletín Oficial o la fecha de adhesión disponible.
+
+**En evaluación.** Reúne proyectos identificados como presentados, pendientes, en análisis, en trámite o en evaluación que no están clasificados como aprobados.
+
+**Rechazados.** Se conservan en la base completa como una categoría diferenciada. No se suman a los universos de aprobados ni de proyectos en evaluación.
+
 ## Fuentes {#fuentes}
+
+### Proyectos aprobados {#fuente-aprobados}
 
 **Proyectos aprobados.** Las principales fuentes son las resoluciones publicadas en el [**Boletín Oficial**](https://www.boletinoficial.gob.ar/) y el [**sitio oficial del RIGI**](https://www.argentina.gob.ar/economia/rigi). La identificación de las empresas involucradas en cada proyecto se complementa con datos de [**Globaris**](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708).
 
+### Proyectos en evaluación {#fuente-evaluacion}
+
 **Proyectos en evaluación.** El relevamiento se construye a partir de distintas fuentes públicas, entre ellas [**Globaris**](https://app.powerbi.com/view?r=eyJrIjoiNTFjY2E4NTYtOTVlNy00YmFiLWIwYmMtNWZkMjE4OTNhYmRiIiwidCI6IjNlMDUxM2Q2LTY4ZmEtNDE2ZS04ZGUxLTZjNWNkYzMxOWZmYSIsImMiOjR9&pageName=d1ee75596a51a9bde708), sitios web empresariales, anuncios públicos y medios periodísticos. Esta información se complementa con otras fuentes disponibles cuando resulta necesario. Las fuentes utilizadas se detallan en la ficha de cada proyecto para garantizar la trazabilidad de la información.
 
+### Empleo {#fuente-empleo}
+
 **Empleo.** Los datos de empleo directo e indirecto corresponden a los valores informados en el [**sitio oficial del RIGI**](https://www.argentina.gob.ar/economia/rigi). No se imputan valores para proyectos sin información disponible.
+
+### Planes de inversión {#fuente-planes}
+
+**Planes de inversión.** La fuente procesada es la hoja `Datos_long` de `data/RIGI_planes_inversion.xlsx`. Cada observación conserva el campo de fuente incluido en el archivo y las descargas publican esa referencia junto con los datos.
+
+### Importaciones {#fuente-importaciones}
+
+**Importaciones.** La fuente procesada es `data/impo_rigi_aduana.csv`. La base descargable conserva las variables de proyecto o VPU, período, valor FOB, posición NCM, sector, provincia e importador disponibles en ese archivo.
 
 ## Variables monetarias {#variables-monetarias}
 
@@ -40,6 +69,53 @@ Los montos de inversión informados y los activos computables se expresan en **m
 
 Cuando un proyecto abarca más de una provincia, el monto de inversión, los activos computables y el empleo informado se distribuyen en partes iguales entre las provincias involucradas.
 
-**Última actualización:** `r indicadores$fecha_actualizacion_fmt`  
-**Última modificación del archivo fuente:** `r indicadores$fecha_modificacion_archivo_fmt`.
+Este criterio se utiliza para construir agregados territoriales sin duplicar el total de un proyecto multiprovincial. La provincia original se conserva en las fichas y en las bases descargables.
+
+## Planes de inversión {#planes-inversion}
+
+El módulo utiliza la hoja `Datos_long` de `data/RIGI_planes_inversion.xlsx`. La unidad de presentación combina año, sector y subsector, con montos expresados en millones de USD. Antes de generar las visualizaciones y descargas, el pipeline verifica que no haya años, sectores, subsectores, montos o fuentes obligatorias faltantes; que los montos no sean negativos; y que no existan filas exactamente duplicadas.
+
+También se comprueba que la suma de los subsectores coincida con el total sectorial informado y que la suma de los sectores coincida con el total anual. Las vistas anual y acumulada representan el mismo conjunto de datos bajo dos lecturas temporales y comparten los filtros de período, sector y subsector.
+
+## Importaciones {#importaciones}
+
+El módulo utiliza `data/impo_rigi_aduana.csv`. Los valores corresponden a importaciones expresadas en dólares FOB y se presentan en millones de USD. El pipeline exige año y mes válidos, VPU y sector informados, valores FOB numéricos y no negativos, y observaciones comprendidas entre el primer y el último período consignados en la fuente.
+
+### Cobertura
+
+La cobertura corresponde a los proyectos identificados en la base de importaciones incorporada al Monitor y al período disponible en ese archivo. No necesariamente abarca a todos los proyectos aprobados ni todos sus meses de ejecución.
+
+### Identificación
+
+Los registros se agregan para su visualización por proyecto o VPU, sector y mes. La información detallada de posición NCM e importador se conserva en la base descargable. El Monitor presenta únicamente los registros incorporados a la fuente procesada; no imputa importaciones a proyectos sin registros identificados.
+
+### Limitaciones
+
+La ausencia de importaciones identificadas no equivale a un valor cero ni implica ausencia de inversión o ejecución. Un proyecto puede no requerir importaciones, utilizar otros importadores o no estar cubierto por el archivo disponible. Las visualizaciones describen la evidencia aduanera incorporada al Monitor y no una medición completa del avance físico o financiero de cada proyecto.
+
+## Empleo {#empleo}
+
+El empleo informado reúne los valores directos e indirectos publicados por la fuente oficial utilizada. Los totales, promedios y rankings se calculan solamente con los valores disponibles y no se imputan empleos para proyectos sin información. En los agregados provinciales de proyectos multiprovinciales se aplica la misma distribución en partes iguales descripta en la sección territorial.
+
+## Datos faltantes {#datos-faltantes}
+
+Las expresiones utilizadas en el Monitor deben interpretarse de la siguiente manera:
+
+- **No informado:** la fuente consultada no consigna un valor para la variable.
+- **No disponible:** la información no está disponible para el universo o la fuente utilizada.
+- **No aplica:** la variable no corresponde al caso analizado.
+- **No observado:** no se identificó un registro en la fuente analizada; en particular, no debe interpretarse automáticamente como cero.
+
+No se imputan valores para completar observaciones faltantes. Las sumas y promedios se construyen con los datos numéricos disponibles.
+
+## Limitaciones generales {#limitaciones-generales}
+
+El Monitor sistematiza información pública de distinta naturaleza y fecha de publicación. En los proyectos en evaluación, las fuentes complementarias no equivalen a una validación oficial del estado administrativo. Los montos anunciados no representan necesariamente inversión ejecutada, los planes describen cronogramas informados y las importaciones cubren únicamente los registros identificados en su fuente específica.
+
+La información debe leerse junto con las fuentes consignadas en cada ficha. Las futuras actualizaciones pueden modificar el universo, el estado administrativo o los valores informados a medida que se publiquen nuevas resoluciones y documentos.
+
+## Actualización {#actualizacion}
+
+**Última actualización del Monitor:** `r indicadores$fecha_actualizacion_fmt` \
+**Última modificación del archivo maestro:** `r indicadores$fecha_modificacion_archivo_fmt`.
 :::

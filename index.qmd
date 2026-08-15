@@ -8,86 +8,72 @@ execute:
 
 {{< include _partials/setup-core.qmd >}}
 
-::: {.hero-section #resumen}
-::: hero-grid
+::: {.hero-section .hero-section--executive #panorama}
 ::: hero-copy
-::: hero-eyebrow
-DESIP · IIEP
-:::
-
 # Monitor de Proyectos RIGI
 
 ::: hero-subtitle
-El **Monitor de Proyectos RIGI** reúne, sistematiza y actualiza información pública sobre los proyectos de inversión presentados en el marco del Régimen de Incentivo para Grandes Inversiones (RIGI).
+Seguimiento de los proyectos presentados al Régimen de Incentivo para Grandes Inversiones.
 :::
 
-::: hero-update
-[Última actualización]{.hero-update__label}
-[`r indicadores$fecha_actualizacion_fmt`]{.hero-update__value}
-:::
-:::
+::: hero-signature
+[DESIP · IIEP]{.hero-identity}
 
-::: hero-meta-grid
-::: hero-meta-item
-[Proyectos relevados]{.meta-label}
-[`r fmt_integer(indicadores$n_total)`]{.meta-value}
-:::
-
-::: hero-meta-item
-[Proyectos aprobados]{.meta-label}
-[`r fmt_integer(indicadores$n_aprobados)`]{.meta-value}
-:::
-
-::: hero-meta-item
-[Monto de proyectos aprobados]{.meta-label}
-[`r fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)`]{.meta-value}
-:::
-
-::: hero-meta-item
-[Proyectos en evaluación]{.meta-label}
-[`r fmt_integer(indicadores$n_pendientes)`]{.meta-value}
-:::
-
-::: hero-meta-item
-[Empleo informado]{.meta-label}
-[`r fmt_integer(indicadores$empleos_aprobados)`]{.meta-value}
-:::
-:::
+[Actualizado]{.hero-update__label} [`r indicadores$fecha_actualizacion_fmt`]{.hero-update__value}
 :::
 :::
 
-## Resumen ejecutivo {#resumen-ejecutivo}
+:::
+
+## RIGI en una mirada {#en-una-mirada}
 
 ```{r}
-htmltools::div(class = "summary-box", htmltools::p(resumen_ejecutivo))
+make_home_kpis(indicadores)
+```
+
+## Qué muestran los datos {#que-muestran-los-datos}
+
+```{r}
+make_home_insights(indicadores)
+```
+
+## Aprobados vs. en evaluación {#aprobados-vs-evaluacion}
+
+Dos medidas complementarias permiten dimensionar el universo: la cantidad de proyectos y el monto de inversión informado.
+
+```{r}
+make_home_status_comparison(indicadores)
 ```
 
 ## Explorá el Monitor {#explora}
 
-::: {.monitor-index aria-label="Secciones del Monitor"}
+::: {.monitor-index .monitor-index--executive aria-label="Explorar el Monitor"}
 ::: monitor-index__item
 [01]{.monitor-index__number}
-[Proyectos aprobados →](aprobados.qmd)
+[Aprobados](aprobados.qmd)
+
+Qué se aprobó y cómo se distribuye.
 :::
 
 ::: monitor-index__item
 [02]{.monitor-index__number}
-[Proyectos en evaluación →](evaluacion.qmd)
+[En evaluación](evaluacion.qmd)
+
+Qué proyectos esperan resolución.
 :::
 
 ::: monitor-index__item
 [03]{.monitor-index__number}
-[Comparación por estado →](comparacion.qmd)
+[Comparar](comparacion.qmd)
+
+Cómo cambia el universo según estado.
 :::
 
 ::: monitor-index__item
 [04]{.monitor-index__number}
-[Base de datos completa →](base-datos.qmd)
-:::
+[Datos](base-datos.qmd)
 
-::: monitor-index__item
-[05]{.monitor-index__number}
-[Notas metodológicas →](metodologia.qmd)
+Explorar y descargar la base.
 :::
 :::
 
@@ -97,6 +83,6 @@ htmltools::div(class = "summary-box", htmltools::p(resumen_ejecutivo))
 ::: about-monitor__body
 El Monitor concentra en una única plataforma información que actualmente se encuentra dispersa entre distintas fuentes. Incluye proyectos aprobados y proyectos en evaluación. Para cada uno, reúne datos sobre montos de inversión, activos computables, empleo, sector de actividad, localización, empresas involucradas y principales hitos administrativos. La información proviene principalmente de fuentes oficiales y se complementa con otras fuentes públicas cuando resulta necesario.
 
-El objetivo del Monitor es facilitar el seguimiento y el análisis de los proyectos aprobados y en evaluación en el marco del RIGI. Al mismo tiempo, busca mejorar el acceso público a la información disponible sobre estos proyectos. Para ello, presenta indicadores agregados y fichas detalladas de cada iniciativa. Además, pone a disposición una **base de datos abierta y descargable**.
+El objetivo es facilitar el seguimiento y el análisis de los proyectos en el marco del RIGI y mejorar el acceso público a la información disponible. Además de indicadores y fichas detalladas, el Monitor ofrece bases abiertas y descargables.
 :::
 :::

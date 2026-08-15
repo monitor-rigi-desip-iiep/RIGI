@@ -17,40 +17,53 @@
   ],
   "anchors_by_page": {
     "index.qmd": [
+      "aprobados-vs-evaluacion",
+      "en-una-mirada",
       "explora",
-      "resumen-ejecutivo",
+      "que-muestran-los-datos",
       "sobre-el-monitor"
     ],
     "aprobados.qmd": [
+      "cronologia",
+      "ejecucion",
       "empleo",
-      "fichas",
-      "hitos",
       "importaciones",
       "inversion",
       "panorama",
-      "peelp",
-      "planes"
+      "planes",
+      "proyectos"
     ],
     "evaluacion.qmd": [
-      "cronologia",
-      "fichas",
       "inversion",
-      "panorama"
+      "panorama",
+      "presentaciones",
+      "proyectos"
     ],
     "comparacion.qmd": [
-      "composicion",
       "panorama",
-      "provincias",
-      "sectores"
+      "sectores",
+      "territorio"
     ],
     "base-datos.qmd": [
       "descargas",
-      "fichas"
+      "explorar"
     ],
     "metodologia.qmd": [
+      "actualizacion",
       "alcance",
+      "datos-faltantes",
       "distribucion-territorial",
+      "empleo",
+      "estados-administrativos",
+      "fuente-aprobados",
+      "fuente-empleo",
+      "fuente-evaluacion",
+      "fuente-importaciones",
+      "fuente-planes",
       "fuentes",
+      "importaciones",
+      "limitaciones-generales",
+      "planes-inversion",
       "variables-monetarias"
     ]
   },

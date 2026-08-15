@@ -32,15 +32,15 @@ website:
     foreground: "#FFFFFF"
     left:
       - href: index.qmd
-        text: Resumen
+        text: Panorama
       - href: aprobados.qmd
         text: Aprobados
       - href: evaluacion.qmd
         text: En evaluación
       - href: comparacion.qmd
-        text: Comparación
+        text: Comparar
       - href: base-datos.qmd
-        text: Base de datos
+        text: Datos
       - href: metodologia.qmd
         text: Metodología
 format:
