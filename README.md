@@ -52,6 +52,9 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
   enlaces seguros construidos automáticamente desde el Excel.
 - Las descargas conservan una representación trazable `Fuente [URL]` y también
   las columnas originales de fuentes y enlaces.
+- Las descargas de proyectos excluyen las columnas internas `Clasificación preexistencia BO` y `Justificación preexistencia BO`.
+- La cronología de hitos muestra inicialmente cuatro registros y permite desplegar u ocultar el resto con un control accesible.
+- El pie del sitio incorpora la autoría y un enlace al perfil de X de `@_LucasOrdonez`.
 - El empleo se organiza en pestañas por proyecto, sector y provincia.
 - PEELP incorpora una barra de composición del monto aprobado y un ranking
   específico.

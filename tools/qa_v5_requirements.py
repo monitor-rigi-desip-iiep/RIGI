@@ -87,8 +87,10 @@ def delimiters_balanced(text: str) -> bool:
 
 def main() -> int:
     indicators = read("R/03_indicators.R")
+    clean = read("R/02_clean_data.R")
     plots = read("R/04_plots.R")
     styles = read("styles.css")
+    quarto_config = read("_quarto.yml")
     index = read("index.qmd")
     approved_page = read("aprobados.qmd")
     pending_page = read("evaluacion.qmd")
@@ -152,6 +154,26 @@ def main() -> int:
         "Proyecto Rincón de Aranda (RDA)",
     ]
 
+    download_generator = clean.split("make_download_table <-", 1)[1].split(
+        "create_download_files <-", 1
+    )[0]
+    forbidden_download_columns = {
+        "Clasificación preexistencia BO",
+        "Justificación preexistencia BO",
+    }
+    download_stems = [
+        "base_interactiva_aprobados",
+        "base_interactiva_pendientes",
+        "base_completa",
+    ]
+    download_headers_ok = True
+    for stem in download_stems:
+        xlsx_columns = set(pd.read_excel(ROOT / "downloads" / f"{stem}.xlsx", nrows=0).columns)
+        csv_columns = set(pd.read_csv(ROOT / "downloads" / f"{stem}.csv", nrows=0).columns)
+        download_headers_ok = download_headers_ok and not (
+            forbidden_download_columns & xlsx_columns
+        ) and not (forbidden_download_columns & csv_columns)
+
     checks = {
         "summary_uses_visual_dashboard": "make_summary_dashboard(indicadores, tablas)" in index
         and "summary-box" not in index,
@@ -184,6 +206,29 @@ def main() -> int:
             ]
         )
         and "project_date <- as.Date(data$fecha_adhesion_rigi[[i]])" in plots,
+        "approved_milestones_start_with_four_and_expand": all(
+            token in plots
+            for token in [
+                "initially_visible = 4L",
+                "rigi-milestones-disclosure",
+                "Mostrar más hitos",
+                "Mostrar menos hitos",
+            ]
+        )
+        and all(
+            token in styles
+            for token in [
+                ".rigi-milestones-more__summary",
+                ".rigi-milestones-more[open]",
+                ".rigi-milestones-more__label--close",
+            ]
+        ),
+        "footer_has_linked_author": "Por [@_LucasOrdonez](https://x.com/_LucasOrdonez)"
+        in quarto_config,
+        "download_generator_excludes_internal_bo_columns": not (
+            forbidden_download_columns & set(download_generator.split("`"))
+        ),
+        "download_files_exclude_internal_bo_columns": download_headers_ok,
         "summary_latest_are_date_sorted": all(
             token in indicators
             for token in [

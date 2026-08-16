@@ -4427,6 +4427,85 @@ main.content {
   box-shadow: none;
 }
 
+.rigi-milestones-disclosure {
+  margin: 1rem 0 2rem;
+}
+
+.rigi-milestones-disclosure .rigi-milestones--initial,
+.rigi-milestones-disclosure .rigi-milestones--remaining {
+  margin: 0;
+}
+
+.rigi-milestones-disclosure .rigi-milestones--remaining {
+  border-top: 0;
+}
+
+.rigi-milestones-more {
+  margin: 0;
+}
+
+.rigi-milestones-more__summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  color: var(--rigi-navy);
+  background: #F1F6FC;
+  border: 1px solid #BFD3EA;
+  border-top: 0;
+  border-radius: 0 0 0.55rem 0.55rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.25;
+  list-style: none;
+  text-align: center;
+}
+
+.rigi-milestones-more__summary::-webkit-details-marker {
+  display: none;
+}
+
+.rigi-milestones-more__summary:hover {
+  background: #E6F0FB;
+}
+
+.rigi-milestones-more__summary:focus-visible {
+  outline: 3px solid rgba(38, 111, 181, 0.35);
+  outline-offset: 2px;
+}
+
+.rigi-milestones-more__label--close {
+  display: none;
+}
+
+.rigi-milestones-more__chevron {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.15rem) rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+.rigi-milestones-more[open] > .rigi-milestones-more__summary {
+  border-radius: 0;
+}
+
+.rigi-milestones-more[open] .rigi-milestones-more__label--open {
+  display: none;
+}
+
+.rigi-milestones-more[open] .rigi-milestones-more__label--close {
+  display: inline;
+}
+
+.rigi-milestones-more[open] .rigi-milestones-more__chevron {
+  transform: translateY(0.15rem) rotate(225deg);
+}
+
 .rigi-milestones--accordion .rigi-milestone {
   display: block;
   margin: 0;
@@ -4606,6 +4685,12 @@ main.content {
     padding: 0 2.35rem 0.9rem 0.35rem;
   }
 
+  .rigi-milestones-more__summary {
+    width: 100%;
+    min-height: 50px;
+    padding: 0.8rem 0.75rem;
+  }
+
   .rigi-milestone__metadata {
     grid-template-columns: 1fr;
     gap: 0.5rem;
@@ -4614,6 +4699,10 @@ main.content {
 
 @media (prefers-reduced-motion: reduce) {
   .impo-project-dropdown > summary::after {
+    transition: none;
+  }
+
+  .rigi-milestones-more__chevron {
     transition: none;
   }
 }

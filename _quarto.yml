@@ -23,7 +23,7 @@ website:
   repo-url: "https://github.com/monitor-rigi-desip-iiep/RIGI"
   page-footer:
     left: "DESIP · IIEP"
-    right: "Monitor de Proyectos RIGI"
+    right: "Monitor de Proyectos RIGI · Por [@_LucasOrdonez](https://x.com/_LucasOrdonez)"
   navbar:
     title: "DESIP · IIEP"
     pinned: true

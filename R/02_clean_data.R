@@ -789,9 +789,7 @@ make_download_table <- function(data) {
       link_norma = link_norma,
       Fuentes = fuentes_descarga,
       `Fuentes (original)` = fuentes_original,
-      `Links fuentes (original)` = links_fuentes_original,
-      `Clasificación preexistencia BO` = clasificacion_preexistencia_boletin_oficial,
-      `Justificación preexistencia BO` = justificacion_preexistencia_boletin_oficial
+      `Links fuentes (original)` = links_fuentes_original
     )
 }
 
