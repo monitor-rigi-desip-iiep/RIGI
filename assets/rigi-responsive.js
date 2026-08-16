@@ -138,7 +138,17 @@
     });
     document.querySelectorAll(".js-plotly-plot, .rigi-project-cards, .dataTables_wrapper").forEach(function (widget) {
       if (widget.closest(".plans-module, .impo-module")) return;
+      if (widget.closest(".rigi-timeline-desktop") && isMobile()) return;
       addInteractiveBadge(widget.closest("section"));
+    });
+    document.querySelectorAll(".rigi-timeline-desktop .js-plotly-plot").forEach(function (widget) {
+      const section = widget.closest("section");
+      let heading = null;
+      try { heading = section ? section.querySelector(":scope > h2, :scope > h3") : null; }
+      catch (error) { heading = section ? section.querySelector("h2, h3") : null; }
+      const badge = heading ? heading.querySelector(".interactive-badge") : null;
+      if (isMobile() && badge) badge.remove();
+      if (!isMobile()) addInteractiveBadge(section);
     });
     document.querySelectorAll(".js-plotly-plot").forEach(lockPlotlyChart);
   }
