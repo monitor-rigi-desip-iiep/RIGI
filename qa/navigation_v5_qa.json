@@ -1,0 +1,66 @@
+{
+  "render_pages": [
+    "index.qmd",
+    "aprobados.qmd",
+    "evaluacion.qmd",
+    "comparacion.qmd",
+    "base-datos.qmd",
+    "metodologia.qmd"
+  ],
+  "navbar_pages": [
+    "index.qmd",
+    "aprobados.qmd",
+    "evaluacion.qmd",
+    "comparacion.qmd",
+    "base-datos.qmd",
+    "metodologia.qmd"
+  ],
+  "anchors_by_page": {
+    "index.qmd": [
+      "explora",
+      "resumen-ejecutivo",
+      "sobre-el-monitor"
+    ],
+    "aprobados.qmd": [
+      "empleo",
+      "explorar",
+      "hitos",
+      "importaciones",
+      "inversion",
+      "panorama",
+      "peelp",
+      "planes"
+    ],
+    "evaluacion.qmd": [
+      "cronologia",
+      "explorar",
+      "inversion",
+      "panorama"
+    ],
+    "comparacion.qmd": [
+      "composicion",
+      "panorama",
+      "provincias",
+      "sectores"
+    ],
+    "base-datos.qmd": [
+      "descargas",
+      "explorar"
+    ],
+    "metodologia.qmd": [
+      "alcance",
+      "distribucion-territorial",
+      "fuentes",
+      "variables-monetarias"
+    ]
+  },
+  "checks": {
+    "missing_pages": [],
+    "navbar_not_rendered": [],
+    "broken_internal_links": [],
+    "raw_anchor_files": [],
+    "indented_raw_anchor_files": [],
+    "pandoc_code_anchor_files": [],
+    "forbidden_public_references": []
+  }
+}

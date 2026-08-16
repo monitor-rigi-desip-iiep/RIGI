@@ -9,7 +9,7 @@ El Monitor reúne y sistematiza información pública sobre los proyectos aproba
 **Fichas de proyectos + gráficos institucionales.** Las bases interactivas se
 presentan como tarjetas filtrables y ordenables, mientras que los gráficos
 utilizan una estética limpia, jerárquica y consistente. La grilla de fichas usa
-dos columnas en escritorio y una en pantallas pequeñas.
+tres columnas en pantallas amplias, dos en tablet y una en celular.
 
 Sitio web reproducible construido con **R + Quarto + GitHub Pages** a partir de la solapa `Proyectos` del archivo:
 
@@ -19,6 +19,10 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
 
 ## Cambios de esta versión
 
+- El resumen ejecutivo se presenta como un panel visual con indicadores destacados, barras comparables y rankings calculados desde la base.
+- El resumen identifica dinámicamente los tres proyectos aprobados más recientes y los tres proyectos en evaluación con fecha de presentación más reciente.
+- Las secciones Aprobados, En evaluación y Base de datos permiten alternar entre Tabla y Fichas sin perder filtros ni ordenamiento.
+- La cronología de presentaciones ocupa el ancho disponible y adapta márgenes, altura y desplazamiento vertical a celular, tablet y computadora.
 - El Monitor se organiza en seis páginas Quarto: resumen, aprobados, evaluación, comparación, base de datos y metodología.
 - La navegación global permanece visible, indica la página activa y se transforma en un menú `Contenido` accesible en pantallas pequeñas.
 - Las páginas extensas cuentan con un único índice interno; la portada conserva el resumen y deriva cada tema a su página correspondiente.

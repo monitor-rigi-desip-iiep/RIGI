@@ -20,7 +20,7 @@ make_download_links("total")
 
 **Datos abiertos.** La base utilizada para la elaboración del Monitor se encuentra disponible para su descarga en formatos XLSX y CSV.
 
-## Fichas y buscador {#fichas}
+## Explorar la base {#explorar}
 
 ```{r}
 make_rigi_project_cards(
