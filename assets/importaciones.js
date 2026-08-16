@@ -211,9 +211,11 @@
     }
 
     function buildTicks(months, profile) {
-      const step = profile && profile.compact
-        ? Math.max(1, Math.ceil(months.length / 24))
-        : tickStep(months.length);
+      const step = months.length <= 24
+        ? 1
+        : (profile && profile.compact
+          ? Math.max(1, Math.ceil(months.length / 24))
+          : tickStep(months.length));
       const selected = months.filter((month, i) => i % step === 0 || i === months.length - 1);
       return {
         vals: selected.map(monthToDate),
@@ -285,9 +287,11 @@
 
     function prepareImportChart(chart, months) {
       const profile = responsive.prepareScrollablePlot(chart, months.length, {
-        mobilePixelsPerPeriod: 50,
-        tabletPixelsPerPeriod: 52,
-        scrollThreshold: 6,
+        mobilePixelsPerPeriod: 44,
+        tabletPixelsPerPeriod: 42,
+        desktopPixelsPerPeriod: 38,
+        scrollThreshold: 14,
+        allowDesktopScroll: true,
         mobileHeight: 390,
         tabletHeight: 420,
         desktopHeight: 470
@@ -460,6 +464,87 @@
       return lines.slice(0, 2).join("<br>");
     }
 
+    function sectorLegendId(chart) {
+      return chart && chart.id ? chart.id + "-external-legend" : "";
+    }
+
+    function clearSectorLegend(chart) {
+      const id = sectorLegendId(chart);
+      const legend = id ? document.getElementById(id) : null;
+      if (legend) legend.replaceChildren();
+    }
+
+    function ensureSectorLegend(chart, sectors) {
+      if (!chart) return null;
+      const wrapper = chart.closest(".rigi-plot-scroll");
+      if (!wrapper || !wrapper.parentNode) return null;
+
+      const id = sectorLegendId(chart);
+      let legend = id ? document.getElementById(id) : null;
+      if (!legend) {
+        legend = document.createElement("div");
+        legend.id = id;
+        legend.className = "impo-sector-legend";
+        legend.setAttribute("role", "group");
+        legend.setAttribute("aria-label", "Sectores del gráfico");
+        wrapper.insertAdjacentElement("afterend", legend);
+      }
+
+      const currentSignature = Array.from(legend.querySelectorAll("[data-sector]"))
+        .map((button) => button.dataset.sector)
+        .join("|||");
+      const nextSignature = sectors.join("|||");
+
+      if (currentSignature !== nextSignature) {
+        legend.replaceChildren();
+        sectors.forEach((sector) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "impo-sector-legend__item";
+          button.dataset.sector = sector;
+          button.setAttribute("aria-pressed", "true");
+          button.setAttribute("aria-label", "Mostrar u ocultar " + sector);
+
+          const swatch = document.createElement("span");
+          swatch.className = "impo-sector-legend__swatch";
+          swatch.style.backgroundColor = sectorColors[sector] || "#64748B";
+          swatch.setAttribute("aria-hidden", "true");
+
+          const label = document.createElement("span");
+          label.className = "impo-sector-legend__label";
+          label.textContent = sector;
+
+          button.appendChild(swatch);
+          button.appendChild(label);
+          button.addEventListener("click", function () {
+            const traceIndex = Array.from(chart.data || []).findIndex((trace) =>
+              trace.type === "bar" && trace.meta && trace.meta.sector === sector
+            );
+            if (traceIndex < 0) return;
+            const trace = chart.data[traceIndex];
+            const nextVisible = traceIsVisible(trace) ? "legendonly" : true;
+            Plotly.restyle(chart, { visible: nextVisible }, [traceIndex]);
+          });
+
+          legend.appendChild(button);
+        });
+      }
+
+      syncSectorLegendState(chart, legend);
+      return legend;
+    }
+
+    function syncSectorLegendState(chart, legend) {
+      if (!chart || !legend) return;
+      const traces = Array.from(chart.data || []).filter((trace) => trace.type === "bar");
+      legend.querySelectorAll(".impo-sector-legend__item").forEach((button) => {
+        const sector = button.dataset.sector;
+        const trace = traces.find((item) => item.meta && item.meta.sector === sector);
+        const visible = !trace || traceIsVisible(trace);
+        button.setAttribute("aria-pressed", visible ? "true" : "false");
+      });
+    }
+
     // ---------------------------------------------------------------------
     // Sector
     // ---------------------------------------------------------------------
@@ -472,6 +557,8 @@
       const months = visibleMonths(controls.sector.start.value, controls.sector.end.value);
 
       if (!selectedSectors.length || !months.length) {
+        clearSectorLegend(charts.sectorMonthly);
+        clearSectorLegend(charts.sectorCumulative);
         renderEmpty(charts.sectorMonthly, "Seleccioná al menos un sector y un período válido.");
         renderEmpty(charts.sectorCumulative, "Seleccioná al menos un sector y un período válido.");
         return;
@@ -512,16 +599,19 @@
       monthlyTraces.push(totalTextTrace(months, monthlyTotals, "Total", monthlyProfile));
 
       const maxMonthly = Math.max.apply(null, monthlyTotals.concat([0]));
-      const monthlyBaseLayout = buildBaseLayout(months, { profile: monthlyProfile });
+      const monthlyBaseLayout = buildBaseLayout(months, { showLegend: false, profile: monthlyProfile });
       const monthlyLayout = Object.assign({}, monthlyBaseLayout, {
         barmode: "stack",
-        bargap: 0.30,
+        bargap: 0.16,
         yaxis: Object.assign({}, monthlyBaseLayout.yaxis, {
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
       });
       Promise.resolve(Plotly.react(charts.sectorMonthly, monthlyTraces, monthlyLayout, plotConfig))
-        .then(function () { bindViewportScale(charts.sectorMonthly, monthlyTotals); });
+        .then(function () {
+          bindViewportScale(charts.sectorMonthly, monthlyTotals);
+          ensureSectorLegend(charts.sectorMonthly, selectedSectors);
+        });
 
       const cumulative = cumulativeSeries(selectedSectors, bySectorMonth);
       const cumulativeTraces = selectedSectors.map((sector) => {
@@ -553,16 +643,19 @@
       cumulativeTraces.push(totalTextTrace(months, cumulativeTotals, "Total acumulado", cumulativeProfile));
 
       const maxCumulative = Math.max.apply(null, cumulativeTotals.concat([0]));
-      const cumulativeBaseLayout = buildBaseLayout(months, { profile: cumulativeProfile });
+      const cumulativeBaseLayout = buildBaseLayout(months, { showLegend: false, profile: cumulativeProfile });
       const cumulativeLayout = Object.assign({}, cumulativeBaseLayout, {
         barmode: "stack",
-        bargap: 0.30,
+        bargap: 0.16,
         yaxis: Object.assign({}, cumulativeBaseLayout.yaxis, {
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
       });
       Promise.resolve(Plotly.react(charts.sectorCumulative, cumulativeTraces, cumulativeLayout, plotConfig))
-        .then(function () { bindViewportScale(charts.sectorCumulative, cumulativeTotals); });
+        .then(function () {
+          bindViewportScale(charts.sectorCumulative, cumulativeTotals);
+          ensureSectorLegend(charts.sectorCumulative, selectedSectors);
+        });
 
       bindSectorLegendSync();
     }
@@ -614,6 +707,8 @@
       if (charts.sectorMonthly.dataset.legendSyncBound !== "true") {
         charts.sectorMonthly.dataset.legendSyncBound = "true";
         charts.sectorMonthly.on("plotly_restyle", () => {
+          const legend = document.getElementById(sectorLegendId(charts.sectorMonthly));
+          syncSectorLegendState(charts.sectorMonthly, legend);
           if (!syncingSectorMonthly) {
             window.requestAnimationFrame(() => syncSectorBarChart(charts.sectorMonthly, "Total", false));
           }
@@ -623,6 +718,8 @@
       if (charts.sectorCumulative.dataset.legendSyncBound !== "true") {
         charts.sectorCumulative.dataset.legendSyncBound = "true";
         charts.sectorCumulative.on("plotly_restyle", () => {
+          const legend = document.getElementById(sectorLegendId(charts.sectorCumulative));
+          syncSectorLegendState(charts.sectorCumulative, legend);
           if (!syncingSectorCumulative) {
             window.requestAnimationFrame(() => syncSectorBarChart(charts.sectorCumulative, "Total acumulado", true));
           }
