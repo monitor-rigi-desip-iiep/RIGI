@@ -586,7 +586,11 @@ make_summary_dashboard <- function(ind, tables) {
       summary_metric_card(
         "Monto de proyectos aprobados",
         fmt_currency_mill(ind$monto_aprobado, accuracy = 1),
-        paste0(fmt_pct(ind$participacion_monto_aprobado), " del monto total informado"),
+        paste0(
+          "Representa el ",
+          fmt_pct(ind$participacion_monto_aprobado_sobre_aprobado_y_evaluacion),
+          " del monto conjunto informado para proyectos aprobados y en evaluación"
+        ),
         "primary"
       ),
       summary_metric_card(
