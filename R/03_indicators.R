@@ -167,6 +167,12 @@ make_indicators <- function(data, data_prov, file_update_time) {
     monto_promedio_pendiente = mean_or_na(pendientes$monto_usd_mill),
     monto_mediano_pendiente = median_or_na(pendientes$monto_usd_mill),
 
+    monto_aprobado_y_evaluacion = sum_or_na(c(monto_aprobado, monto_pendiente)),
+    participacion_monto_aprobado_sobre_aprobado_y_evaluacion = ratio_or_na(
+      monto_aprobado,
+      monto_aprobado_y_evaluacion
+    ),
+
     n_rechazados = nrow(rechazados),
     monto_rechazado = sum_or_na(rechazados$monto_usd_mill),
 
@@ -298,6 +304,6 @@ make_summary_text <- function(indicadores, tablas) {
   )
 
   glue::glue(
-    "El Monitor releva {fmt_integer(indicadores$n_total)} proyectos: {fmt_integer(indicadores$n_aprobados)} aprobados, {fmt_integer(indicadores$n_pendientes)} en evaluación y {rejected_text}. El monto informado correspondiente a los proyectos aprobados asciende a {fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)}, equivalente al {fmt_pct(indicadores$participacion_monto_aprobado)} del monto total informado en la base. Entre los proyectos aprobados, el sector con mayor monto acumulado es {indicadores$sector_top_aprobado}, y la provincia con mayor monto —calculada al dividir por igual el monto de cada proyecto multiprovincial entre las provincias involucradas— es {indicadores$provincia_top_aprobada}. Los principales proyectos aprobados por monto son: {top_projects_text}. Última actualización: {indicadores$fecha_actualizacion_fmt}."
+    "El Monitor releva {fmt_integer(indicadores$n_total)} proyectos: {fmt_integer(indicadores$n_aprobados)} aprobados, {fmt_integer(indicadores$n_pendientes)} en evaluación y {rejected_text}. El monto informado correspondiente a los proyectos aprobados asciende a {fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)} y representa el {fmt_pct(indicadores$participacion_monto_aprobado_sobre_aprobado_y_evaluacion)} del monto conjunto informado para proyectos aprobados y en evaluación. Entre los proyectos aprobados, el sector con mayor monto acumulado es {indicadores$sector_top_aprobado}, y la provincia con mayor monto —calculada al dividir por igual el monto de cada proyecto multiprovincial entre las provincias involucradas— es {indicadores$provincia_top_aprobada}. Los principales proyectos aprobados por monto son: {top_projects_text}. Última actualización: {indicadores$fecha_actualizacion_fmt}."
   )
 }

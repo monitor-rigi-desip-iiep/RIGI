@@ -193,7 +193,13 @@ make_rigi_project_cards(
 
 ## Hitos del RIGI {#hitos}
 
-Desde la creación del RIGI hasta el último proyecto aprobado. Seleccioná un hito para desplegar su información documental; podés mantener varios abiertos al mismo tiempo.
+::: rigi-milestones-subtitle
+Esta cronología reúne los principales hitos normativos del RIGI y las adhesiones de los proyectos aprobados. Seleccioná un hito para desplegar su información documental; podés mantener varios abiertos al mismo tiempo.
+:::
+
+::: {.note-box role="note" aria-label="Criterio de fecha para proyectos aprobados"}
+**Criterio de fecha para los proyectos.** En cada proyecto aprobado, la fecha utilizada en la cronología corresponde a su **fecha de adhesión al RIGI**.
+:::
 
 ```{r}
 make_rigi_milestones_timeline(tablas$timeline_aprobados_tbl)

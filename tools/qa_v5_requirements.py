@@ -103,7 +103,12 @@ def main() -> int:
     amount_total = float(amounts.sum(skipna=True))
     amount_approved = float(amounts[approved].sum(skipna=True))
     amount_pending = float(amounts[pending].sum(skipna=True))
-    approved_share = amount_approved / amount_total if amount_total else None
+    amount_approved_and_pending = amount_approved + amount_pending
+    approved_share_approved_and_pending = (
+        amount_approved / amount_approved_and_pending
+        if amount_approved_and_pending
+        else None
+    )
 
     approved_data = data.loc[approved].copy()
     approved_data["_amount"] = amounts[approved]
@@ -162,6 +167,23 @@ def main() -> int:
         ),
         "summary_has_amount_bars": "summary_amount_bar(\"Aprobados\"" in plots
         and "summary_amount_bar(\"En evaluación\"" in plots,
+        "summary_share_uses_approved_and_pending_scope": all(
+            token in indicators
+            for token in [
+                "monto_aprobado_y_evaluacion",
+                "participacion_monto_aprobado_sobre_aprobado_y_evaluacion",
+                "ratio_or_na(\n      monto_aprobado,\n      monto_aprobado_y_evaluacion",
+            ]
+        )
+        and "monto conjunto informado para proyectos aprobados y en evaluación" in plots,
+        "approved_milestones_explain_adhesion_date": all(
+            token in approved_page
+            for token in [
+                "Criterio de fecha para los proyectos",
+                "fecha de adhesión al RIGI",
+            ]
+        )
+        and "project_date <- as.Date(data$fecha_adhesion_rigi[[i]])" in plots,
         "summary_latest_are_date_sorted": all(
             token in indicators
             for token in [
@@ -213,8 +235,8 @@ def main() -> int:
         "r_delimiters_balanced": delimiters_balanced(indicators) and delimiters_balanced(plots),
         "project_counts_match_base": (len(data), int(approved.sum()), int(pending.sum()), int(rejected.sum()))
         == (40, 21, 18, 1),
-        "approved_share_rounds_to_34_5": approved_share is not None
-        and round(approved_share * 100, 1) == 34.5,
+        "approved_share_rounds_to_34_6": approved_share_approved_and_pending is not None
+        and round(approved_share_approved_and_pending * 100, 1) == 34.6,
         "approved_amount_matches_base": amount_approved == 46708.0,
         "pending_amount_matches_base": amount_pending == 88209.0,
         "top_sector_matches_base": top_sector == "Petróleo y Gas",
@@ -253,7 +275,12 @@ def main() -> int:
             "amount_total_mill_usd": amount_total,
             "amount_approved_mill_usd": amount_approved,
             "amount_pending_mill_usd": amount_pending,
-            "approved_share_pct": round(approved_share * 100, 4) if approved_share else None,
+            "amount_approved_and_pending_mill_usd": amount_approved_and_pending,
+            "approved_share_of_approved_and_pending_pct": round(
+                approved_share_approved_and_pending * 100, 4
+            )
+            if approved_share_approved_and_pending
+            else None,
             "approved_bar_relative_pct": round(amount_approved / amount_pending * 100, 4)
             if amount_pending
             else None,
