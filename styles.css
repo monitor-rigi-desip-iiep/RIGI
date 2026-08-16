@@ -13,6 +13,9 @@
   --rigi-border: #E2E8F0;
   --rigi-bg: #F4F7FB;
   --rigi-card: #FFFFFF;
+  --rigi-back-to-top-size: 44px;
+  --rigi-back-to-top-right: 1.25rem;
+  --rigi-back-to-top-gap: 1rem;
 }
 
 *,
@@ -1927,12 +1930,12 @@ h3 {
 .back-to-top {
   position: fixed;
   z-index: 1050;
-  right: 1.25rem;
+  right: var(--rigi-back-to-top-right);
   bottom: 1.25rem;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--rigi-back-to-top-size);
+  height: var(--rigi-back-to-top-size);
   padding: 0;
   color: #FFFFFF;
   background: var(--rigi-navy);
@@ -1998,7 +2001,11 @@ h3 {
 }
 
 @media (max-width: 640px) {
-  :root { --rigi-header-height: 54px; }
+  :root {
+    --rigi-header-height: 54px;
+    --rigi-back-to-top-right: max(0.7rem, env(safe-area-inset-right));
+    --rigi-back-to-top-gap: 0.8rem;
+  }
   main.content { width: min(100% - 1.1rem, 620px); padding-top: 0.55rem; }
   #quarto-header .navbar { padding-inline: 0.15rem; }
   .hero-section { margin-bottom: 0.9rem; padding: 1.7rem 0 1.6rem; }
@@ -2033,7 +2040,7 @@ h3 {
   .impo-chart-card,
   .rigi-chart-tabs { margin-inline: 0; padding-inline: 0.45rem; }
   .rigi-static-plot-host.rigi-plot-viewport--vertical { max-height: 68vh; }
-  .back-to-top { right: 0.7rem; bottom: 0.7rem; }
+  .back-to-top { right: var(--rigi-back-to-top-right); bottom: 0.7rem; }
 }
 
 @media (max-width: 480px) {
@@ -3265,6 +3272,14 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.nav-footer {
+  padding-right: calc(
+    var(--rigi-back-to-top-size) +
+    var(--rigi-back-to-top-right) +
+    var(--rigi-back-to-top-gap)
+  ) !important;
+}
+
 @media (max-width: 700px) {
   .impo-project-chips,
   .impo-project-legend {
@@ -3520,7 +3535,11 @@ h3 {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.45rem;
-    padding: 1rem;
+    padding: 1rem calc(
+      var(--rigi-back-to-top-size) +
+      var(--rigi-back-to-top-right) +
+      var(--rigi-back-to-top-gap)
+    ) 1rem 1rem !important;
     text-align: left;
   }
 
@@ -4650,7 +4669,7 @@ main.content {
   }
 
   .back-to-top {
-    right: max(0.7rem, env(safe-area-inset-right));
+    right: var(--rigi-back-to-top-right);
     bottom: max(0.7rem, calc(env(safe-area-inset-bottom) + 0.55rem));
   }
 
