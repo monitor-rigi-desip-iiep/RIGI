@@ -328,7 +328,7 @@
       return profile;
     }
 
-    function sectorBargap(profile) {
+    function importBargap(profile) {
       if (profile && profile.mobile) return 0.24;
       if (profile && profile.tablet) return 0.20;
       return 0.16;
@@ -637,7 +637,7 @@
       const monthlyBaseLayout = buildBaseLayout(months, { showLegend: false, profile: monthlyProfile });
       const monthlyLayout = Object.assign({}, monthlyBaseLayout, {
         barmode: "stack",
-        bargap: sectorBargap(monthlyProfile),
+        bargap: importBargap(monthlyProfile),
         yaxis: Object.assign({}, monthlyBaseLayout.yaxis, {
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
@@ -681,7 +681,7 @@
       const cumulativeBaseLayout = buildBaseLayout(months, { showLegend: false, profile: cumulativeProfile });
       const cumulativeLayout = Object.assign({}, cumulativeBaseLayout, {
         barmode: "stack",
-        bargap: sectorBargap(cumulativeProfile),
+        bargap: importBargap(cumulativeProfile),
         yaxis: Object.assign({}, cumulativeBaseLayout.yaxis, {
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
@@ -928,8 +928,8 @@
 
       const rows = rawData.filter((d) => projects.includes(d.project) && sectors.includes(d.sector));
       const byProjectMonth = aggregate(rows, "project");
-      const monthlyProfile = prepareImportChart(charts.projectMonthly, months);
-      const cumulativeProfile = prepareImportChart(charts.projectCumulative, months);
+      const monthlyProfile = prepareImportChart(charts.projectMonthly, months, { denseMobile: true });
+      const cumulativeProfile = prepareImportChart(charts.projectCumulative, months, { denseMobile: true });
 
       const monthlyBars = projects.map((project) => {
         const y = months.map((month) => byProjectMonth.get(project + "|||" + month) || 0);
@@ -956,7 +956,7 @@
       const monthlyBaseLayout = buildBaseLayout(months, { showLegend: false, profile: monthlyProfile });
       const monthlyLayout = Object.assign({}, monthlyBaseLayout, {
         barmode: "stack",
-        bargap: 0.30,
+        bargap: importBargap(monthlyProfile),
         yaxis: Object.assign({}, monthlyBaseLayout.yaxis, {
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
@@ -990,7 +990,7 @@
       const cumulativeBaseLayout = buildBaseLayout(months, { showLegend: false, profile: cumulativeProfile });
       const cumulativeLayout = Object.assign({}, cumulativeBaseLayout, {
         barmode: "stack",
-        bargap: 0.30,
+        bargap: importBargap(cumulativeProfile),
         yaxis: Object.assign({}, cumulativeBaseLayout.yaxis, {
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
