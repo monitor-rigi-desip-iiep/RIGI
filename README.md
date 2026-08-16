@@ -22,7 +22,8 @@ RIGI_tracker_data_final_con_proyectos_integrados.xlsx
 - El resumen ejecutivo se presenta como un panel visual con indicadores destacados, barras comparables y rankings calculados desde la base.
 - El resumen identifica dinámicamente los tres proyectos aprobados más recientes y los tres proyectos en evaluación con fecha de presentación más reciente.
 - Las secciones Aprobados, En evaluación y Base de datos permiten alternar entre Tabla y Fichas sin perder filtros ni ordenamiento.
-- La cronología de presentaciones ocupa el ancho disponible y adapta márgenes, altura y desplazamiento vertical a celular, tablet y computadora.
+- La cronología de presentaciones conserva el gráfico interactivo en tablet y computadora; en celular utiliza una línea de tiempo compacta, legible y desplegable con fecha, sector y monto.
+- El ranking de principales proyectos aprobados mantiene una grilla estable en celular para evitar superposiciones entre el puesto, el nombre y el monto.
 - El Monitor se organiza en seis páginas Quarto: resumen, aprobados, evaluación, comparación, base de datos y metodología.
 - La navegación global permanece visible, indica la página activa y se transforma en un menú `Contenido` accesible en pantallas pequeñas.
 - Las páginas extensas cuentan con un único índice interno; la portada conserva el resumen y deriva cada tema a su página correspondiente.

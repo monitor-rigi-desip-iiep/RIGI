@@ -23,7 +23,7 @@
     ],
     "aprobados.qmd": [
       "empleo",
-      "fichas",
+      "explorar",
       "hitos",
       "importaciones",
       "inversion",
@@ -33,7 +33,7 @@
     ],
     "evaluacion.qmd": [
       "cronologia",
-      "fichas",
+      "explorar",
       "inversion",
       "panorama"
     ],
@@ -45,7 +45,7 @@
     ],
     "base-datos.qmd": [
       "descargas",
-      "fichas"
+      "explorar"
     ],
     "metodologia.qmd": [
       "alcance",

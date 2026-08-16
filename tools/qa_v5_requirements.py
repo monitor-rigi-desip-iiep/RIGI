@@ -228,6 +228,49 @@ def main() -> int:
         and ".rigi-timeline-chart .js-plotly-plot" in styles
         and "width: 100% !important" in styles,
         "timeline_has_touch_help": "Tocá o pasá el cursor" in pending_page,
+        "ranking_has_stable_mobile_grid": all(
+            token in styles
+            for token in [
+                'grid-template-areas:',
+                '"rank body"',
+                '". amount"',
+                ".summary-project-item--ranked .summary-project-item__body",
+                "grid-area: amount",
+            ]
+        ),
+        "timeline_has_dedicated_mobile_view": all(
+            token in pending_page
+            for token in [
+                ".rigi-timeline-desktop",
+                ".rigi-timeline-mobile",
+                "make_mobile_timeline(",
+                "visible_items = 6",
+            ]
+        )
+        and all(
+            token in plots
+            for token in [
+                "make_mobile_timeline <- function",
+                "rigi-mobile-timeline__card",
+                "rigi-mobile-timeline__more",
+            ]
+        ),
+        "timeline_switches_views_at_mobile_breakpoint": all(
+            token in styles
+            for token in [
+                ".rigi-timeline-mobile {",
+                ".rigi-timeline-desktop {",
+                "display: none",
+                "display: block",
+            ]
+        ),
+        "timeline_mobile_removes_plot_badge": all(
+            token in read("assets/rigi-responsive.js")
+            for token in [
+                'widget.closest(".rigi-timeline-desktop") && isMobile()',
+                'if (isMobile() && badge) badge.remove()',
+            ]
+        ),
         "currency_notation_is_consistent": "US$" not in plots
         and "US$" not in imports_js
         and "US$" not in plans_js,

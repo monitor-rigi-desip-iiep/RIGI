@@ -1590,6 +1590,84 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
   )
 }
 
+mobile_timeline_item <- function(row, date_col) {
+  date_value <- as.Date(row[[date_col]][[1]])
+  project_name <- rigi_card_value(row$proyecto[[1]])
+  sector <- rigi_card_value(row$sector_simplificado[[1]])
+  amount <- rigi_card_amount(row$monto_usd_mill[[1]])
+
+  htmltools::tags$li(
+    class = "rigi-mobile-timeline__item",
+    htmltools::tags$article(
+      class = "rigi-mobile-timeline__card",
+      htmltools::tags$time(
+        class = "rigi-mobile-timeline__date",
+        datetime = format(date_value, "%Y-%m-%d"),
+        fmt_date(date_value)
+      ),
+      htmltools::tags$h3(class = "rigi-mobile-timeline__name", project_name),
+      htmltools::tags$div(
+        class = "rigi-mobile-timeline__meta",
+        htmltools::tags$span(class = "rigi-mobile-timeline__sector", sector),
+        htmltools::tags$strong(class = "rigi-mobile-timeline__amount", amount)
+      )
+    )
+  )
+}
+
+make_mobile_timeline <- function(data, date_col = "fecha_aprobacion", visible_items = 6L) {
+  if (nrow(data) == 0 || all(is.na(data[[date_col]]))) {
+    return(empty_plot_message("No hay fechas disponibles para construir la cronología."))
+  }
+
+  data_timeline <- data |>
+    dplyr::filter(!is.na(.data[[date_col]])) |>
+    dplyr::arrange(dplyr::desc(.data[[date_col]]), proyecto)
+
+  visible_items <- max(1L, min(as.integer(visible_items), nrow(data_timeline)))
+  visible_data <- dplyr::slice_head(data_timeline, n = visible_items)
+  remaining_count <- nrow(data_timeline) - visible_items
+  remaining_data <- if (remaining_count > 0) {
+    dplyr::slice_tail(data_timeline, n = remaining_count)
+  } else {
+    data_timeline[0, , drop = FALSE]
+  }
+
+  build_list <- function(list_data, modifier = NULL) {
+    htmltools::tags$ol(
+      class = paste(
+        c("rigi-mobile-timeline__list", if (!is.null(modifier)) paste0("rigi-mobile-timeline__list--", modifier)),
+        collapse = " "
+      ),
+      lapply(seq_len(nrow(list_data)), function(index) {
+        mobile_timeline_item(list_data[index, , drop = FALSE], date_col = date_col)
+      })
+    )
+  }
+
+  more_projects <- NULL
+  if (remaining_count > 0) {
+    more_projects <- htmltools::tags$details(
+      class = "rigi-mobile-timeline__more",
+      htmltools::tags$summary(
+        paste0("Ver los ", remaining_count, " proyectos anteriores")
+      ),
+      build_list(remaining_data, modifier = "more")
+    )
+  }
+
+  htmltools::tags$section(
+    class = "rigi-mobile-timeline",
+    `aria-label` = "Cronología de presentaciones de proyectos en evaluación",
+    htmltools::tags$p(
+      class = "rigi-mobile-timeline__eyebrow",
+      "Presentaciones más recientes"
+    ),
+    build_list(visible_data),
+    more_projects
+  )
+}
+
 make_datatable <- function(data, caption = NULL) {
   source_html <- if ("fuentes_lista" %in% names(data)) {
     vapply(data$fuentes_lista, render_project_sources_html, character(1))
