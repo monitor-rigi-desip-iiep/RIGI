@@ -285,18 +285,53 @@
       };
     }
 
-    function prepareImportChart(chart, months) {
+    function mobileTargetVisiblePeriods() {
+      const viewportWidth = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 390);
+      if (viewportWidth <= 340) return 8;
+      if (viewportWidth <= 380) return 9;
+      if (viewportWidth <= 420) return 10;
+      return 11;
+    }
+
+    function prepareImportChart(chart, months, options) {
+      const opts = options || {};
+      const denseMobile = opts.denseMobile === true;
+      const baseProfile = responsive.getResponsivePlotConfig({
+        mobileHeight: 390,
+        tabletHeight: 420,
+        desktopHeight: 470
+      });
+      const wrapper = chart ? chart.closest(".rigi-plot-scroll") : null;
+      const availableWidth = Math.max(1, wrapper ? (wrapper.clientWidth || window.innerWidth) : window.innerWidth);
+      const targetVisiblePeriods = denseMobile && baseProfile.mobile ? mobileTargetVisiblePeriods() : null;
+      const usableInitialWidth = Math.max(1, availableWidth - baseProfile.leftMargin);
+      const mobilePixelsPerPeriod = targetVisiblePeriods
+        ? Math.max(22, Math.min(32, usableInitialWidth / targetVisiblePeriods))
+        : 44;
+      const scrollThreshold = denseMobile && baseProfile.mobile ? 11 : 14;
+
       const profile = responsive.prepareScrollablePlot(chart, months.length, {
-        mobilePixelsPerPeriod: 44,
+        mobilePixelsPerPeriod: mobilePixelsPerPeriod,
         tabletPixelsPerPeriod: 42,
         desktopPixelsPerPeriod: 38,
-        scrollThreshold: 14,
+        scrollThreshold: scrollThreshold,
         allowDesktopScroll: true,
         mobileHeight: 390,
         tabletHeight: 420,
         desktopHeight: 470
       });
+
+      if (denseMobile && profile.mobile) {
+        profile.tickFontSize = 8.5;
+        profile.textFontSize = 8.5;
+      }
       return profile;
+    }
+
+    function sectorBargap(profile) {
+      if (profile && profile.mobile) return 0.24;
+      if (profile && profile.tablet) return 0.20;
+      return 0.16;
     }
 
     function labelHeadroom() {
@@ -566,8 +601,8 @@
 
       const rows = rawData.filter((d) => selectedSectors.includes(d.sector));
       const bySectorMonth = aggregate(rows, "sector");
-      const monthlyProfile = prepareImportChart(charts.sectorMonthly, months);
-      const cumulativeProfile = prepareImportChart(charts.sectorCumulative, months);
+      const monthlyProfile = prepareImportChart(charts.sectorMonthly, months, { denseMobile: true });
+      const cumulativeProfile = prepareImportChart(charts.sectorCumulative, months, { denseMobile: true });
 
       const monthlyTraces = selectedSectors.map((sector) => {
         const y = months.map((month) => bySectorMonth.get(sector + "|||" + month) || 0);
@@ -602,7 +637,7 @@
       const monthlyBaseLayout = buildBaseLayout(months, { showLegend: false, profile: monthlyProfile });
       const monthlyLayout = Object.assign({}, monthlyBaseLayout, {
         barmode: "stack",
-        bargap: 0.16,
+        bargap: sectorBargap(monthlyProfile),
         yaxis: Object.assign({}, monthlyBaseLayout.yaxis, {
           range: maxMonthly > 0 ? [0, maxMonthly * labelHeadroom()] : [0, 1]
         })
@@ -646,7 +681,7 @@
       const cumulativeBaseLayout = buildBaseLayout(months, { showLegend: false, profile: cumulativeProfile });
       const cumulativeLayout = Object.assign({}, cumulativeBaseLayout, {
         barmode: "stack",
-        bargap: 0.16,
+        bargap: sectorBargap(cumulativeProfile),
         yaxis: Object.assign({}, cumulativeBaseLayout.yaxis, {
           range: maxCumulative > 0 ? [0, maxCumulative * labelHeadroom()] : [0, 1]
         })
