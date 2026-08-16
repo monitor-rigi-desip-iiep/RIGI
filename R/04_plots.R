@@ -56,7 +56,7 @@ chart_share <- function(x, total = NULL) {
 }
 
 chart_monto_label <- function(x, share) {
-  paste0("US$ ", fmt_number(x, accuracy = 1), " M · ", fmt_pct(share))
+  paste0("USD ", fmt_number(x, accuracy = 1), " M · ", fmt_pct(share))
 }
 
 chart_empleo_label <- function(x, share) {
@@ -371,7 +371,7 @@ make_source_note <- function() {
 make_province_note <- function() {
   htmltools::div(
     class = "note-box",
-    "Cuando un proyecto abarca más de una provincia, el monto de inversión, los activos computables y el empleo informado se distribuyen en partes iguales entre las provincias involucradas."
+    "Para calcular los totales provinciales, el monto de inversión, los activos computables y el empleo de cada proyecto multiprovincial se dividen por la cantidad de provincias involucradas. Por ejemplo, en un proyecto con dos provincias se asigna el 50% a cada una. Así se evita contabilizar el total del proyecto más de una vez."
   )
 }
 
@@ -466,6 +466,192 @@ make_kpi_cards_total <- function(ind) {
     make_kpi_card("Proyectos rechazados", fmt_integer(ind$n_rechazados), "Cantidad de proyectos"),
     make_kpi_card("Proyectos aprobados / total", fmt_pct(ind$participacion_proyectos_aprobados), "Participación en cantidad"),
     make_kpi_card("Monto de aprobados / total", fmt_pct(ind$participacion_monto_aprobado), "Participación en monto")
+  )
+}
+
+# Resumen ejecutivo visual ---------------------------------------------------
+
+summary_metric_card <- function(label, value, detail, modifier = NULL) {
+  htmltools::tags$article(
+    class = paste(
+      c("summary-metric-card", if (!is.null(modifier)) paste0("summary-metric-card--", modifier)),
+      collapse = " "
+    ),
+    htmltools::tags$p(class = "summary-metric-card__label", label),
+    htmltools::tags$p(class = "summary-metric-card__value", value),
+    htmltools::tags$p(class = "summary-metric-card__detail", detail)
+  )
+}
+
+summary_project_item <- function(row, rank = NULL, date_col = NULL, date_label = NULL) {
+  project_name <- rigi_card_value(row$proyecto[[1]])
+  sector <- rigi_card_value(row$sector_simplificado[[1]])
+  amount <- rigi_card_amount(row$monto_usd_mill[[1]])
+
+  date_tag <- NULL
+  if (!is.null(date_col) && date_col %in% names(row)) {
+    date_value <- as.Date(row[[date_col]][[1]])
+    if (!is.na(date_value)) {
+      date_tag <- htmltools::tags$time(
+        class = "summary-project-item__date",
+        datetime = format(date_value, "%Y-%m-%d"),
+        paste0(date_label, " ", fmt_date(date_value))
+      )
+    }
+  }
+
+  htmltools::tags$li(
+    class = paste(
+      "summary-project-item",
+      if (!is.null(rank)) "summary-project-item--ranked" else "summary-project-item--plain"
+    ),
+    if (!is.null(rank)) htmltools::tags$span(class = "summary-project-item__rank", rank),
+    htmltools::tags$div(
+      class = "summary-project-item__body",
+      htmltools::tags$strong(class = "summary-project-item__name", project_name),
+      htmltools::tags$div(
+        class = "summary-project-item__meta",
+        htmltools::tags$span(sector),
+        date_tag
+      )
+    ),
+    htmltools::tags$strong(class = "summary-project-item__amount", amount)
+  )
+}
+
+summary_project_list <- function(data, ranked = FALSE, date_col = NULL, date_label = NULL) {
+  if (nrow(data) == 0) {
+    return(htmltools::div(class = "summary-project-list__empty", "No hay fechas disponibles para ordenar estos proyectos."))
+  }
+
+  htmltools::tags$ol(
+    class = "summary-project-list",
+    lapply(seq_len(nrow(data)), function(index) {
+      summary_project_item(
+        data[index, , drop = FALSE],
+        rank = if (ranked) index else NULL,
+        date_col = date_col,
+        date_label = date_label
+      )
+    })
+  )
+}
+
+summary_amount_bar <- function(label, value, maximum, modifier) {
+  numeric_value <- suppressWarnings(as.numeric(value))
+  numeric_maximum <- suppressWarnings(as.numeric(maximum))
+  width <- if (
+    is.finite(numeric_value) && is.finite(numeric_maximum) && numeric_maximum > 0
+  ) {
+    max(0, min(100, numeric_value / numeric_maximum * 100))
+  } else {
+    0
+  }
+
+  formatted <- fmt_currency_mill(numeric_value, accuracy = 1)
+
+  htmltools::tags$div(
+    class = paste("summary-amount-bar", paste0("summary-amount-bar--", modifier)),
+    role = "img",
+    `aria-label` = paste0(label, ": ", formatted),
+    htmltools::tags$div(
+      class = "summary-amount-bar__header",
+      htmltools::tags$span(label),
+      htmltools::tags$strong(formatted)
+    ),
+    htmltools::tags$div(
+      class = "summary-amount-bar__track",
+      `aria-hidden` = "true",
+      htmltools::tags$span(style = sprintf("width: %.4f%%;", width))
+    )
+  )
+}
+
+make_summary_dashboard <- function(ind, tables) {
+  top_approved <- tables$top_projects_aprobados |>
+    dplyr::slice_head(n = 3)
+  latest_approved <- tables$ultimos_aprobados
+  latest_pending <- tables$ultimos_pendientes
+
+  amount_values <- c(ind$monto_aprobado, ind$monto_pendiente)
+  amount_values <- amount_values[is.finite(amount_values)]
+  maximum_amount <- if (length(amount_values) == 0) NA_real_ else max(amount_values)
+
+  rejected_label <- if (isTRUE(ind$n_rechazados == 1)) "rechazado" else "rechazados"
+  htmltools::tags$section(
+    class = "executive-summary-dashboard",
+    `aria-label` = "Indicadores destacados del Monitor RIGI",
+    htmltools::tags$div(
+      class = "summary-metrics-grid",
+      summary_metric_card(
+        "Monto de proyectos aprobados",
+        fmt_currency_mill(ind$monto_aprobado, accuracy = 1),
+        paste0(fmt_pct(ind$participacion_monto_aprobado), " del monto total informado"),
+        "primary"
+      ),
+      summary_metric_card(
+        "Sector líder entre aprobados",
+        ind$sector_top_aprobado,
+        "Mayor monto acumulado de inversión aprobada",
+        "sector"
+      ),
+      summary_metric_card(
+        "Provincia líder entre aprobados",
+        ind$provincia_top_aprobada,
+        "Cálculo provincial: el monto de cada proyecto multiprovincial se divide por igual entre las provincias involucradas",
+        "province"
+      ),
+      htmltools::tags$article(
+        class = "summary-metric-card summary-metric-card--counts",
+        htmltools::tags$p(class = "summary-metric-card__label", "Proyectos relevados"),
+        htmltools::tags$p(class = "summary-metric-card__value", fmt_integer(ind$n_total)),
+        htmltools::tags$ul(
+          class = "summary-status-counts",
+          htmltools::tags$li(htmltools::tags$strong(fmt_integer(ind$n_aprobados)), " aprobados"),
+          htmltools::tags$li(htmltools::tags$strong(fmt_integer(ind$n_pendientes)), " en evaluación"),
+          htmltools::tags$li(htmltools::tags$strong(fmt_integer(ind$n_rechazados)), paste0(" ", rejected_label))
+        )
+      )
+    ),
+    htmltools::tags$section(
+      class = "summary-amount-comparison",
+      htmltools::tags$div(
+        class = "summary-block-heading",
+        htmltools::tags$h3("Aprobados y en evaluación"),
+        htmltools::tags$p("Comparación del monto acumulado informado con una escala común.")
+      ),
+      htmltools::tags$div(
+        class = "summary-amount-comparison__bars",
+        summary_amount_bar("Aprobados", ind$monto_aprobado, maximum_amount, "approved"),
+        summary_amount_bar("En evaluación", ind$monto_pendiente, maximum_amount, "pending")
+      )
+    ),
+    htmltools::tags$div(
+      class = "summary-project-groups",
+      htmltools::tags$section(
+        class = "summary-project-group summary-project-group--ranking",
+        htmltools::tags$h3("Principales aprobados por monto"),
+        summary_project_list(top_approved, ranked = TRUE)
+      ),
+      htmltools::tags$section(
+        class = "summary-project-group summary-project-group--approved",
+        htmltools::tags$h3("Últimos proyectos aprobados"),
+        summary_project_list(
+          latest_approved,
+          date_col = "fecha_aprobacion",
+          date_label = "Aprobado el"
+        )
+      ),
+      htmltools::tags$section(
+        class = "summary-project-group summary-project-group--pending",
+        htmltools::tags$h3("Últimos proyectos en evaluación"),
+        summary_project_list(
+          latest_pending,
+          date_col = "fecha_presentacion",
+          date_label = "Relevado el"
+        )
+      )
+    )
   )
 }
 
@@ -1044,7 +1230,7 @@ timeline_fmt_monto <- function(x) {
     trim = TRUE
   )
 
-  paste0("US$ ", formatted, " millones")
+  paste0("USD ", formatted, " millones")
 }
 
 make_rigi_institutional_milestone <- function(date, title, description, details = NULL, url = NULL) {
@@ -1251,7 +1437,7 @@ make_rigi_milestones_timeline <- function(data) {
     as.Date("2026-02-19"),
     "Decreto 105/2026 · Ampliación y prórroga del RIGI",
     "Se prorroga por un año el plazo de adhesión al régimen y se incorporan los nuevos desarrollos de explotación y producción de hidrocarburos líquidos y gaseosos costa adentro entre las actividades elegibles del sector de petróleo y gas.",
-    "La prórroga rige por un año a partir del 8 de julio de 2026. Para los nuevos desarrollos de hidrocarburos líquidos y gaseosos costa adentro, el decreto fija un monto mínimo de inversión en activos computables de US$ 600 millones.",
+    "La prórroga rige por un año a partir del 8 de julio de 2026. Para los nuevos desarrollos de hidrocarburos líquidos y gaseosos costa adentro, el decreto fija un monto mínimo de inversión en activos computables de USD 600 millones.",
     "https://www.boletinoficial.gob.ar/detalleAviso/primera/338519/20260219",
     as.Date("2026-04-13"),
     "Resolución 484/2026 · Adecuación del criterio de larga maduración",
@@ -1319,7 +1505,7 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
     dplyr::mutate(
       y_pos = rev(dplyr::row_number()),
       label_original = dplyr::coalesce(proyecto, "s/d"),
-      label_wrapped = wrap_axis_label(label_original, width = 32),
+      label_wrapped = wrap_axis_label(label_original, width = 28),
       monto_size = dplyr::if_else(
         is.na(monto_usd_mill) | monto_usd_mill <= 0,
         1,
@@ -1388,13 +1574,13 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
 
   style_plotly(
     p,
-    margin_left = smart_left_margin(data_plot$label_original, min_margin = 185, max_margin = 300),
-    margin_right = 40,
-    margin_bottom = 72,
-    margin_top = if (is.null(title)) 42 else 70,
-    height = max(620, 190 + nrow(data_plot) * 46),
+    margin_left = smart_left_margin(data_plot$label_original, min_margin = 170, max_margin = 265),
+    margin_right = 30,
+    margin_bottom = 66,
+    margin_top = if (is.null(title)) 34 else 64,
+    height = max(560, 165 + nrow(data_plot) * 42),
     showlegend = FALSE,
-    mobile_min_width = 760,
+    mobile_min_width = 0,
     vertical_scroll = TRUE,
     hide_text_on_mobile = FALSE
   )
@@ -1484,7 +1670,8 @@ rigi_card_date <- function(x) {
 
 rigi_card_amount <- function(x) {
   if (length(x) == 0 || is.na(x) || is.nan(x)) return("s/d")
-  paste0("US$ ", fmt_number(x, accuracy = 0.1), " millones")
+  accuracy <- if (abs(x - round(x)) < 1e-9) 1 else 0.1
+  paste0("USD ", fmt_number(x, accuracy = accuracy), " millones")
 }
 
 rigi_card_integer <- function(x) {
@@ -1646,22 +1833,23 @@ make_rigi_project_card <- function(row, table_type, index) {
 
   key_date <- switch(
     table_type,
-    aprobados = value("fecha_adhesion_rigi"),
+    aprobados = value("fecha_aprobacion"),
     pendientes = value("fecha_presentacion"),
     total = dplyr::coalesce(
-      as.Date(value("fecha_adhesion_rigi")),
+      as.Date(value("fecha_aprobacion")),
       as.Date(value("fecha_presentacion"))
     )
   )
   key_date_label <- switch(
     table_type,
-    aprobados = "Adhesión",
+    aprobados = "Aprobación",
     pendientes = "Presentación",
     total = "Fecha principal"
   )
 
   project_name <- rigi_card_value(value("proyecto"))
   state <- rigi_card_value(value("estado"))
+  state_display <- rigi_card_value(value("estado_simplificado"))
   sector <- rigi_card_value(value("sector"))
   province <- rigi_card_value(value("provincia_original"))
   company <- rigi_card_value(value("empresa"))
@@ -1741,7 +1929,7 @@ make_rigi_project_card <- function(row, table_type, index) {
         class = "rigi-project-card__title-block",
         htmltools::tags$div(
           class = "rigi-project-card__badges",
-          htmltools::tags$span(class = paste("rigi-badge", state_class), state),
+          htmltools::tags$span(class = paste("rigi-badge", state_class), state_display),
           if (peelp) {
             htmltools::tags$span(class = "rigi-badge rigi-badge--peelp", "PEELP")
           }
@@ -1794,6 +1982,101 @@ make_rigi_project_card <- function(row, table_type, index) {
         )
       )
     )
+  )
+}
+
+make_rigi_project_table_row <- function(row, table_type, index) {
+  value <- function(column) {
+    if (!column %in% names(row)) return(NA)
+    row[[column]][[1]]
+  }
+
+  approved <- isTRUE(value("aprobado"))
+  peelp_raw <- value("proyecto_exportacion_estrategia_largo_plazo_si")
+  peelp <- isTRUE(peelp_raw)
+  state_class <- if (approved) {
+    "rigi-badge--approved"
+  } else if (identical(value("estado_simplificado"), "Pendiente de aprobación")) {
+    "rigi-badge--pending"
+  } else {
+    "rigi-badge--muted"
+  }
+
+  key_date <- switch(
+    table_type,
+    aprobados = value("fecha_aprobacion"),
+    pendientes = value("fecha_presentacion"),
+    total = dplyr::coalesce(
+      as.Date(value("fecha_aprobacion")),
+      as.Date(value("fecha_presentacion"))
+    )
+  )
+
+  project_name <- rigi_card_value(value("proyecto"))
+  state <- rigi_card_value(value("estado"))
+  state_display <- rigi_card_value(value("estado_simplificado"))
+  sector <- rigi_card_value(value("sector"))
+  province <- rigi_card_value(value("provincia_original"))
+  company <- rigi_card_value(value("empresa"))
+  holder <- rigi_card_value(value("titular_proyecto"))
+  project_sources <- value("fuentes_lista")
+  source_search_text <- if (is.data.frame(project_sources) && nrow(project_sources) > 0) {
+    paste(project_sources$fuente, collapse = " ")
+  } else {
+    rigi_card_value(value("fuentes_original"))
+  }
+  peelp_label <- if (is.na(peelp_raw)) {
+    "s/d"
+  } else if (peelp) {
+    "Sí"
+  } else {
+    "No"
+  }
+  amount_value <- suppressWarnings(as.numeric(value("monto_usd_mill")))
+  amount_sort <- if (is.na(amount_value)) -1 else amount_value
+  date_sort <- suppressWarnings(as.numeric(as.Date(key_date)))
+  if (is.na(date_sort)) date_sort <- -1
+
+  search_text <- paste(
+    project_name,
+    state,
+    state_display,
+    sector,
+    rigi_card_value(value("subsector")),
+    province,
+    rigi_card_value(value("localidad_region")),
+    company,
+    holder,
+    rigi_card_value(value("norma_aprobacion")),
+    rigi_card_value(value("descripcion_del_proyecto")),
+    source_search_text,
+    collapse = " "
+  )
+
+  htmltools::tags$tr(
+    `data-project-row` = "true",
+    `data-original-order` = index,
+    `data-search` = search_text,
+    `data-status` = state,
+    `data-sector` = sector,
+    `data-province` = gsub("\\s*;\\s*", "|", province),
+    `data-peelp` = peelp_label,
+    `data-amount` = amount_sort,
+    `data-date` = date_sort,
+    `data-name` = project_name,
+    htmltools::tags$th(
+      scope = "row",
+      htmltools::tags$strong(project_name),
+      if (!identical(holder, "s/d")) htmltools::tags$span(holder)
+    ),
+    htmltools::tags$td(
+      htmltools::tags$span(class = paste("rigi-badge", state_class), state_display),
+      if (peelp) htmltools::tags$span(class = "rigi-badge rigi-badge--peelp", "PEELP")
+    ),
+    htmltools::tags$td(sector),
+    htmltools::tags$td(province),
+    htmltools::tags$td(class = "rigi-project-table__amount", rigi_card_amount(amount_value)),
+    htmltools::tags$td(rigi_card_date(key_date))
   )
 }
 
@@ -1894,33 +2177,53 @@ make_rigi_project_cards <- function(
     )
   )
 
+  table_rows <- lapply(
+    seq_len(nrow(data)),
+    function(index) make_rigi_project_table_row(
+      data[index, , drop = FALSE],
+      table_type,
+      index
+    )
+  )
+
+  date_heading <- switch(
+    table_type,
+    aprobados = "Aprobación",
+    pendientes = "Presentación",
+    total = "Fecha principal"
+  )
+
   script <- htmltools::tags$script(htmltools::HTML(sprintf(
     "(function() {
       var root = document.getElementById('%s');
       if (!root) return;
       var grid = root.querySelector('[data-card-grid]');
+      var tableBody = root.querySelector('[data-table-body]');
       var cards = Array.prototype.slice.call(root.querySelectorAll('[data-project-card]'));
+      var rows = Array.prototype.slice.call(root.querySelectorAll('[data-project-row]'));
       var search = root.querySelector('[data-card-search]');
       var filters = Array.prototype.slice.call(root.querySelectorAll('[data-filter]'));
       var sort = root.querySelector('[data-card-sort]');
       var clear = root.querySelector('[data-card-clear]');
       var count = root.querySelector('[data-card-count]');
       var empty = root.querySelector('[data-card-empty]');
+      var viewButtons = Array.prototype.slice.call(root.querySelectorAll('[data-view-target]'));
+      var viewPanels = Array.prototype.slice.call(root.querySelectorAll('[data-view-panel]'));
 
       function normalized(value) {
         return (value || '').toLocaleLowerCase('es').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
       }
 
-      function matches(card) {
+      function matches(item) {
         var query = normalized(search.value);
-        if (query && normalized(card.dataset.search).indexOf(query) === -1) return false;
+        if (query && normalized(item.dataset.search).indexOf(query) === -1) return false;
 
         for (var i = 0; i < filters.length; i += 1) {
           var select = filters[i];
           var selected = select.value;
           if (!selected) continue;
           var key = select.dataset.filter;
-          var cardValue = card.dataset[key] || '';
+          var cardValue = item.dataset[key] || '';
           if (key === 'province') {
             var provinces = cardValue.split('|').map(function(value) { return value.trim(); });
             if (provinces.indexOf(selected) === -1) return false;
@@ -1931,30 +2234,61 @@ make_rigi_project_cards <- function(
         return true;
       }
 
-      function sortCards(visibleCards) {
+      function compareItems(a, b) {
         var mode = sort.value;
-        visibleCards.sort(function(a, b) {
-          if (mode === 'amount-desc') return Number(b.dataset.amount) - Number(a.dataset.amount);
-          if (mode === 'amount-asc') return Number(a.dataset.amount) - Number(b.dataset.amount);
-          if (mode === 'date-desc') return Number(b.dataset.date) - Number(a.dataset.date);
-          if (mode === 'date-asc') return Number(a.dataset.date) - Number(b.dataset.date);
-          if (mode === 'name-asc') return a.dataset.name.localeCompare(b.dataset.name, 'es');
-          return Number(a.dataset.originalOrder) - Number(b.dataset.originalOrder);
+        if (mode === 'amount-desc') return Number(b.dataset.amount) - Number(a.dataset.amount);
+        if (mode === 'amount-asc') return Number(a.dataset.amount) - Number(b.dataset.amount);
+        if (mode === 'date-desc') return Number(b.dataset.date) - Number(a.dataset.date);
+        if (mode === 'date-asc') return Number(a.dataset.date) - Number(b.dataset.date);
+        if (mode === 'name-asc') return a.dataset.name.localeCompare(b.dataset.name, 'es');
+        return Number(a.dataset.originalOrder) - Number(b.dataset.originalOrder);
+      }
+
+      function updateItems(items, target) {
+        var visible = [];
+        items.forEach(function(item) {
+          var show = matches(item);
+          item.hidden = !show;
+          if (show) visible.push(item);
         });
-        visibleCards.forEach(function(card) { grid.appendChild(card); });
+        visible.sort(compareItems);
+        visible.forEach(function(item) { target.appendChild(item); });
+        return visible;
       }
 
       function update() {
-        var visibleCards = [];
-        cards.forEach(function(card) {
-          var show = matches(card);
-          card.hidden = !show;
-          if (show) visibleCards.push(card);
-        });
-        sortCards(visibleCards);
+        var visibleCards = updateItems(cards, grid);
+        updateItems(rows, tableBody);
         count.textContent = visibleCards.length + (visibleCards.length === 1 ? ' proyecto' : ' proyectos');
         empty.hidden = visibleCards.length !== 0;
       }
+
+      function activateView(viewName, moveFocus) {
+        viewButtons.forEach(function(button) {
+          var active = button.dataset.viewTarget === viewName;
+          button.setAttribute('aria-selected', active ? 'true' : 'false');
+          button.tabIndex = active ? 0 : -1;
+          if (active && moveFocus) button.focus();
+        });
+        viewPanels.forEach(function(panel) {
+          panel.hidden = panel.dataset.viewPanel !== viewName;
+        });
+        root.dataset.activeView = viewName;
+      }
+
+      viewButtons.forEach(function(button, index) {
+        button.addEventListener('click', function() {
+          activateView(button.dataset.viewTarget, false);
+        });
+        button.addEventListener('keydown', function(event) {
+          if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+          event.preventDefault();
+          var direction = event.key === 'ArrowRight' ? 1 : -1;
+          var nextIndex = (index + direction + viewButtons.length) %% viewButtons.length;
+          var nextButton = viewButtons[nextIndex];
+          activateView(nextButton.dataset.viewTarget, true);
+        });
+      });
 
       search.addEventListener('input', update);
       filters.forEach(function(select) { select.addEventListener('change', update); });
@@ -1966,6 +2300,7 @@ make_rigi_project_cards <- function(
         update();
         search.focus();
       });
+      activateView('table', false);
       update();
     })();",
     widget_id
@@ -1976,6 +2311,32 @@ make_rigi_project_cards <- function(
     class = "rigi-project-cards",
     `aria-label` = caption,
     `data-filter-count` = length(filters),
+    htmltools::tags$div(
+      class = "rigi-view-switcher",
+      role = "tablist",
+      `aria-label` = "Formato de visualización",
+      htmltools::tags$button(
+        id = paste0(widget_id, "-tab-table"),
+        class = "rigi-view-switcher__button",
+        type = "button",
+        role = "tab",
+        `aria-selected` = "true",
+        `aria-controls` = paste0(widget_id, "-panel-table"),
+        `data-view-target` = "table",
+        "Tabla"
+      ),
+      htmltools::tags$button(
+        id = paste0(widget_id, "-tab-cards"),
+        class = "rigi-view-switcher__button",
+        type = "button",
+        role = "tab",
+        tabindex = "-1",
+        `aria-selected` = "false",
+        `aria-controls` = paste0(widget_id, "-panel-cards"),
+        `data-view-target` = "cards",
+        "Fichas"
+      )
+    ),
     htmltools::tags$div(
       class = "rigi-project-cards__toolbar",
       htmltools::tags$label(
@@ -2014,12 +2375,47 @@ make_rigi_project_cards <- function(
     htmltools::tags$div(
       class = "rigi-project-cards__status",
       htmltools::tags$strong(`data-card-count` = "true"),
-      htmltools::tags$span(" · seleccioná una ficha para ampliar la información")
+      htmltools::tags$span(" · los filtros y el orden se mantienen al cambiar de vista")
     ),
     htmltools::tags$div(
-      class = "rigi-project-cards__grid",
-      `data-card-grid` = "true",
-      cards
+      id = paste0(widget_id, "-panel-table"),
+      class = "rigi-view-panel rigi-view-panel--table",
+      role = "tabpanel",
+      `aria-labelledby` = paste0(widget_id, "-tab-table"),
+      `data-view-panel` = "table",
+      htmltools::tags$div(
+        class = "rigi-project-table-scroll",
+        tabindex = "0",
+        `aria-label` = "Tabla desplazable de proyectos",
+        htmltools::tags$table(
+          class = "rigi-project-table",
+          htmltools::tags$caption(class = "visually-hidden", caption),
+          htmltools::tags$thead(
+            htmltools::tags$tr(
+              htmltools::tags$th(scope = "col", "Proyecto"),
+              htmltools::tags$th(scope = "col", "Estado"),
+              htmltools::tags$th(scope = "col", "Sector"),
+              htmltools::tags$th(scope = "col", "Provincia"),
+              htmltools::tags$th(scope = "col", "Monto"),
+              htmltools::tags$th(scope = "col", date_heading)
+            )
+          ),
+          htmltools::tags$tbody(`data-table-body` = "true", table_rows)
+        )
+      )
+    ),
+    htmltools::tags$div(
+      id = paste0(widget_id, "-panel-cards"),
+      class = "rigi-view-panel rigi-view-panel--cards",
+      role = "tabpanel",
+      `aria-labelledby` = paste0(widget_id, "-tab-cards"),
+      `data-view-panel` = "cards",
+      hidden = TRUE,
+      htmltools::tags$div(
+        class = "rigi-project-cards__grid",
+        `data-card-grid` = "true",
+        cards
+      )
     ),
     htmltools::tags$div(
       class = "rigi-project-cards__empty",

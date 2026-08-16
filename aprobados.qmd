@@ -21,7 +21,7 @@ Esta sección reúne los proyectos cuya adhesión al RIGI ha sido aprobada. Los 
 - [Empleo](#empleo)
 - [PEELP](#peelp)
 - [Hitos](#hitos)
-- [Fichas](#fichas)
+- [Explorar](#explorar)
 :::
 
 ## Panorama {#panorama}
@@ -179,7 +179,7 @@ plot_top_proyectos_monto(
 )
 ```
 
-### Fichas de proyectos PEELP
+### Explorar proyectos PEELP
 
 ```{r}
 make_rigi_project_cards(
@@ -199,7 +199,7 @@ Desde la creación del RIGI hasta el último proyecto aprobado. Seleccioná un h
 make_rigi_milestones_timeline(tablas$timeline_aprobados_tbl)
 ```
 
-## Fichas de proyectos aprobados {#fichas}
+## Explorar proyectos aprobados {#explorar}
 
 ```{r}
 make_download_links("aprobados")

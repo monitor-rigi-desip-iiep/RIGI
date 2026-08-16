@@ -22,7 +22,7 @@ Esta página documenta el alcance, las fuentes y los criterios utilizados para c
 ::: method-box
 ## Alcance {#alcance}
 
-El Monitor distingue entre proyectos aprobados y proyectos en evaluación de acuerdo con la información pública disponible a la fecha de actualización. La categoría **Proyectos en evaluación** reúne proyectos identificados públicamente como presentados, en análisis, pendientes de resolución o en evaluación que no cuentan con una resolución de aprobación publicada en el Boletín Oficial. Cuando el estado administrativo no puede verificarse mediante una fuente oficial, esa limitación debe interpretarse a partir de las fuentes consignadas en la ficha correspondiente.
+El Monitor distingue entre proyectos aprobados y proyectos en evaluación de acuerdo con la información pública disponible a la fecha de actualización. La categoría **Proyectos en evaluación** reúne proyectos relevados a partir de fuentes públicas como iniciativas vinculadas al RIGI que se encuentran en análisis, pendientes de resolución o en evaluación y que no cuentan con una resolución de aprobación publicada en el Boletín Oficial. Cuando el estado administrativo no puede verificarse mediante una fuente oficial, esa limitación debe interpretarse a partir de las fuentes consignadas en la ficha correspondiente.
 
 ## Fuentes {#fuentes}
 
@@ -38,7 +38,7 @@ Los montos de inversión informados y los activos computables se expresan en **m
 
 ## Distribución territorial {#distribucion-territorial}
 
-Cuando un proyecto abarca más de una provincia, el monto de inversión, los activos computables y el empleo informado se distribuyen en partes iguales entre las provincias involucradas.
+Para calcular los totales provinciales, el monto de inversión, los activos computables y el empleo de cada proyecto multiprovincial se dividen por la cantidad de provincias involucradas. Por ejemplo, en un proyecto con dos provincias se asigna el 50% a cada una. Así se evita contabilizar el total del proyecto más de una vez.
 
 **Última actualización:** `r indicadores$fecha_actualizacion_fmt`  
 **Última modificación del archivo fuente:** `r indicadores$fecha_modificacion_archivo_fmt`.

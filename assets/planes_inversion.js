@@ -319,10 +319,10 @@
           return (
             "<b>" + sector + "</b><br>" +
             "Año: " + year + "<br>" +
-            "Monto: US$ " + formatter.format(y[i]) + " millones<br>" +
+            "Monto: USD " + formatter.format(y[i]) + " millones<br>" +
             "Participación: " + pctFormatter.format(share) + "<br>" +
             "Subsectores: " + sectorSubsectorLabel[sector] + "<br>" +
-            "Total visible: US$ " + formatter.format(total) + " millones"
+            "Total visible: USD " + formatter.format(total) + " millones"
           );
         });
 
@@ -406,9 +406,9 @@
           return (
             "<b>" + trace.meta.sector + "</b><br>" +
             "Año: " + d.year + "<br>" +
-            "Plan de inversión acumulado: US$ " + formatter.format(d.value) + " millones<br>" +
+            "Plan de inversión acumulado: USD " + formatter.format(d.value) + " millones<br>" +
             "Participación: " + pctFormatter.format(share) + "<br>" +
-            "Total acumulado visible: US$ " + formatter.format(cumulativeTotals[i]) + " millones"
+            "Total acumulado visible: USD " + formatter.format(cumulativeTotals[i]) + " millones"
           );
         });
       });
@@ -488,10 +488,10 @@
             return (
               "<b>" + (trace.meta && trace.meta.sector ? trace.meta.sector : trace.name) + "</b><br>" +
               "Año: " + year + "<br>" +
-              "Monto: US$ " + formatter.format(value) + " millones<br>" +
+              "Monto: USD " + formatter.format(value) + " millones<br>" +
               "Participación: " + pctFormatter.format(share) + "<br>" +
               "Subsectores: " + subsectors + "<br>" +
-              "Total visible: US$ " + formatter.format(total) + " millones"
+              "Total visible: USD " + formatter.format(total) + " millones"
             );
           });
           return Plotly.restyle(annualChart, { customdata: [hover] }, [index]);
@@ -552,9 +552,9 @@
             return (
               "<b>" + (trace.meta && trace.meta.sector ? trace.meta.sector : trace.name) + "</b><br>" +
               "Año: " + year + "<br>" +
-              "Plan de inversión acumulado: US$ " + formatter.format(value) + " millones<br>" +
+              "Plan de inversión acumulado: USD " + formatter.format(value) + " millones<br>" +
               "Participación: " + pctFormatter.format(share) + "<br>" +
-              "Total acumulado visible: US$ " + formatter.format(total) + " millones"
+              "Total acumulado visible: USD " + formatter.format(total) + " millones"
             );
           });
           return Plotly.restyle(cumulativeChart, { customdata: [hover] }, [index]);

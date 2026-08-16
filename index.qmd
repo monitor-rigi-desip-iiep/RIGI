@@ -18,7 +18,7 @@ DESIP · IIEP
 # Monitor de Proyectos RIGI
 
 ::: hero-subtitle
-El **Monitor de Proyectos RIGI** reúne, sistematiza y actualiza información pública sobre los proyectos de inversión presentados en el marco del Régimen de Incentivo para Grandes Inversiones (RIGI).
+El **Monitor de Proyectos RIGI** reúne, sistematiza y actualiza información pública sobre los proyectos de inversión relevados en el marco del Régimen de Incentivo para Grandes Inversiones (RIGI).
 :::
 
 ::: hero-update
@@ -48,10 +48,6 @@ El **Monitor de Proyectos RIGI** reúne, sistematiza y actualiza información p�
 [`r fmt_integer(indicadores$n_pendientes)`]{.meta-value}
 :::
 
-::: hero-meta-item
-[Empleo informado]{.meta-label}
-[`r fmt_integer(indicadores$empleos_aprobados)`]{.meta-value}
-:::
 :::
 :::
 :::
@@ -59,7 +55,7 @@ El **Monitor de Proyectos RIGI** reúne, sistematiza y actualiza información p�
 ## Resumen ejecutivo {#resumen-ejecutivo}
 
 ```{r}
-htmltools::div(class = "summary-box", htmltools::p(resumen_ejecutivo))
+make_summary_dashboard(indicadores, tablas)
 ```
 
 ## Explorá el Monitor {#explora}
@@ -95,7 +91,7 @@ htmltools::div(class = "summary-box", htmltools::p(resumen_ejecutivo))
 
 ::: about-monitor
 ::: about-monitor__body
-El Monitor concentra en una única plataforma información que actualmente se encuentra dispersa entre distintas fuentes. Incluye proyectos aprobados y proyectos en evaluación. Para cada uno, reúne datos sobre montos de inversión, activos computables, empleo, sector de actividad, localización, empresas involucradas y principales hitos administrativos. La información proviene principalmente de fuentes oficiales y se complementa con otras fuentes públicas cuando resulta necesario.
+El Monitor concentra en una única plataforma información que actualmente se encuentra dispersa entre distintas fuentes. Incluye proyectos aprobados y proyectos en evaluación. Para cada uno, reúne datos sobre montos de inversión, activos computables, sector de actividad, localización, empresas involucradas y principales hitos administrativos. La información proviene principalmente de fuentes oficiales y se complementa con otras fuentes públicas cuando resulta necesario.
 
 El objetivo del Monitor es facilitar el seguimiento y el análisis de los proyectos aprobados y en evaluación en el marco del RIGI. Al mismo tiempo, busca mejorar el acceso público a la información disponible sobre estos proyectos. Para ello, presenta indicadores agregados y fichas detalladas de cada iniciativa. Además, pone a disposición una **base de datos abierta y descargable**.
 :::

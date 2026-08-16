@@ -626,7 +626,7 @@
           return (
             "<b>" + trace.meta.sector + "</b><br>" +
             "Período: " + formatMonth(d.month) + "<br>" +
-            "Importaciones: US$ " + formatter.format(d.value) + " millones<br>" +
+            "Importaciones: USD " + formatter.format(d.value) + " millones<br>" +
             "Participación: " + pctFormatter.format(share)
           );
         });
@@ -670,7 +670,7 @@
           return (
             "<b>" + trace.meta.sector + "</b><br>" +
             "Período: " + formatMonth(d.month) + "<br>" +
-            "Importaciones acumuladas: US$ " + formatter.format(d.value) + " millones<br>" +
+            "Importaciones acumuladas: USD " + formatter.format(d.value) + " millones<br>" +
             "Participación: " + pctFormatter.format(share)
           );
         });
@@ -720,7 +720,7 @@
               "<b>" + (trace.meta && trace.meta.sector ? trace.meta.sector : trace.name) + "</b><br>" +
               "Período: " + formatMonth(dateToMonth(x)) + "<br>" +
               (cumulative ? "Importaciones acumuladas: " : "Importaciones: ") +
-              "US$ " + formatter.format(value) + " millones<br>" +
+              "USD " + formatter.format(value) + " millones<br>" +
               "Participación: " + pctFormatter.format(share)
             );
           });
@@ -945,7 +945,7 @@
             "<b>" + project + "</b><br>" +
             "Sector: " + sector + "<br>" +
             "Período: " + formatMonth(month) + "<br>" +
-            "Importaciones: US$ " + formatter.format(y[i]) + " millones"
+            "Importaciones: USD " + formatter.format(y[i]) + " millones"
           ),
           hovertemplate: "%{customdata}<extra></extra>"
         };
@@ -979,7 +979,7 @@
             "<b>" + project + "</b><br>" +
             "Sector: " + sector + "<br>" +
             "Período: " + formatMonth(month) + "<br>" +
-            "Importaciones acumuladas: US$ " + formatter.format(y[i]) + " millones"
+            "Importaciones acumuladas: USD " + formatter.format(y[i]) + " millones"
           ),
           hovertemplate: "%{customdata}<extra></extra>"
         };

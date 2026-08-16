@@ -9,14 +9,14 @@ title: "Proyectos en evaluación"
 
 # Proyectos en evaluación
 
-Esta sección reúne proyectos identificados públicamente como presentados al RIGI, en análisis, pendientes de resolución o en evaluación que, a la fecha de actualización del Monitor, no cuentan con una resolución de aprobación registrada.
+Esta sección reúne proyectos relevados a partir de fuentes públicas como iniciativas vinculadas al RIGI que se encuentran en análisis, pendientes de resolución o en evaluación y que, a la fecha de actualización del Monitor, no cuentan con una resolución de aprobación registrada.
 :::
 
 ::: {.page-subnav role="navigation" aria-label="En esta sección"}
 - [Panorama](#panorama)
 - [Inversión](#inversion)
 - [Cronología](#cronologia)
-- [Fichas](#fichas)
+- [Explorar](#explorar)
 :::
 
 ## Panorama {#panorama}
@@ -76,6 +76,7 @@ make_chart_context_note(
 )
 ```
 
+::: {.rigi-timeline-chart}
 ```{r}
 plot_timeline(
   tablas$timeline_pendientes_tbl,
@@ -83,8 +84,9 @@ plot_timeline(
   title = NULL
 )
 ```
+:::
 
-## Fichas de proyectos en evaluación {#fichas}
+## Explorar proyectos en evaluación {#explorar}
 
 ```{r}
 make_download_links("pendientes")

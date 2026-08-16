@@ -1,0 +1,115 @@
+{
+  "checks": {
+    "summary_uses_visual_dashboard": true,
+    "summary_has_four_attention_metrics": true,
+    "summary_has_amount_bars": true,
+    "summary_latest_are_date_sorted": true,
+    "explorer_has_table_and_cards": true,
+    "all_requested_pages_use_explorer": true,
+    "view_switch_is_keyboard_accessible": true,
+    "responsive_card_grid_3_2_1": true,
+    "responsive_table_is_contained": true,
+    "timeline_has_fluid_width": true,
+    "timeline_has_touch_help": true,
+    "currency_notation_is_consistent": true,
+    "css_braces_balanced": true,
+    "r_delimiters_balanced": true,
+    "project_counts_match_base": true,
+    "approved_share_rounds_to_34_5": true,
+    "approved_amount_matches_base": true,
+    "pending_amount_matches_base": true,
+    "top_sector_matches_base": true,
+    "top_province_matches_equal_allocation": true,
+    "territorial_allocation_reconciles": true,
+    "top_three_projects_match_request": true,
+    "latest_lists_have_three_valid_dates": true,
+    "javascript_syntax_rigi-responsive": true,
+    "javascript_syntax_planes_inversion": true,
+    "javascript_syntax_importaciones": true
+  },
+  "metrics": {
+    "projects_total": 40,
+    "projects_approved": 21,
+    "projects_pending": 18,
+    "projects_rejected": 1,
+    "amount_total_mill_usd": 135190.0,
+    "amount_approved_mill_usd": 46708.0,
+    "amount_pending_mill_usd": 88209.0,
+    "approved_share_pct": 34.5499,
+    "approved_bar_relative_pct": 52.9515,
+    "top_sector": "Petróleo y Gas",
+    "top_province_equal_allocation": "Río Negro"
+  },
+  "top_three_approved": [
+    {
+      "proyecto": "Proyecto de Licuefacción de Gas Natural (FLNG - Southern Energy)",
+      "sector": "Petróleo y Gas",
+      "monto_mill_usd": 15156.0
+    },
+    {
+      "proyecto": "Vicuña",
+      "sector": "Minería",
+      "monto_mill_usd": 9737.0
+    },
+    {
+      "proyecto": "Proyecto Rincón de Aranda (RDA)",
+      "sector": "Petróleo y Gas",
+      "monto_mill_usd": 4522.0
+    }
+  ],
+  "latest_approved": [
+    {
+      "proyecto": "Sal de Oro II",
+      "sector": "Minería",
+      "monto_mill_usd": 547.0,
+      "fecha": "2026-07-31"
+    },
+    {
+      "proyecto": "Vicuña",
+      "sector": "Minería",
+      "monto_mill_usd": 9737.0,
+      "fecha": "2026-07-30"
+    },
+    {
+      "proyecto": "Proyecto de la Sucursal Dedicada de Liex S.A.",
+      "sector": "Minería",
+      "monto_mill_usd": 710.0,
+      "fecha": "2026-07-29"
+    }
+  ],
+  "latest_pending": [
+    {
+      "proyecto": "Bandurria Norte",
+      "sector": "Petróleo y Gas",
+      "monto_mill_usd": 5800.0,
+      "fecha": "2026-07-21"
+    },
+    {
+      "proyecto": "El Trapial",
+      "sector": "Petróleo y Gas",
+      "monto_mill_usd": 13800.0,
+      "fecha": "2026-06-02"
+    },
+    {
+      "proyecto": "LLL Oil",
+      "sector": "Petróleo y Gas",
+      "monto_mill_usd": 25000.0,
+      "fecha": "2026-05-15"
+    }
+  ],
+  "javascript": {
+    "assets/rigi-responsive.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/planes_inversion.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/importaciones.js": {
+      "ok": true,
+      "stderr": ""
+    }
+  },
+  "failed": []
+}
