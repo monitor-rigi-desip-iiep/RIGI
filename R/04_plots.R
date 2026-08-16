@@ -1390,7 +1390,7 @@ make_rigi_project_milestone <- function(row) {
   )
 }
 
-make_rigi_milestones_timeline <- function(data) {
+make_rigi_milestones_timeline <- function(data, initially_visible = 4L) {
   date_cols <- c("fecha_adhesion_rigi", "fecha_presentacion")
   text_cols <- c(
     "proyecto", "norma_aprobacion", "sector", "provincia_original",
@@ -1494,9 +1494,48 @@ make_rigi_milestones_timeline <- function(data) {
     all_entries <- all_entries[order(sort_dates, sort_kinds, sort_labels)]
   }
 
-  htmltools::tags$ol(
-    class = "rigi-milestones rigi-milestones--accordion",
-    do.call(htmltools::tagList, lapply(all_entries, `[[`, "tag"))
+  entry_tags <- lapply(all_entries, `[[`, "tag")
+  visible_count <- min(
+    length(entry_tags),
+    max(1L, suppressWarnings(as.integer(initially_visible)))
+  )
+  visible_tags <- utils::head(entry_tags, visible_count)
+  hidden_tags <- utils::tail(entry_tags, length(entry_tags) - visible_count)
+
+  visible_list <- htmltools::tags$ol(
+    class = "rigi-milestones rigi-milestones--accordion rigi-milestones--initial",
+    do.call(htmltools::tagList, visible_tags)
+  )
+
+  if (length(hidden_tags) == 0) {
+    return(visible_list)
+  }
+
+  htmltools::tags$div(
+    class = "rigi-milestones-disclosure",
+    visible_list,
+    htmltools::tags$details(
+      class = "rigi-milestones-more",
+      htmltools::tags$summary(
+        class = "rigi-milestones-more__summary",
+        htmltools::tags$span(
+          class = "rigi-milestones-more__label rigi-milestones-more__label--open",
+          sprintf("Mostrar más hitos (%s)", length(hidden_tags))
+        ),
+        htmltools::tags$span(
+          class = "rigi-milestones-more__label rigi-milestones-more__label--close",
+          "Mostrar menos hitos"
+        ),
+        htmltools::tags$span(
+          class = "rigi-milestones-more__chevron",
+          `aria-hidden` = "true"
+        )
+      ),
+      htmltools::tags$ol(
+        class = "rigi-milestones rigi-milestones--accordion rigi-milestones--remaining",
+        do.call(htmltools::tagList, hidden_tags)
+      )
+    )
   )
 }
 
