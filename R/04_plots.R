@@ -634,7 +634,7 @@ make_summary_dashboard <- function(ind, tables) {
       class = "summary-project-groups",
       htmltools::tags$section(
         class = "summary-project-group summary-project-group--ranking",
-        htmltools::tags$h3("Principales aprobados por monto"),
+        htmltools::tags$h3("Principales proyectos aprobados por monto"),
         summary_project_list(top_approved, ranked = TRUE)
       ),
       htmltools::tags$section(
@@ -1946,7 +1946,7 @@ make_rigi_project_card <- function(row, table_type, index) {
   peelp <- isTRUE(peelp_raw)
   state_class <- if (approved) {
     "rigi-badge--approved"
-  } else if (identical(value("estado_simplificado"), "Pendiente de aprobación")) {
+  } else if (identical(value("estado_simplificado"), "En evaluación")) {
     "rigi-badge--pending"
   } else {
     "rigi-badge--muted"
@@ -2117,7 +2117,7 @@ make_rigi_project_table_row <- function(row, table_type, index) {
   peelp <- isTRUE(peelp_raw)
   state_class <- if (approved) {
     "rigi-badge--approved"
-  } else if (identical(value("estado_simplificado"), "Pendiente de aprobación")) {
+  } else if (identical(value("estado_simplificado"), "En evaluación")) {
     "rigi-badge--pending"
   } else {
     "rigi-badge--muted"

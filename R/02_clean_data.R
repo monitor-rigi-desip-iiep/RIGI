@@ -717,7 +717,7 @@ clean_proyectos <- function(raw_data) {
     links_fuentes_original = links_fuentes,
     estado_simplificado = dplyr::case_when(
       aprobado ~ "Aprobado",
-      pendiente ~ "Pendiente de aprobación",
+      pendiente ~ "En evaluación",
       stringr::str_detect(estado_norm, "no aprob|rechaz|desest") ~ "Rechazado",
       is.na(estado) ~ "No informado",
       TRUE ~ "Otros"

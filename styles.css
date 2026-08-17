@@ -5102,11 +5102,13 @@ main.content {
   color: #164E9B;
   font-size: 0.79rem;
   line-height: 1.4;
+  white-space: nowrap;
 }
 
 .summary-project-item--ranked .summary-project-item__amount {
   grid-area: amount;
-  grid-column: auto;
+  grid-column: 2;
+  justify-self: start;
 }
 
 .summary-project-list__empty {
