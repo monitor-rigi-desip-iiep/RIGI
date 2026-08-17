@@ -254,6 +254,7 @@
         autosize: true,
         height: annualProfile.height,
         dragmode: false,
+        separators: ",.",
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
         font: {
