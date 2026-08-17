@@ -4943,7 +4943,8 @@ main.content {
 }
 
 .summary-block-heading h3,
-.summary-project-group h3 {
+.summary-project-group h3,
+.summary-project-group__title {
   margin: 0;
   color: #10294D;
   font-size: 1.05rem;

@@ -452,7 +452,6 @@ make_kpi_cards_pendientes <- function(ind) {
     class = "kpi-grid kpi-grid-pending",
     make_kpi_card("Proyectos en evaluación", fmt_integer(ind$n_pendientes), "Cantidad de proyectos"),
     make_kpi_card("Monto informado", fmt_currency_mill(ind$monto_pendiente, accuracy = 1), "Proyectos en evaluación · millones de USD"),
-    make_kpi_card("Activos computables informados", fmt_currency_mill(ind$activos_pendientes, accuracy = 1), "Proyectos en evaluación · millones de USD"),
     make_kpi_card("Monto promedio informado", fmt_currency_mill(ind$monto_promedio_pendiente, accuracy = 1), "Por proyecto en evaluación"),
     make_kpi_card("Monto mediano informado", fmt_currency_mill(ind$monto_mediano_pendiente, accuracy = 1), "Por proyecto en evaluación")
   )
@@ -634,12 +633,22 @@ make_summary_dashboard <- function(ind, tables) {
       class = "summary-project-groups",
       htmltools::tags$section(
         class = "summary-project-group summary-project-group--ranking",
-        htmltools::tags$h3("Principales proyectos aprobados por monto"),
+        htmltools::tags$div(
+          class = "summary-project-group__title",
+          role = "heading",
+          `aria-level` = "3",
+          "Principales proyectos aprobados por monto"
+        ),
         summary_project_list(top_approved, ranked = TRUE)
       ),
       htmltools::tags$section(
         class = "summary-project-group summary-project-group--approved",
-        htmltools::tags$h3("Últimos proyectos aprobados"),
+        htmltools::tags$div(
+          class = "summary-project-group__title",
+          role = "heading",
+          `aria-level` = "3",
+          "Últimos proyectos aprobados"
+        ),
         summary_project_list(
           latest_approved,
           date_col = "fecha_aprobacion",
@@ -648,7 +657,12 @@ make_summary_dashboard <- function(ind, tables) {
       ),
       htmltools::tags$section(
         class = "summary-project-group summary-project-group--pending",
-        htmltools::tags$h3("Últimos proyectos en evaluación"),
+        htmltools::tags$div(
+          class = "summary-project-group__title",
+          role = "heading",
+          `aria-level` = "3",
+          "Últimos proyectos en evaluación"
+        ),
         summary_project_list(
           latest_pending,
           date_col = "fecha_presentacion",
