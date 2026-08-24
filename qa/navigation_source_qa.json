@@ -22,11 +22,14 @@
       "sobre-el-monitor"
     ],
     "aprobados.qmd": [
+      "activos-computables",
+      "compromiso-2-anios",
+      "compromisos-plazos",
       "empleo",
       "explorar",
       "hitos",
       "importaciones",
-      "inversion",
+      "inversion-total",
       "panorama",
       "peelp",
       "planes"
@@ -49,6 +52,7 @@
     ],
     "metodologia.qmd": [
       "alcance",
+      "diccionario-variables",
       "distribucion-territorial",
       "fuentes",
       "variables-monetarias"

@@ -68,12 +68,16 @@ def main() -> int:
             "any::readxl", "any::writexl"
         ]),
         "project_resources": all(resource in quarto["project"]["resources"] for resource in [
-            "assets/rigi-responsive.js", "assets/planes_inversion.js", "assets/importaciones.js"
+            "assets/rigi-responsive.js", "assets/investment_modules.js",
+            "assets/planes_inversion.js", "assets/importaciones.js"
         ]),
     }
 
     js_results = {}
-    for relative in ["assets/rigi-responsive.js", "assets/planes_inversion.js", "assets/importaciones.js"]:
+    for relative in [
+        "assets/rigi-responsive.js", "assets/investment_modules.js",
+        "assets/planes_inversion.js", "assets/importaciones.js"
+    ]:
         result = subprocess.run(
             ["node", "--check", str(ROOT / relative)],
             check=False,

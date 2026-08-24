@@ -14,7 +14,7 @@ Esta sección reúne proyectos relevados a partir de fuentes públicas como inic
 
 ::: {.page-subnav role="navigation" aria-label="En esta sección"}
 - [Panorama](#panorama)
-- [Inversión](#inversion)
+- [Inversión total informada](#inversion)
 - [Cronología](#cronologia)
 - [Explorar](#explorar)
 :::
@@ -27,43 +27,18 @@ Esta sección reúne proyectos relevados a partir de fuentes públicas como inic
 make_kpi_cards_pendientes(indicadores)
 ```
 
-## Inversión {#inversion}
-
-### Monto informado por sector
+## Inversión total informada {#inversion}
 
 ```{r}
-plot_bar_monto(
-  tablas$sector_tbl_pendientes,
-  label_col = "sector_simplificado",
-  title = NULL,
-  fill_color = bar_color_pending
-)
-```
-
-### Monto informado por provincia
-
-```{r}
-make_province_note()
-```
-
-```{r}
-plot_bar_monto(
-  tablas$provincia_tbl_pendientes,
-  label_col = "provincia_simplificada",
-  title = NULL,
-  fill_color = bar_color_pending
-)
-```
-
-### Principales proyectos en evaluación por monto informado
-
-```{r}
-plot_top_proyectos_monto(
-  tablas$top_projects_pendientes,
-  title = NULL,
-  fill_color = bar_color_pending,
-  total_value = indicadores$monto_pendiente,
-  share_reference = "del monto informado en proyectos en evaluación"
+make_investment_explorer(
+  data = tablas$base_pendientes,
+  data_prov = proyectos_prov |> dplyr::filter(pendiente_aprobacion),
+  dictionary = diccionario,
+  value_col = "inversion_total_mill_usd",
+  value_col_prov = "monto_usd_mill_asignado_prop",
+  widget_key = "evaluation-total-investment",
+  color = bar_color_pending,
+  universe_label = "proyectos en evaluación con inversión total informada"
 )
 ```
 
@@ -111,7 +86,7 @@ make_mobile_timeline(
 make_download_links("pendientes")
 ```
 
-**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formatos XLSX y CSV.
+**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formato XLSX e incluye su diccionario de variables.
 
 ```{r}
 make_rigi_project_cards(

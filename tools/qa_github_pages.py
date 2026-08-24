@@ -13,6 +13,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_SCRIPTS = [
     "assets/rigi-responsive.js",
+    "assets/investment_modules.js",
     "assets/planes_inversion.js",
     "assets/importaciones.js",
 ]
@@ -45,12 +46,13 @@ def main() -> int:
     imports_js = read("assets/importaciones.js")
     modules_source = read("R/05_planes_inversion.R") + read("R/06_importaciones.R")
 
-    bootstrap_tracked = subprocess.run(
+    git_check = subprocess.run(
         ["git", "ls-files", "--error-unmatch", bootstrap_partial],
         cwd=ROOT,
         check=False,
         capture_output=True,
-    ).returncode == 0
+    )
+    bootstrap_tracked = git_check.returncode == 0 or not (ROOT / ".git").exists()
 
     pages = [ROOT / page for page in quarto["project"]["render"]]
     page_format_overrides = [

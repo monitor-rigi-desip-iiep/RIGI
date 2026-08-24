@@ -14,6 +14,7 @@ project:
     - downloads/*.xlsx
     - downloads/*.csv
     - assets/rigi-responsive.js
+    - assets/investment_modules.js
     - assets/planes_inversion.js
     - assets/importaciones.js
 

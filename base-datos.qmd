@@ -18,7 +18,7 @@ La base reúne la información sistematizada para el conjunto de proyectos inclu
 make_download_links("total")
 ```
 
-**Datos abiertos.** La base utilizada para la elaboración del Monitor se encuentra disponible para su descarga en formatos XLSX y CSV.
+**Datos abiertos.** La base utilizada para la elaboración del Monitor se encuentra disponible para su descarga en formato XLSX e incluye su diccionario de variables.
 
 ## Explorar la base {#explorar}
 

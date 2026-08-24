@@ -22,12 +22,17 @@
     "ci_package_coverage": true,
     "project_resources": true,
     "javascript_syntax_rigi-responsive": true,
+    "javascript_syntax_investment_modules": true,
     "javascript_syntax_planes_inversion": true,
     "javascript_syntax_importaciones": true,
     "interactive_module_ids_in_sources": true
   },
   "javascript": {
     "assets/rigi-responsive.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/investment_modules.js": {
       "ok": true,
       "stderr": ""
     },

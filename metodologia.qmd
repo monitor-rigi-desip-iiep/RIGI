@@ -17,6 +17,7 @@ Esta página documenta el alcance, las fuentes y los criterios utilizados para c
 - [Fuentes](#fuentes)
 - [Variables monetarias](#variables-monetarias)
 - [Distribución territorial](#distribucion-territorial)
+- [Diccionario de variables](#diccionario-variables)
 :::
 
 ::: method-box
@@ -43,3 +44,11 @@ Para calcular los totales provinciales, el monto de inversión, los activos comp
 **Última actualización:** `r indicadores$fecha_actualizacion_fmt`  
 **Última modificación del archivo fuente:** `r indicadores$fecha_modificacion_archivo_fmt`.
 :::
+
+## Diccionario de variables {#diccionario-variables}
+
+Las denominaciones, tipos, unidades y descripciones de las variables de origen se generan directamente desde la hoja `Diccionario` del XLSX vigente. Las variables calculadas por el sitio se presentan por separado.
+
+```{r}
+make_data_dictionary(diccionario)
+```

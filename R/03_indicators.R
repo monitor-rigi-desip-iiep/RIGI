@@ -34,7 +34,7 @@ ratio_or_na <- function(numerator, denominator) {
 fmt_number <- function(x, accuracy = 1) {
   if (length(x) == 0) return(character(0))
   out <- scales::number(x, accuracy = accuracy, big.mark = ".", decimal.mark = ",")
-  out[is.na(x) | is.nan(x)] <- "s/d"
+  out[is.na(x) | is.nan(x)] <- "No informado"
   out
 }
 
@@ -45,14 +45,14 @@ fmt_integer <- function(x) {
 fmt_currency_mill <- function(x, accuracy = 1) {
   if (length(x) == 0) return(character(0))
   out <- paste0("USD ", fmt_number(x, accuracy = accuracy), " millones")
-  out[is.na(x) | is.nan(x)] <- "s/d"
+  out[is.na(x) | is.nan(x)] <- "No informado"
   out
 }
 
 fmt_pct <- function(x, accuracy = 0.1) {
   if (length(x) == 0) return(character(0))
   out <- scales::percent(x, accuracy = accuracy, decimal.mark = ",")
-  out[is.na(x) | is.nan(x)] <- "s/d"
+  out[is.na(x) | is.nan(x)] <- "No informado"
   out
 }
 
@@ -60,7 +60,7 @@ fmt_date <- function(x) {
   if (length(x) == 0) return(character(0))
   x_date <- as.Date(x)
   out <- format(x_date, "%d/%m/%Y")
-  out[is.na(x_date)] <- "s/d"
+  out[is.na(x_date)] <- "No informado"
   out
 }
 
@@ -68,12 +68,12 @@ fmt_datetime <- function(x) {
   if (length(x) == 0) return(character(0))
   x_posix <- as.POSIXct(x)
   out <- format(x_posix, "%d/%m/%Y %H:%M")
-  out[is.na(x_posix)] <- "s/d"
+  out[is.na(x_posix)] <- "No informado"
   out
 }
 
 first_or_sd <- function(x) {
-  if (length(x) == 0 || all(is.na(x))) return("s/d")
+  if (length(x) == 0 || all(is.na(x))) return("No informado")
   x[which(!is.na(x))[1]]
 }
 
@@ -133,10 +133,12 @@ make_indicators <- function(data, data_prov, file_update_time) {
     n_total = nrow(data),
     monto_total = sum_or_na(data$monto_usd_mill),
     activos_total = sum_or_na(data$activos_computables_usd_mill),
+    compromiso_activos_2_anios_total = sum_or_na(data$compromiso_activos_2_anios_usd_mill),
 
     n_aprobados = nrow(aprobados),
     monto_aprobado = sum_or_na(aprobados$monto_usd_mill),
     activos_aprobados = sum_or_na(aprobados$activos_computables_usd_mill),
+    compromiso_activos_2_anios_aprobados = sum_or_na(aprobados$compromiso_activos_2_anios_usd_mill),
     monto_promedio_aprobado = mean_or_na(aprobados$monto_usd_mill),
     monto_mediano_aprobado = median_or_na(aprobados$monto_usd_mill),
     empleos_aprobados = sum_or_na(aprobados$empleos_directos_indirectos),
@@ -146,6 +148,9 @@ make_indicators <- function(data, data_prov, file_update_time) {
     n_aprobados_exportacion_largo_plazo = nrow(aprobados_exportacion_lp),
     monto_aprobados_exportacion_largo_plazo = sum_or_na(aprobados_exportacion_lp$monto_usd_mill),
     activos_aprobados_exportacion_largo_plazo = sum_or_na(aprobados_exportacion_lp$activos_computables_usd_mill),
+    compromiso_activos_2_anios_aprobados_exportacion_largo_plazo = sum_or_na(
+      aprobados_exportacion_lp$compromiso_activos_2_anios_usd_mill
+    ),
     empleos_aprobados_exportacion_largo_plazo = sum_or_na(aprobados_exportacion_lp$empleos_directos_indirectos),
     participacion_aprobados_exportacion_largo_plazo = ratio_or_na(
       n_aprobados_exportacion_largo_plazo,
@@ -196,6 +201,7 @@ make_tables <- function(data, data_prov) {
         n_proyectos = dplyr::n(),
         monto_usd_mill = sum_or_na(monto_usd_mill),
         activos_computables_usd_mill = sum_or_na(activos_computables_usd_mill),
+        compromiso_activos_2_anios_usd_mill = sum_or_na(compromiso_activos_2_anios_usd_mill),
         empleos_directos_indirectos = sum_or_na(empleos_directos_indirectos),
         .groups = "drop"
       ) |>
@@ -209,6 +215,9 @@ make_tables <- function(data, data_prov) {
         n_incidencias_provinciales = dplyr::n_distinct(row_id),
         monto_usd_mill = sum_or_na(monto_usd_mill_asignado_prop),
         activos_computables_usd_mill = sum_or_na(activos_computables_usd_mill_asignado_prop),
+        compromiso_activos_2_anios_usd_mill = sum_or_na(
+          compromiso_activos_2_anios_usd_mill_asignado_prop
+        ),
         empleos_directos_indirectos = sum_or_na(empleos_directos_indirectos_asignado_prop),
         .groups = "drop"
       ) |>
@@ -296,7 +305,7 @@ make_summary_text <- function(indicadores, tablas) {
     dplyr::pull(txt) |>
     paste(collapse = "; ")
 
-  if (identical(top_projects_text, "")) top_projects_text <- "s/d"
+  if (identical(top_projects_text, "")) top_projects_text <- "No informado"
 
   rejected_text <- paste0(
     fmt_integer(indicadores$n_rechazados),

@@ -1,0 +1,58 @@
+{
+  "sourceRows": 41,
+  "excludedColumns": [
+    "clasificacion_preexistencia_boletin_oficial",
+    "justificacion_preexistencia_boletin_oficial"
+  ],
+  "selectedColumns": [
+    "vpu",
+    "descripcion_proyecto",
+    "peelp",
+    "id_proyecto",
+    "empresa",
+    "titular_proyecto",
+    "cuit",
+    "sector",
+    "subsector",
+    "actividad_subsector_resolucion_mecon",
+    "provincia",
+    "localidad_region",
+    "inversion_total_mill_usd",
+    "inversion_total_resolucion_mill_usd",
+    "inversion_activos_computables_mill_usd",
+    "inversion_activos_computables_comprometida_anio_1_mill_usd",
+    "inversion_activos_computables_comprometida_anio_2_mill_usd",
+    "inversion_activos_computables_comprometida_2_anios_mill_usd",
+    "estado_administrativo",
+    "empleos_directos_indirectos_informados",
+    "fecha_limite_inversion_minima_activos_computables",
+    "fecha_presentacion",
+    "fecha_adhesion_rigi",
+    "fecha_publicacion_bo",
+    "norma_aprobacion",
+    "link_norma",
+    "fuentes",
+    "links_fuentes"
+  ],
+  "results": [
+    {
+      "fileName": "base_interactiva_aprobados.xlsx",
+      "projectRows": 21,
+      "dictionaryRows": 28,
+      "columns": 28
+    },
+    {
+      "fileName": "base_interactiva_pendientes.xlsx",
+      "projectRows": 19,
+      "dictionaryRows": 28,
+      "columns": 28
+    },
+    {
+      "fileName": "base_completa.xlsx",
+      "projectRows": 41,
+      "dictionaryRows": 28,
+      "columns": 28
+    }
+  ],
+  "commitmentDifferences": []
+}

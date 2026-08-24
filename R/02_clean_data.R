@@ -626,8 +626,8 @@ clean_proyectos <- function(raw_data) {
     janitor::clean_names() |>
     dplyr::mutate(dplyr::across(where(is.character), empty_to_na))
 
-  proyecto <- coalesce_text_cols(data, c("proyecto", "vpu", "nombre_proyecto_matcheado"))
-  descripcion <- coalesce_text_cols(data, c("descripcion_del_proyecto", "descripcion", "description"))
+  proyecto <- coalesce_text_cols(data, c("vpu", "proyecto", "nombre_proyecto_matcheado"))
+  descripcion <- coalesce_text_cols(data, c("descripcion_proyecto", "descripcion_del_proyecto", "descripcion", "description"))
   empresa <- coalesce_text_cols(data, c("empresa", "empresas"))
   titular <- coalesce_text_cols(data, c("titular_proyecto", "vpu_o_sociedad", "sociedad", "titular"))
   cuit <- coalesce_text_cols(data, c("cuit", "cuit_titular"))
@@ -647,6 +647,7 @@ clean_proyectos <- function(raw_data) {
   preexistencia <- coalesce_text_cols(data, c("clasificacion_preexistencia_boletin_oficial", "clasificacion_preexistencia"))
   justificacion_preexistencia <- coalesce_text_cols(data, c("justificacion_preexistencia_boletin_oficial", "justificacion_preexistencia"))
   proyecto_exportacion <- coalesce_text_cols(data, c(
+    "peelp",
     "proyectos_de_exportacion_estrategica_de_largo_plazo_peelp",
     "proyecto_de_exportacion_estrategica_de_largo_plazo_peelp",
     "proyectos_de_exportacion_estrategica_largo_plazo_peelp",
@@ -655,9 +656,29 @@ clean_proyectos <- function(raw_data) {
     "proyecto_de_exportacion_estrategia_a_largo_plazo_"
   ))
 
-  monto_raw <- coalesce_raw_cols(data, c("monto_mill_usd", "monto_usd_mill", "monto"))
-  activos_raw <- coalesce_raw_cols(data, c("activos_computables_mill_usd", "activos_computables_usd_mill", "activos_computables"))
+  monto_raw <- coalesce_raw_cols(data, c("inversion_total_mill_usd", "monto_mill_usd", "monto_usd_mill", "monto"))
+  monto_resolucion_raw <- coalesce_raw_cols(data, c(
+    "inversion_total_resolucion_mill_usd",
+    "monto_mill_usd_aprobados_resolucion"
+  ))
+  activos_raw <- coalesce_raw_cols(data, c(
+    "inversion_activos_computables_mill_usd",
+    "activos_computables_mill_usd", "activos_computables_usd_mill", "activos_computables"
+  ))
+  compromiso_anio_1_raw <- coalesce_raw_cols(data, c(
+    "inversion_activos_computables_comprometida_anio_1_mill_usd",
+    "activos_computables_comprometido_primer_anio"
+  ))
+  compromiso_anio_2_raw <- coalesce_raw_cols(data, c(
+    "inversion_activos_computables_comprometida_anio_2_mill_usd",
+    "activos_computables_comprometido_segundo_anio"
+  ))
+  compromiso_2_anios_raw <- coalesce_raw_cols(data, c(
+    "inversion_activos_computables_comprometida_2_anios_mill_usd",
+    "activos_computables_comprometido_primeros_dos_anios_total"
+  ))
   empleos_raw <- coalesce_raw_cols(data, c(
+    "empleos_directos_indirectos_informados",
     "empleos_directos_e_indirectos",
     "empleos_directos_indirectos",
     "empleos_directos_e_indirectos_",
@@ -668,13 +689,22 @@ clean_proyectos <- function(raw_data) {
 
   fecha_presentacion_raw <- coalesce_raw_cols(data, c("fecha_presentacion", "fecha_de_presentacion"))
   fecha_adhesion_raw <- coalesce_raw_cols(data, c("fecha_adhesion_rigi", "fecha_adhesion", "fecha_de_adhesion_rigi"))
+  fecha_limite_inversion_raw <- coalesce_raw_cols(data, c("fecha_limite_inversion_minima_activos_computables"))
   fecha_publicacion_bo_raw <- coalesce_raw_cols(data, c("fecha_publicacion_bo", "fecha_publicacion_boletin_oficial", "fecha_publicacion"))
   fecha_aprobacion_raw <- coalesce_raw_cols(data, c("fecha_aprobacion", "fecha_de_aprobacion"))
 
   fecha_presentacion <- convert_excel_date(fecha_presentacion_raw)
   fecha_adhesion_rigi <- convert_excel_date(fecha_adhesion_raw)
+  fecha_limite_inversion_minima_activos_computables <- convert_excel_date(fecha_limite_inversion_raw)
   fecha_publicacion_bo <- convert_excel_date(fecha_publicacion_bo_raw)
   fecha_aprobacion_original <- convert_excel_date(fecha_aprobacion_raw)
+  compromiso_anio_1 <- parse_numeric_rigi(compromiso_anio_1_raw)
+  compromiso_anio_2 <- parse_numeric_rigi(compromiso_anio_2_raw)
+  compromiso_2_anios <- parse_numeric_rigi(compromiso_2_anios_raw)
+  # El XLSX contiene fórmulas cuyo resultado cacheado es cero aun cuando ambos
+  # componentes están vacíos. Para la interfaz ese caso es dato faltante, no un
+  # compromiso informado igual a cero. Las descargas conservan la fuente cruda.
+  compromiso_2_anios[is.na(compromiso_anio_1) & is.na(compromiso_anio_2)] <- NA_real_
 
   # Para aprobados, la fecha operacional de aprobación se prioriza como publicación en BO.
   fecha_aprobacion <- dplyr::coalesce(fecha_aprobacion_original, fecha_publicacion_bo, fecha_adhesion_rigi)
@@ -700,12 +730,20 @@ clean_proyectos <- function(raw_data) {
     provincia_original = provincia,
     provincia = provincia,
     localidad_region = localidad_region,
-    monto_usd_mill = parse_numeric_rigi(monto_raw),
-    activos_computables_usd_mill = parse_numeric_rigi(activos_raw),
+    inversion_total_mill_usd = parse_numeric_rigi(monto_raw),
+    inversion_total_resolucion_mill_usd = parse_numeric_rigi(monto_resolucion_raw),
+    inversion_activos_computables_mill_usd = parse_numeric_rigi(activos_raw),
+    inversion_activos_computables_comprometida_anio_1_mill_usd = compromiso_anio_1,
+    inversion_activos_computables_comprometida_anio_2_mill_usd = compromiso_anio_2,
+    inversion_activos_computables_comprometida_2_anios_mill_usd = compromiso_2_anios,
+    monto_usd_mill = inversion_total_mill_usd,
+    activos_computables_usd_mill = inversion_activos_computables_mill_usd,
+    compromiso_activos_2_anios_usd_mill = inversion_activos_computables_comprometida_2_anios_mill_usd,
     empleos_directos_indirectos = parse_numeric_rigi(empleos_raw),
     estado = estado,
     fecha_presentacion = fecha_presentacion,
     fecha_adhesion_rigi = fecha_adhesion_rigi,
+    fecha_limite_inversion_minima_activos_computables = fecha_limite_inversion_minima_activos_computables,
     fecha_publicacion_bo = fecha_publicacion_bo,
     fecha_aprobacion = fecha_aprobacion,
     norma_aprobacion = norma,
@@ -758,66 +796,100 @@ expand_provincias <- function(data) {
     dplyr::mutate(
       monto_usd_mill_asignado_prop = monto_usd_mill / n_provincias_expandida,
       activos_computables_usd_mill_asignado_prop = activos_computables_usd_mill / n_provincias_expandida,
+      compromiso_activos_2_anios_usd_mill_asignado_prop = compromiso_activos_2_anios_usd_mill / n_provincias_expandida,
       empleos_directos_indirectos_asignado_prop = empleos_directos_indirectos / n_provincias_expandida,
       provincia_simplificada = provincia_expandida
     )
 }
 
-make_download_table <- function(data) {
-  data |>
+make_download_dictionary <- function(dictionary, exported_variables) {
+  dictionary |>
+    dplyr::filter(variable %in% exported_variables) |>
+    dplyr::mutate(.export_order = match(variable, exported_variables)) |>
+    dplyr::arrange(.export_order) |>
     dplyr::transmute(
-      id_proyecto = id_proyecto,
-      Proyecto = proyecto,
-      `Descripción del proyecto` = descripcion_del_proyecto,
-      `Proyectos de exportación estratégica de largo plazo (PEELP)` = proyecto_de_exportacion_estrategia_largo_plazo,
-      empresa = empresa,
-      titular_proyecto = titular_proyecto,
-      CUIT = cuit,
-      sector = sector,
-      subsector = subsector,
-      provincia = provincia_original,
-      localidad_region = localidad_region,
-      `Monto (mill. USD)` = as.numeric(monto_usd_mill),
-      `Activos Computables (mill. USD)` = as.numeric(activos_computables_usd_mill),
-      `Empleos (directos e indirectos)` = as.numeric(empleos_directos_indirectos),
-      `Estado administrativo` = estado,
-      fecha_presentacion = fecha_presentacion,
-      fecha_adhesion_rigi = fecha_adhesion_rigi,
-      fecha_publicacion_bo = fecha_publicacion_bo,
-      fecha_aprobacion = fecha_aprobacion,
-      norma_aprobacion = norma_aprobacion,
-      link_norma = link_norma,
-      Fuentes = fuentes_descarga,
-      `Fuentes (original)` = fuentes_original,
-      `Links fuentes (original)` = links_fuentes_original
+      Orden = dplyr::row_number(),
+      Variable = variable,
+      `Nombre visible` = nombre_visible,
+      Tipo = tipo,
+      Unidad = unidad,
+      `Descripción breve` = descripcion_breve
     )
 }
 
-create_download_files <- function(data, output_dir = "downloads") {
+create_download_files <- function(raw_data, dictionary, output_dir = "downloads") {
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 
-  aprobados_download <- data |>
-    dplyr::filter(aprobado) |>
-    make_download_table()
+  excluded_variables <- c(
+    "clasificacion_preexistencia_boletin_oficial",
+    "justificacion_preexistencia_boletin_oficial"
+  )
+  exported_variables <- setdiff(dictionary$variable, excluded_variables)
+  numeric_export_variables <- intersect(
+    exported_variables,
+    c(
+      "inversion_total_mill_usd",
+      "inversion_total_resolucion_mill_usd",
+      "inversion_activos_computables_mill_usd",
+      "inversion_activos_computables_comprometida_anio_1_mill_usd",
+      "inversion_activos_computables_comprometida_anio_2_mill_usd",
+      "inversion_activos_computables_comprometida_2_anios_mill_usd",
+      "empleos_directos_indirectos_informados"
+    )
+  )
+  date_export_variables <- intersect(
+    exported_variables,
+    c(
+      "fecha_limite_inversion_minima_activos_computables",
+      "fecha_presentacion", "fecha_adhesion_rigi", "fecha_publicacion_bo"
+    )
+  )
+  canonical_data <- raw_data |>
+    janitor::clean_names() |>
+    dplyr::select(dplyr::all_of(exported_variables)) |>
+    dplyr::mutate(
+      dplyr::across(dplyr::all_of(numeric_export_variables), parse_numeric_rigi),
+      dplyr::across(dplyr::all_of(date_export_variables), convert_excel_date)
+    )
+  state_norm <- normalize_text(canonical_data$estado_administrativo)
+  approved_filter <- stringr::str_detect(state_norm, "aprob") &
+    !stringr::str_detect(state_norm, "no aprob|rechaz|desest")
+  evaluation_filter <- !approved_filter &
+    stringr::str_detect(state_norm, "evalu|pend|anal|present|tram|anunci")
 
-  pendientes_download <- data |>
-    dplyr::filter(pendiente_aprobacion) |>
-    make_download_table()
+  dictionary_download <- make_download_dictionary(dictionary, exported_variables)
+  workbooks <- list(
+    aprobados = list(
+      path = file.path(output_dir, "base_interactiva_aprobados.xlsx"),
+      data = canonical_data[approved_filter, , drop = FALSE]
+    ),
+    pendientes = list(
+      path = file.path(output_dir, "base_interactiva_pendientes.xlsx"),
+      data = canonical_data[evaluation_filter, , drop = FALSE]
+    ),
+    total = list(
+      path = file.path(output_dir, "base_completa.xlsx"),
+      data = canonical_data
+    )
+  )
 
-  total_download <- data |>
-    make_download_table()
+  for (workbook in workbooks) {
+    writexl::write_xlsx(
+      list(Proyectos = workbook$data, Diccionario = dictionary_download),
+      workbook$path
+    )
+  }
 
-  readr::write_csv(aprobados_download, file.path(output_dir, "base_interactiva_aprobados.csv"), na = "")
-  readr::write_csv(pendientes_download, file.path(output_dir, "base_interactiva_pendientes.csv"), na = "")
-  readr::write_csv(total_download, file.path(output_dir, "base_completa.csv"), na = "")
-
-  writexl::write_xlsx(aprobados_download, file.path(output_dir, "base_interactiva_aprobados.xlsx"))
-  writexl::write_xlsx(pendientes_download, file.path(output_dir, "base_interactiva_pendientes.xlsx"))
-  writexl::write_xlsx(total_download, file.path(output_dir, "base_completa.xlsx"))
+  obsolete_csv <- file.path(
+    output_dir,
+    c("base_interactiva_aprobados.csv", "base_interactiva_pendientes.csv", "base_completa.csv")
+  )
+  unlink(obsolete_csv[file.exists(obsolete_csv)])
 
   invisible(list(
-    aprobados = aprobados_download,
-    pendientes = pendientes_download,
-    total = total_download
+    aprobados = workbooks$aprobados$data,
+    pendientes = workbooks$pendientes$data,
+    total = workbooks$total$data,
+    diccionario = dictionary_download
   ))
 }

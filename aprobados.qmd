@@ -15,8 +15,11 @@ Esta sección reúne los proyectos cuya adhesión al RIGI ha sido aprobada. Los 
 
 ::: {.page-subnav role="navigation" aria-label="En esta sección"}
 - [Panorama](#panorama)
-- [Inversión](#inversion)
+- [Inversión total](#inversion-total)
+- [Activos computables](#activos-computables)
+- [Compromiso a 2 años](#compromiso-2-anios)
 - [Planes](#planes)
+- [Plazos](#compromisos-plazos)
 - [Importaciones](#importaciones)
 - [Empleo](#empleo)
 - [PEELP](#peelp)
@@ -32,51 +35,48 @@ Esta sección reúne los proyectos cuya adhesión al RIGI ha sido aprobada. Los 
 make_kpi_cards_aprobados(indicadores)
 ```
 
-## Inversión {#inversion}
-
-### Monto de inversión por sector
+## Inversión total {#inversion-total}
 
 ```{r}
-make_chart_context_note("Las etiquetas muestran el monto informado y su participación sobre el monto total de inversión de los proyectos aprobados.")
-```
-
-```{r}
-plot_bar_monto(
-  tablas$sector_tbl_aprobados,
-  label_col = "sector_simplificado",
-  title = NULL,
-  fill_color = bar_color_approved
+make_investment_explorer(
+  data = tablas$base_aprobados,
+  data_prov = proyectos_prov |> dplyr::filter(aprobado),
+  dictionary = diccionario,
+  value_col = "inversion_total_mill_usd",
+  value_col_prov = "monto_usd_mill_asignado_prop",
+  widget_key = "approved-total-investment",
+  color = bar_color_approved,
+  universe_label = "proyectos aprobados con inversión total informada"
 )
 ```
 
-### Monto de inversión por provincia
+## Inversión en activos computables {#activos-computables}
 
 ```{r}
-make_province_note()
-```
-
-```{r}
-plot_bar_monto(
-  tablas$provincia_tbl_aprobados,
-  label_col = "provincia_simplificada",
-  title = NULL,
-  fill_color = bar_color_approved
+make_investment_explorer(
+  data = tablas$base_aprobados,
+  data_prov = proyectos_prov |> dplyr::filter(aprobado),
+  dictionary = diccionario,
+  value_col = "inversion_activos_computables_mill_usd",
+  value_col_prov = "activos_computables_usd_mill_asignado_prop",
+  widget_key = "approved-computable-assets",
+  color = bar_color_employment,
+  universe_label = "proyectos aprobados con inversión en activos computables informada"
 )
 ```
 
-### Principales proyectos aprobados por monto
+## Inversión comprometida en activos computables — primeros 2 años {#compromiso-2-anios}
 
 ```{r}
-make_chart_context_note("Los tres primeros puestos se destacan por intensidad de color. Cada etiqueta muestra el monto informado y su participación sobre el monto total de los proyectos aprobados.")
-```
-
-```{r}
-plot_top_proyectos_monto(
-  tablas$top_projects_aprobados,
-  title = NULL,
-  fill_color = bar_color_approved,
-  total_value = indicadores$monto_aprobado,
-  share_reference = "del monto informado de proyectos aprobados"
+make_investment_explorer(
+  data = tablas$base_aprobados,
+  data_prov = proyectos_prov |> dplyr::filter(aprobado),
+  dictionary = diccionario,
+  value_col = "inversion_activos_computables_comprometida_2_anios_mill_usd",
+  value_col_prov = "compromiso_activos_2_anios_usd_mill_asignado_prop",
+  widget_key = "approved-two-year-commitment",
+  color = bar_color_peelp,
+  universe_label = "proyectos aprobados con compromiso de los primeros 2 años informado"
 )
 ```
 
@@ -86,6 +86,14 @@ Los planes de inversión presentan la distribución anual de los montos de inver
 
 ```{r}
 make_planes_inversion_module(planes_inversion)
+```
+
+## Compromisos y plazos de inversión {#compromisos-plazos}
+
+Esta sección presenta los horizontes temporales vinculados con la inversión en activos computables. Las barras representan períodos de tiempo y no inversión ejecutada.
+
+```{r}
+make_commitment_schedule_module(proyectos)
 ```
 
 ## Importaciones {#importaciones}
@@ -211,7 +219,7 @@ make_rigi_milestones_timeline(tablas$timeline_aprobados_tbl)
 make_download_links("aprobados")
 ```
 
-**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formatos XLSX y CSV.
+**Datos abiertos.** La información utilizada en esta sección se encuentra disponible para descarga en formato XLSX e incluye su diccionario de variables.
 
 ```{r}
 make_rigi_project_cards(

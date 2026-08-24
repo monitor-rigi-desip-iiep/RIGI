@@ -4,8 +4,11 @@ source("R/01_load_data.R")
 source("R/02_clean_data.R")
 source("R/03_indicators.R")
 source("R/04_plots.R")
+source("R/07_investment_modules.R")
 
 raw_data <- load_proyectos()
+diccionario <- load_diccionario()
+variable_mapping <- load_variable_mapping()
 raw_sources <- load_fuentes_proyectos()
 project_sources <- build_project_sources(raw_data, raw_sources)
 proyectos <- clean_proyectos(raw_data) |>
@@ -14,10 +17,11 @@ proyectos_prov <- expand_provincias(proyectos)
 file_update_time <- get_file_update_time()
 indicadores <- make_indicators(proyectos, proyectos_prov, file_update_time)
 tablas <- make_tables(proyectos, proyectos_prov)
-downloads <- create_download_files(proyectos)
+downloads <- create_download_files(raw_data, diccionario)
 auditoria_fuentes <- make_source_audit(proyectos)
 resumen_ejecutivo <- make_summary_text(indicadores, tablas)
 ```
 
 <!-- Dependencia compartida por la navegación y los módulos interactivos. -->
 <script src="assets/rigi-responsive.js" defer></script>
+<script src="assets/investment_modules.js" defer></script>

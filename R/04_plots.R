@@ -16,7 +16,7 @@ bar_color_timeline_border <- "#0B2D5C"
 wrap_axis_label <- function(x, width = 28, max_lines = 2) {
   x <- as.character(x)
   x <- stringr::str_squish(x)
-  x[is.na(x) | x == ""] <- "s/d"
+  x[is.na(x) | x == ""] <- "No informado"
 
   wrapped <- stringr::str_wrap(x, width = width)
 
@@ -392,12 +392,6 @@ make_download_links <- function(type = c("aprobados", "pendientes", "total")) {
       href = paste0("downloads/", download_config$stem, ".xlsx"),
       download = paste0(download_config$stem, ".xlsx"),
       class = "download-button"
-    ),
-    htmltools::a(
-      "CSV",
-      href = paste0("downloads/", download_config$stem, ".csv"),
-      download = paste0(download_config$stem, ".csv"),
-      class = "download-button"
     )
   )
 }
@@ -415,8 +409,13 @@ make_kpi_cards_aprobados <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-approved",
     make_kpi_card("Proyectos aprobados", fmt_integer(ind$n_aprobados), "Cantidad de proyectos"),
-    make_kpi_card("Monto de proyectos aprobados", fmt_currency_mill(ind$monto_aprobado, accuracy = 1), "Millones de USD"),
-    make_kpi_card("Activos computables", fmt_currency_mill(ind$activos_aprobados, accuracy = 1), "Proyectos aprobados · millones de USD"),
+    make_kpi_card("Inversión total", fmt_currency_mill(ind$monto_aprobado, accuracy = 1), "Proyectos aprobados · millones de USD"),
+    make_kpi_card("Inversión en activos computables", fmt_currency_mill(ind$activos_aprobados, accuracy = 1), "Proyectos aprobados · millones de USD"),
+    make_kpi_card(
+      "Inversión comprometida en activos computables — primeros 2 años",
+      fmt_currency_mill(ind$compromiso_activos_2_anios_aprobados, accuracy = 0.1),
+      "Proyectos aprobados con información · millones de USD"
+    ),
     make_kpi_card("Empleo informado", fmt_integer(ind$empleos_aprobados), "Directos e indirectos"),
     make_kpi_card("Monto promedio informado", fmt_currency_mill(ind$monto_promedio_aprobado, accuracy = 1), "Por proyecto aprobado"),
     make_kpi_card("Monto mediano informado", fmt_currency_mill(ind$monto_mediano_aprobado, accuracy = 1), "Por proyecto aprobado")
@@ -439,8 +438,13 @@ make_kpi_cards_exportacion_largo_plazo <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-peelp",
     make_kpi_card("Proyectos aprobados PEELP", fmt_integer(ind$n_aprobados_exportacion_largo_plazo), "Cantidad de proyectos"),
-    make_kpi_card("Monto de inversión PEELP", fmt_currency_mill(ind$monto_aprobados_exportacion_largo_plazo, accuracy = 1), "Inversión total informada"),
-    make_kpi_card("Activos computables asociados", fmt_currency_mill(ind$activos_aprobados_exportacion_largo_plazo, accuracy = 1), "Millones de USD"),
+    make_kpi_card("Inversión total", fmt_currency_mill(ind$monto_aprobados_exportacion_largo_plazo, accuracy = 1), "Proyectos PEELP con información · millones de USD"),
+    make_kpi_card("Inversión en activos computables", fmt_currency_mill(ind$activos_aprobados_exportacion_largo_plazo, accuracy = 1), "Proyectos PEELP con información · millones de USD"),
+    make_kpi_card(
+      "Inversión comprometida en activos computables — primeros 2 años",
+      fmt_currency_mill(ind$compromiso_activos_2_anios_aprobados_exportacion_largo_plazo, accuracy = 0.1),
+      "Proyectos PEELP con información · millones de USD"
+    ),
     make_kpi_card("Empleo asociado", fmt_integer(ind$empleos_aprobados_exportacion_largo_plazo), "Directos e indirectos"),
     make_kpi_card("Participación de proyectos PEELP", fmt_pct(ind$participacion_aprobados_exportacion_largo_plazo), "Sobre la cantidad de proyectos aprobados"),
     make_kpi_card("Participación del monto PEELP", fmt_pct(ind$participacion_monto_aprobados_exportacion_largo_plazo), "Sobre el monto informado de proyectos aprobados")
@@ -451,7 +455,7 @@ make_kpi_cards_pendientes <- function(ind) {
   htmltools::div(
     class = "kpi-grid kpi-grid-pending",
     make_kpi_card("Proyectos en evaluación", fmt_integer(ind$n_pendientes), "Cantidad de proyectos"),
-    make_kpi_card("Monto informado", fmt_currency_mill(ind$monto_pendiente, accuracy = 1), "Proyectos en evaluación · millones de USD"),
+    make_kpi_card("Inversión total informada", fmt_currency_mill(ind$monto_pendiente, accuracy = 1), "Proyectos en evaluación · millones de USD"),
     make_kpi_card("Monto promedio informado", fmt_currency_mill(ind$monto_promedio_pendiente, accuracy = 1), "Por proyecto en evaluación"),
     make_kpi_card("Monto mediano informado", fmt_currency_mill(ind$monto_mediano_pendiente, accuracy = 1), "Por proyecto en evaluación")
   )
@@ -591,6 +595,24 @@ make_summary_dashboard <- function(ind, tables) {
           " del monto conjunto informado para proyectos aprobados y en evaluación"
         ),
         "primary"
+      ),
+      summary_metric_card(
+        "Inversión total relevada",
+        fmt_currency_mill(ind$monto_total, accuracy = 1),
+        "Suma de la inversión total para los proyectos con información disponible",
+        "investment-total"
+      ),
+      summary_metric_card(
+        "Inversión en activos computables",
+        fmt_currency_mill(ind$activos_aprobados, accuracy = 1),
+        "Proyectos aprobados con información disponible",
+        "computable-assets"
+      ),
+      summary_metric_card(
+        "Inversión comprometida en activos computables — primeros 2 años",
+        fmt_currency_mill(ind$compromiso_activos_2_anios_aprobados, accuracy = 0.1),
+        "Proyectos aprobados con información disponible",
+        "two-year-commitment"
       ),
       summary_metric_card(
         "Sector líder entre aprobados",
@@ -818,9 +840,9 @@ plot_top_proyectos_monto <- function(data, title = NULL, fill_color = bar_color_
       "Posición: ", ranking,
       "<br>",
       proyecto,
-      "<br>Empresa: ", dplyr::coalesce(empresa, "s/d"),
-      "<br>Sector: ", dplyr::coalesce(sector, "s/d"),
-      "<br>Provincia: ", dplyr::coalesce(provincia_original, "s/d"),
+      "<br>Empresa: ", dplyr::coalesce(empresa, "No informado"),
+      "<br>Sector: ", dplyr::coalesce(sector, "No informado"),
+      "<br>Provincia: ", dplyr::coalesce(provincia_original, "No informado"),
       "<br>Monto: ", fmt_currency_mill(monto_usd_mill, accuracy = 1),
       "<br>Participación ", share_reference, ": ", fmt_pct(participacion)
     )
@@ -890,9 +912,9 @@ plot_top_proyectos_empleo <- function(data, title = NULL, fill_color = bar_color
       "Posición: ", ranking,
       "<br>",
       proyecto,
-      "<br>Empresa: ", dplyr::coalesce(empresa, "s/d"),
-      "<br>Sector: ", dplyr::coalesce(sector, "s/d"),
-      "<br>Provincia: ", dplyr::coalesce(provincia_original, "s/d"),
+      "<br>Empresa: ", dplyr::coalesce(empresa, "No informado"),
+      "<br>Sector: ", dplyr::coalesce(sector, "No informado"),
+      "<br>Provincia: ", dplyr::coalesce(provincia_original, "No informado"),
       "<br>Empleo: ", fmt_integer(empleos_directos_indirectos),
       "<br>Participación del empleo informado: ", fmt_pct(participacion)
     )
@@ -1199,7 +1221,7 @@ make_chart_context_note <- function(...) {
 # Línea de tiempo vertical de hitos RIGI ------------------------------------
 
 timeline_text_or_sd <- function(x, squish = TRUE) {
-  if (length(x) == 0 || is.na(x[[1]])) return("s/d")
+  if (length(x) == 0 || is.na(x[[1]])) return("No informado")
 
   value <- as.character(x[[1]])
   value <- if (squish) stringr::str_squish(value) else stringr::str_trim(value)
@@ -1208,17 +1230,17 @@ timeline_text_or_sd <- function(x, squish = TRUE) {
     !nzchar(value) ||
       tolower(value) %in% c("na", "n/a", "nan", "null", "s/d", "sd")
   ) {
-    return("s/d")
+    return("No informado")
   }
 
   value
 }
 
 timeline_fmt_date_es <- function(x) {
-  if (length(x) == 0 || is.na(x[[1]])) return("s/d")
+  if (length(x) == 0 || is.na(x[[1]])) return("No informado")
 
   date_value <- as.Date(x[[1]])
-  if (is.na(date_value)) return("s/d")
+  if (is.na(date_value)) return("No informado")
 
   meses <- c("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
   paste(
@@ -1229,10 +1251,10 @@ timeline_fmt_date_es <- function(x) {
 }
 
 timeline_fmt_monto <- function(x) {
-  if (length(x) == 0 || is.na(x[[1]])) return("s/d")
+  if (length(x) == 0 || is.na(x[[1]])) return("No informado")
 
   value <- suppressWarnings(as.numeric(x[[1]]))
-  if (!is.finite(value)) return("s/d")
+  if (!is.finite(value)) return("No informado")
 
   digits <- dplyr::case_when(
     abs(value - round(value)) < 1e-9 ~ 0,
@@ -1334,7 +1356,7 @@ make_rigi_project_milestone <- function(row) {
   date_tag <- if (adhesion_missing) {
     htmltools::tags$span(
       class = "rigi-milestone__date rigi-milestone__date--missing",
-      "Fecha de adhesión s/d"
+      "Fecha de adhesión: No informado"
     )
   } else {
     htmltools::tags$time(
@@ -1344,7 +1366,7 @@ make_rigi_project_milestone <- function(row) {
     )
   }
 
-  norm_link_tag <- if (identical(norm_link, "s/d")) {
+  norm_link_tag <- if (identical(norm_link, "No informado")) {
     NULL
   } else {
     htmltools::tags$a(
@@ -1461,7 +1483,12 @@ make_rigi_milestones_timeline <- function(data, initially_visible = 4L) {
     "Resolución 484/2026 · Adecuación del criterio de larga maduración",
     "Se eleva del 30% al 35% el umbral máximo del cociente utilizado para determinar el carácter de largo plazo de las inversiones.",
     "La adecuación se realiza tras la incorporación de nuevos desarrollos de hidrocarburos costa adentro y la revisión técnica de los sectores comprendidos en el RIGI. El cociente compara el valor presente del flujo neto de caja esperado —excluidas inversiones— durante los primeros tres años desde el primer desembolso de capital con el valor presente neto de las inversiones de capital planeadas para ese mismo período. El nuevo máximo de 35% se aplica simultáneamente a todos los sectores comprendidos en el RIGI.",
-    "https://www.boletinoficial.gob.ar/detalleAviso/primera/340620/20260413"
+    "https://www.boletinoficial.gob.ar/detalleAviso/primera/340620/20260413",
+    as.Date("2026-08-18"),
+    "Decreto 748/2026 · Infraestructura ferroviaria",
+    "Se modifica la reglamentación del RIGI para precisar el tratamiento de intervenciones e inversiones sobre infraestructura ferroviaria.",
+    "El Decreto 748/2026 modifica el Decreto 749/2024. Precisa qué intervenciones sobre infraestructura ferroviaria preexistente pueden considerarse construcción y en qué condiciones una inversión puede configurar una ampliación por aumento verificable de la capacidad de transporte.",
+    "https://www.boletinoficial.gob.ar/detalleAviso/primera/345955/20260818"
   )
 
   normative_entries <- lapply(
@@ -1561,7 +1588,7 @@ plot_timeline <- function(data, date_col = "fecha_aprobacion", title = NULL) {
     dplyr::arrange(.data[[date_col]], proyecto) |>
     dplyr::mutate(
       y_pos = rev(dplyr::row_number()),
-      label_original = dplyr::coalesce(proyecto, "s/d"),
+      label_original = dplyr::coalesce(proyecto, "No informado"),
       label_wrapped = wrap_axis_label(label_original, width = 28),
       monto_size = dplyr::if_else(
         is.na(monto_usd_mill) | monto_usd_mill <= 0,
@@ -1793,24 +1820,24 @@ make_datatable <- function(data, caption = NULL) {
 
 rigi_card_value <- function(x) {
   value <- as.character(x)
-  value[is.na(value) | trimws(value) == ""] <- "s/d"
+  value[is.na(value) | trimws(value) == ""] <- "No informado"
   value
 }
 
 rigi_card_date <- function(x) {
   value <- fmt_date(x)
-  value[is.na(value) | trimws(value) == ""] <- "s/d"
+  value[is.na(value) | trimws(value) == ""] <- "No informado"
   value
 }
 
 rigi_card_amount <- function(x) {
-  if (length(x) == 0 || is.na(x) || is.nan(x)) return("s/d")
+  if (length(x) == 0 || is.na(x) || is.nan(x)) return("No informado")
   accuracy <- if (abs(x - round(x)) < 1e-9) 1 else 0.1
   paste0("USD ", fmt_number(x, accuracy = accuracy), " millones")
 }
 
 rigi_card_integer <- function(x) {
-  if (length(x) == 0 || is.na(x) || is.nan(x)) return("s/d")
+  if (length(x) == 0 || is.na(x) || is.nan(x)) return("No informado")
   fmt_integer(x)
 }
 
@@ -1968,7 +1995,7 @@ make_rigi_project_card <- function(row, table_type, index) {
 
   key_date <- switch(
     table_type,
-    aprobados = value("fecha_aprobacion"),
+    aprobados = value("fecha_adhesion_rigi"),
     pendientes = value("fecha_presentacion"),
     total = dplyr::coalesce(
       as.Date(value("fecha_aprobacion")),
@@ -1977,14 +2004,14 @@ make_rigi_project_card <- function(row, table_type, index) {
   )
   key_date_label <- switch(
     table_type,
-    aprobados = "Aprobación",
+    aprobados = "Fecha de adhesión al RIGI",
     pendientes = "Presentación",
     total = "Fecha principal"
   )
 
   project_name <- rigi_card_value(value("proyecto"))
-  state <- rigi_card_value(value("estado"))
   state_display <- rigi_card_value(value("estado_simplificado"))
+  state <- state_display
   sector <- rigi_card_value(value("sector"))
   province <- rigi_card_value(value("provincia_original"))
   company <- rigi_card_value(value("empresa"))
@@ -2000,7 +2027,7 @@ make_rigi_project_card <- function(row, table_type, index) {
     rigi_card_value(value("fuentes_original"))
   }
   peelp_label <- if (is.na(peelp_raw)) {
-    "s/d"
+    "No informado"
   } else if (peelp) {
     "Sí"
   } else {
@@ -2033,15 +2060,27 @@ make_rigi_project_card <- function(row, table_type, index) {
     rigi_card_field("Subsector", value("subsector")),
     rigi_card_field("Localidad / región", value("localidad_region")),
     rigi_card_field(
-      "Activos computables",
+      "Inversión total",
+      rigi_card_amount(value("monto_usd_mill"))
+    ),
+    rigi_card_field(
+      "Inversión en activos computables",
       rigi_card_amount(value("activos_computables_usd_mill"))
+    ),
+    rigi_card_field(
+      "Inversión comprometida en activos computables — primeros 2 años",
+      rigi_card_amount(value("compromiso_activos_2_anios_usd_mill"))
     ),
     rigi_card_field(
       "Empleos directos e indirectos",
       rigi_card_integer(value("empleos_directos_indirectos"))
     ),
     rigi_card_field("Fecha de presentación", rigi_card_date(value("fecha_presentacion"))),
-    rigi_card_field("Fecha de adhesión", rigi_card_date(value("fecha_adhesion_rigi"))),
+    rigi_card_field("Fecha de adhesión al RIGI", rigi_card_date(value("fecha_adhesion_rigi"))),
+    rigi_card_field(
+      "Fecha límite para alcanzar la inversión mínima",
+      rigi_card_date(value("fecha_limite_inversion_minima_activos_computables"))
+    ),
     rigi_card_field("Fecha de aprobación", rigi_card_date(value("fecha_aprobacion"))),
     rigi_card_field("Norma de aprobación", value("norma_aprobacion"))
   )
@@ -2073,9 +2112,22 @@ make_rigi_project_card <- function(row, table_type, index) {
         htmltools::tags$p(class = "rigi-project-card__holder", holder)
       ),
       htmltools::tags$div(
-        class = "rigi-project-card__amount",
-        htmltools::tags$span("Monto informado"),
-        htmltools::tags$strong(rigi_card_amount(value("monto_usd_mill")))
+        class = "rigi-project-card__metrics",
+        htmltools::tags$div(
+          class = "rigi-project-card__metric rigi-project-card__metric--primary",
+          htmltools::tags$span("Inversión total"),
+          htmltools::tags$strong(rigi_card_amount(value("monto_usd_mill")))
+        ),
+        if (approved) htmltools::tags$div(
+          class = "rigi-project-card__metric",
+          htmltools::tags$span("Inversión en activos computables"),
+          htmltools::tags$strong(rigi_card_amount(value("activos_computables_usd_mill")))
+        ),
+        if (approved) htmltools::tags$div(
+          class = "rigi-project-card__metric",
+          htmltools::tags$span("Inversión comprometida en activos computables — primeros 2 años"),
+          htmltools::tags$strong(rigi_card_amount(value("compromiso_activos_2_anios_usd_mill")))
+        )
       )
     ),
     htmltools::tags$dl(
@@ -2139,7 +2191,7 @@ make_rigi_project_table_row <- function(row, table_type, index) {
 
   key_date <- switch(
     table_type,
-    aprobados = value("fecha_aprobacion"),
+    aprobados = value("fecha_adhesion_rigi"),
     pendientes = value("fecha_presentacion"),
     total = dplyr::coalesce(
       as.Date(value("fecha_aprobacion")),
@@ -2148,8 +2200,8 @@ make_rigi_project_table_row <- function(row, table_type, index) {
   )
 
   project_name <- rigi_card_value(value("proyecto"))
-  state <- rigi_card_value(value("estado"))
   state_display <- rigi_card_value(value("estado_simplificado"))
+  state <- state_display
   sector <- rigi_card_value(value("sector"))
   province <- rigi_card_value(value("provincia_original"))
   company <- rigi_card_value(value("empresa"))
@@ -2161,7 +2213,7 @@ make_rigi_project_table_row <- function(row, table_type, index) {
     rigi_card_value(value("fuentes_original"))
   }
   peelp_label <- if (is.na(peelp_raw)) {
-    "s/d"
+    "No informado"
   } else if (peelp) {
     "Sí"
   } else {
@@ -2202,7 +2254,7 @@ make_rigi_project_table_row <- function(row, table_type, index) {
     htmltools::tags$th(
       scope = "row",
       htmltools::tags$strong(project_name),
-      if (!identical(holder, "s/d")) htmltools::tags$span(holder)
+      if (!identical(holder, "No informado")) htmltools::tags$span(holder)
     ),
     htmltools::tags$td(
       htmltools::tags$span(class = paste("rigi-badge", state_class), state_display),
@@ -2210,8 +2262,25 @@ make_rigi_project_table_row <- function(row, table_type, index) {
     ),
     htmltools::tags$td(sector),
     htmltools::tags$td(province),
-    htmltools::tags$td(class = "rigi-project-table__amount", rigi_card_amount(amount_value)),
-    htmltools::tags$td(rigi_card_date(key_date))
+    if (identical(table_type, "aprobados")) {
+      htmltools::tagList(
+        htmltools::tags$td(class = "rigi-project-table__amount", rigi_card_amount(amount_value)),
+        htmltools::tags$td(
+          class = "rigi-project-table__amount",
+          rigi_card_amount(value("activos_computables_usd_mill"))
+        ),
+        htmltools::tags$td(
+          class = "rigi-project-table__amount",
+          rigi_card_amount(value("compromiso_activos_2_anios_usd_mill"))
+        ),
+        htmltools::tags$td(class = "rigi-project-table__date", rigi_card_date(key_date))
+      )
+    } else {
+      htmltools::tagList(
+        htmltools::tags$td(class = "rigi-project-table__amount", rigi_card_amount(amount_value)),
+        htmltools::tags$td(class = "rigi-project-table__date", rigi_card_date(key_date))
+      )
+    }
   )
 }
 
@@ -2234,7 +2303,7 @@ make_rigi_project_cards <- function(
 
   widget_id <- paste0("rigi-project-cards-", widget_key)
 
-  status_values <- rigi_filter_values(data$estado)
+  status_values <- rigi_filter_values(data$estado_simplificado)
   sector_values <- rigi_filter_values(data$sector)
   province_values <- rigi_filter_values(data$provincia_original, split = TRUE)
 
@@ -2323,7 +2392,7 @@ make_rigi_project_cards <- function(
 
   date_heading <- switch(
     table_type,
-    aprobados = "Aprobación",
+    aprobados = "Fecha de adhesión al RIGI",
     pendientes = "Presentación",
     total = "Fecha principal"
   )
@@ -2531,8 +2600,19 @@ make_rigi_project_cards <- function(
               htmltools::tags$th(scope = "col", "Estado"),
               htmltools::tags$th(scope = "col", "Sector"),
               htmltools::tags$th(scope = "col", "Provincia"),
-              htmltools::tags$th(scope = "col", "Monto"),
-              htmltools::tags$th(scope = "col", date_heading)
+              if (identical(table_type, "aprobados")) {
+                htmltools::tagList(
+                  htmltools::tags$th(scope = "col", "Inversión total"),
+                  htmltools::tags$th(scope = "col", "Inversión en activos computables"),
+                  htmltools::tags$th(scope = "col", "Inversión comprometida en activos computables — primeros 2 años"),
+                  htmltools::tags$th(scope = "col", date_heading)
+                )
+              } else {
+                htmltools::tagList(
+                  htmltools::tags$th(scope = "col", "Inversión total"),
+                  htmltools::tags$th(scope = "col", date_heading)
+                )
+              }
             )
           ),
           htmltools::tags$tbody(`data-table-body` = "true", table_rows)

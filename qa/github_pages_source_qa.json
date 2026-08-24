@@ -19,11 +19,16 @@
     "ci_removes_generated_state": true,
     "quarto_cache_and_freeze_disabled": true,
     "javascript_syntax_rigi-responsive": true,
+    "javascript_syntax_investment_modules": true,
     "javascript_syntax_planes_inversion": true,
     "javascript_syntax_importaciones": true
   },
   "javascript": {
     "assets/rigi-responsive.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/investment_modules.js": {
       "ok": true,
       "stderr": ""
     },
