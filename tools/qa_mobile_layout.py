@@ -42,6 +42,11 @@ def main() -> int:
         "mobile_sticky_anchor_offset": "--rigi-mobile-anchor-gap" in css and "scroll-padding-top" in css,
         "mobile_import_chart_height_css": ".impo-chart {\n    min-height: 390px;" in css,
         "mobile_back_to_top_safe_area": "env(safe-area-inset-bottom)" in css,
+        "module_load_failure_is_mobile_safe": all(token in css for token in [
+            ".rigi-chart-initialization-error",
+            "text-align: left !important",
+            "word-spacing: normal !important",
+        ]),
         "css_braces_balanced": css.count("{") == css.count("}"),
     }
 

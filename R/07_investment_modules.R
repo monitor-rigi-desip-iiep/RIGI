@@ -1,13 +1,16 @@
 # Módulos interactivos, cronogramas y diccionario ---------------------------
 
-dictionary_value <- function(dictionary, variable, column, fallback = NA_character_) {
+dictionary_value <- function(dictionary, variable_name, column, fallback = NA_character_) {
   row <- dictionary |>
-    dplyr::filter(.data$variable == variable) |>
+    dplyr::filter(.data$variable == .env$variable_name) |>
     dplyr::slice_head(n = 1)
   if (nrow(row) == 0 || !column %in% names(row) || is.na(row[[column]][[1]])) {
     return(fallback)
   }
-  rigi_as_utf8(row[[column]][[1]], paste0("Diccionario / ", variable, " / ", column))
+  rigi_as_utf8(
+    row[[column]][[1]],
+    paste0("Diccionario / ", variable_name, " / ", column)
+  )
 }
 
 rigi_metric_payload_rows <- function(view) {
@@ -27,18 +30,49 @@ make_ranked_metric_module <- function(
   widget_id,
   color,
   universe_label,
-  value_type = c("currency", "employment")
+  value_type = c("currency", "employment"),
+  default_limit = 10L,
+  show_tabs = TRUE,
+  share_total = NULL,
+  note_override = NULL,
+  default_view = names(views)[[1]]
 ) {
   value_type <- match.arg(value_type)
+  share_total_value <- if (
+    is.numeric(share_total) && length(share_total) == 1L &&
+      !is.na(share_total) && is.finite(share_total)
+  ) {
+    as.numeric(share_total)
+  } else {
+    NULL
+  }
+  note_override_value <- if (
+    is.character(note_override) && length(note_override) == 1L &&
+      !is.na(note_override) && nzchar(trimws(note_override))
+  ) {
+    trimws(note_override)
+  } else {
+    NULL
+  }
   payload <- list(
     title = title,
     description = description,
     universe = universe_label,
     color = color,
     valueType = value_type,
+    defaultLimit = as.character(default_limit),
+    defaultView = default_view,
+    shareTotal = share_total_value,
+    noteOverride = note_override_value,
     views = lapply(views, rigi_metric_payload_rows)
   )
-  json <- jsonlite::toJSON(payload, auto_unbox = TRUE, na = "null", digits = 16)
+  json <- jsonlite::toJSON(
+    payload,
+    auto_unbox = TRUE,
+    na = "null",
+    null = "null",
+    digits = 16
+  )
 
   htmltools::tags$section(
     id = widget_id,
@@ -57,14 +91,30 @@ make_ranked_metric_module <- function(
           id = paste0(widget_id, "-limit"),
           `data-ranked-limit` = "true",
           `data-investment-limit` = if (identical(value_type, "currency")) "true" else NULL,
-          htmltools::tags$option(value = "5", "5"),
-          htmltools::tags$option(value = "10", selected = TRUE, "10"),
-          htmltools::tags$option(value = "15", "15"),
-          htmltools::tags$option(value = "all", "Todos")
+          htmltools::tags$option(
+            value = "5",
+            selected = if (identical(as.character(default_limit), "5")) NA else NULL,
+            "5"
+          ),
+          htmltools::tags$option(
+            value = "10",
+            selected = if (identical(as.character(default_limit), "10")) NA else NULL,
+            "10"
+          ),
+          htmltools::tags$option(
+            value = "15",
+            selected = if (identical(as.character(default_limit), "15")) NA else NULL,
+            "15"
+          ),
+          htmltools::tags$option(
+            value = "all",
+            selected = if (identical(as.character(default_limit), "all")) NA else NULL,
+            "Todos"
+          )
         )
       )
     ),
-    htmltools::tags$div(
+    if (isTRUE(show_tabs)) htmltools::tags$div(
       class = "rigi-investment-module__tabs",
       role = "tablist",
       `aria-label` = paste0("Desagregación de ", tolower(title)),
@@ -83,7 +133,7 @@ make_ranked_metric_module <- function(
         `data-ranked-view` = "province", `data-investment-view` = if (identical(value_type, "currency")) "province" else NULL,
         "Por provincia"
       )
-    ),
+    ) else NULL,
     htmltools::tags$p(
       class = "rigi-investment-module__view-note",
       `data-ranked-note` = "true",
@@ -234,6 +284,96 @@ make_employment_explorer <- function(data, data_prov, dictionary, widget_key = "
     color = bar_color_employment,
     universe_label = "proyectos aprobados con empleo informado",
     value_type = "employment"
+  )
+}
+
+make_peelp_share_module <- function(indicators) {
+  peelp_amount <- as.numeric(indicators$monto_aprobados_exportacion_largo_plazo)
+  approved_amount <- as.numeric(indicators$monto_aprobado)
+  if (
+    length(peelp_amount) == 0 || length(approved_amount) == 0 ||
+      !is.finite(peelp_amount) || !is.finite(approved_amount) || approved_amount <= 0
+  ) {
+    return(empty_plot_message("No hay datos suficientes para calcular la participación PEELP."))
+  }
+
+  rows <- tibble::tibble(
+    label = c("PEELP", "No PEELP"),
+    value = c(peelp_amount, max(approved_amount - peelp_amount, 0)),
+    color = c(bar_color_peelp, "#94A3B8")
+  )
+  htmltools::tags$section(
+    id = "rigi-peelp-share",
+    class = "rigi-status-overview rigi-peelp-share-module",
+    `data-peelp-share-module` = "true",
+    `aria-label` = "Participación PEELP en el monto informado de proyectos aprobados",
+    lapply(seq_len(nrow(rows)), function(index) {
+      share <- ratio_or_na(rows$value[[index]], approved_amount)
+      width <- if (is.finite(share)) {
+        100 * share
+      } else {
+        0
+      }
+      accessible <- paste0(
+        rows$label[[index]], ": ",
+        fmt_currency_mill(rows$value[[index]], accuracy = 1), ", ",
+        fmt_pct(share), " del monto informado de proyectos aprobados"
+      )
+      htmltools::tags$div(
+        class = "rigi-status-overview__row rigi-peelp-share-module__row",
+        tabindex = "0",
+        `aria-label` = accessible,
+        title = accessible,
+        htmltools::tags$strong(rows$label[[index]]),
+        htmltools::tags$div(
+          class = "rigi-status-overview__track",
+          `aria-hidden` = "true",
+          htmltools::tags$span(
+            style = sprintf("width: %.4f%%; background: %s;", width, rows$color[[index]])
+          )
+        ),
+        htmltools::tags$span(
+          class = "rigi-status-overview__value",
+          paste0(
+            fmt_currency_mill(rows$value[[index]], accuracy = 1),
+            " · ", fmt_pct(share)
+          )
+        )
+      )
+    })
+  )
+}
+
+make_peelp_ranking_module <- function(data, approved_total) {
+  approved_total <- as.numeric(approved_total)
+  rows <- data |>
+    dplyr::transmute(
+      label = rigi_as_utf8(dplyr::coalesce(proyecto, "No informado"), "ranking PEELP"),
+      value = as.numeric(monto_usd_mill),
+      count = 1L
+    ) |>
+    dplyr::filter(!is.na(value), is.finite(value)) |>
+    dplyr::arrange(dplyr::desc(value), label)
+
+  make_ranked_metric_module(
+    views = list(project = rows),
+    title = "Principales proyectos PEELP por monto",
+    description = paste0(
+      "Ranking de proyectos PEELP por inversión total informada. ",
+      "La participación se calcula sobre el monto total informado de todos los proyectos aprobados."
+    ),
+    widget_id = "rigi-peelp-ranking",
+    color = bar_color_peelp,
+    universe_label = "proyectos aprobados clasificados como PEELP",
+    value_type = "currency",
+    default_limit = 5L,
+    show_tabs = FALSE,
+    share_total = approved_total,
+    note_override = paste0(
+      "Los proyectos se ordenan de mayor a menor. ",
+      "Cada porcentaje utiliza como denominador el monto total informado de todos los proyectos aprobados."
+    ),
+    default_view = "project"
   )
 }
 

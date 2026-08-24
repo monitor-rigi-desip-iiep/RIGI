@@ -1,0 +1,59 @@
+{
+  "source_sha256": "82d3d74fe58f6b747269bd72058397bd369ee4810b765e1d18bbf438e28cc974",
+  "projects": 41,
+  "approved_projects": 21,
+  "peelp_projects": 5,
+  "approved_total_mill_usd": 46708.0,
+  "peelp_total_mill_usd": 35059.0,
+  "non_peelp_total_mill_usd": 11649.0,
+  "share_sum": 1.0,
+  "checks": {
+    "source_xlsx_unchanged": true,
+    "source_sheets_present": true,
+    "peelp_universe_is_approved_only": true,
+    "peelp_and_non_peelp_reconcile": true,
+    "peelp_shares_sum_to_one": true,
+    "peelp_ranking_descends_by_amount": true,
+    "peelp_share_module_used": true,
+    "peelp_ranking_module_used": true,
+    "old_peelp_pie_removed": true,
+    "peelp_share_uses_approved_denominator": true,
+    "peelp_ranking_uses_approved_denominator": true,
+    "peelp_ranking_defaults_to_five": true,
+    "peelp_selector_options": true,
+    "peelp_ranking_has_no_empty_tabs": true,
+    "peelp_modules_accessible": true,
+    "peelp_responsive_styles_present": true,
+    "single_header_currency_metric": true,
+    "extra_metrics_absent_from_header": true,
+    "three_detail_metrics_present_once": true,
+    "detail_metrics_in_requested_order": true,
+    "details_use_no_informed_for_missing": true,
+    "zero_is_not_treated_as_missing": true,
+    "shared_ranked_javascript_reused": true,
+    "workflow_runs_peelp_qa": true,
+    "javascript_syntax_importaciones": true,
+    "javascript_syntax_investment_modules": true,
+    "javascript_syntax_planes_inversion": true,
+    "javascript_syntax_rigi-responsive": true
+  },
+  "javascript": {
+    "assets/importaciones.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/investment_modules.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/planes_inversion.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/rigi-responsive.js": {
+      "ok": true,
+      "stderr": ""
+    }
+  },
+  "failed": []
+}

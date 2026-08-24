@@ -1,0 +1,43 @@
+{
+  "mode": "source-only",
+  "checks": {
+    "main_xlsx_exists": true,
+    "main_xlsx_checksum": true,
+    "exists_planes_inversion": true,
+    "syntax_planes_inversion": true,
+    "exists_importaciones": true,
+    "syntax_importaciones": true,
+    "six_graph_containers_in_sources": true,
+    "all_module_ids_in_sources": true,
+    "explicit_plotly_dependency_in_source": true,
+    "dynamic_plotly_dependencies_extracted": true,
+    "plotly_dependencies_are_resolved": true,
+    "plotly_main_is_behaviorally_validated": true,
+    "plotly_dependency_has_no_private_or_manual_bundle": true,
+    "plotly_version_and_path_are_not_hardcoded": true,
+    "r_dependency_diagnostic_present": true,
+    "dependency_called_before_plans_module": true,
+    "accessible_failure_message": true,
+    "bounded_retry_and_idempotence": true,
+    "no_absolute_local_paths_in_sources": true,
+    "no_file_urls_in_sources": true
+  },
+  "details": {
+    "main_xlsx_sha256": "82d3d74fe58f6b747269bd72058397bd369ee4810b765e1d18bbf438e28cc974"
+  },
+  "javascript": {
+    "assets/planes_inversion.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/importaciones.js": {
+      "ok": true,
+      "stderr": ""
+    }
+  },
+  "browser": {
+    "available": false,
+    "reason": "source-only"
+  },
+  "failed": []
+}

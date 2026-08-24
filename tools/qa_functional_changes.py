@@ -31,6 +31,9 @@ def main() -> int:
     styles = read("styles.css")
     index = read("index.qmd")
     evaluation = read("evaluacion.qmd")
+    approved = read("aprobados.qmd")
+    ranked_r = read("R/07_investment_modules.R")
+    ranked_js = read("assets/investment_modules.js")
 
     push_paths = workflow[True]["push"]["paths"]
     packages = workflow["jobs"]["build"]["steps"][3]["with"]["packages"]
@@ -71,6 +74,35 @@ def main() -> int:
             "assets/rigi-responsive.js", "assets/investment_modules.js",
             "assets/planes_inversion.js", "assets/importaciones.js"
         ]),
+        "plotly_dependency_explicit_and_ordered": all(token in plans_r for token in [
+            "rigi_plotly_dependency <- function",
+            "htmlwidgets::getDependency(",
+            'package = "plotly"',
+            "plotly::plot_ly(",
+            "minimal_widget$dependencies",
+            "htmltools::resolveDependencies(",
+            "htmltools::attachDependencies(",
+            'startsWith(dependency_names, "plotly-main")',
+        ]) and "plotly:::plotlyMainBundle" not in plans_r
+        and approved.count("rigi_plotly_dependency()") == 1
+        and approved.index("rigi_plotly_dependency()") < approved.index("make_planes_inversion_module("),
+        "plotly_failure_is_visible_and_accessible": all(
+            'No se pudo cargar el componente gráfico.' in source
+            and 'setAttribute("role", "alert")' in source
+            for source in [plans_js, imports_js]
+        ),
+        "ci_runs_rendered_plotly_qa": "python3 tools/qa_plotly_modules.py" in read(".github/workflows/render.yml"),
+        "ci_runs_plotly_dependency_diagnostic": "Rscript tools/diagnose_plotly_dependency.R" in read(".github/workflows/render.yml"),
+        "ranked_modules_reject_object_coercion": all(token in ranked_r for token in [
+            ".data$variable == .env$variable_name",
+            'null = "null"',
+            "share_total_value <-",
+            "note_override_value <-",
+        ]) and all(token in ranked_js for token in [
+            'typeof value !== "string"',
+            'typeof config.noteOverride === "string"',
+        ]),
+        "ci_runs_ranked_modules_qa": "python3 tools/qa_ranked_modules.py" in read(".github/workflows/render.yml"),
     }
 
     js_results = {}
