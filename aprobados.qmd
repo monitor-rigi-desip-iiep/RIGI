@@ -111,55 +111,13 @@ make_kpi_cards_empleo_aprobado(indicadores)
 ```
 
 ```{r}
-make_chart_context_note(
-  htmltools::strong(paste0(
-    fmt_integer(indicadores$n_aprobados_con_empleo),
-    " de ",
-    fmt_integer(indicadores$n_aprobados),
-    " proyectos aprobados"
-  )),
-  " informan empleo directo e indirecto. Las etiquetas muestran cantidad y participación sobre el empleo total informado."
+make_employment_explorer(
+  data = tablas$base_aprobados,
+  data_prov = proyectos_prov |> dplyr::filter(aprobado),
+  dictionary = diccionario,
+  widget_key = "approved-employment"
 )
 ```
-
-::: {.panel-tabset .rigi-chart-tabs}
-### Por proyecto
-
-```{r}
-plot_top_proyectos_empleo(
-  tablas$top_empleos_aprobados,
-  title = NULL,
-  fill_color = bar_color_employment,
-  total_value = indicadores$empleos_aprobados
-)
-```
-
-### Por sector
-
-```{r}
-plot_bar_empleo(
-  tablas$empleo_sector_aprobados,
-  label_col = "sector_simplificado",
-  title = NULL,
-  fill_color = bar_color_employment
-)
-```
-
-### Por provincia
-
-```{r}
-make_province_note()
-```
-
-```{r}
-plot_bar_empleo(
-  tablas$empleo_provincia_aprobados,
-  label_col = "provincia_simplificada",
-  title = NULL,
-  fill_color = bar_color_employment
-)
-```
-:::
 
 ## Proyectos de exportación estratégica de largo plazo (PEELP) {#peelp}
 

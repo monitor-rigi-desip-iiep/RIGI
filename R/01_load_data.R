@@ -5,6 +5,84 @@ sheet_proyectos <- "Proyectos"
 sheet_diccionario <- "Diccionario"
 sheet_variable_anterior <- "Variable_Anterior"
 
+# Codificación de texto ------------------------------------------------------
+#
+# readxl entrega contenido Unicode, pero en algunos entornos (en particular
+# macOS) una cadena no ASCII puede conservar bytes UTF-8 con marca de
+# codificación "unknown". Ese estado hace fallar a order/sort con el método
+# radix. La conversión se resuelve una sola vez, de forma explícita y sin
+# sustituir silenciosamente bytes inválidos.
+rigi_as_utf8 <- function(x, context = "texto") {
+  x <- as.character(x)
+  if (length(x) == 0L) return(x)
+
+  out <- rep(NA_character_, length(x))
+  present <- !is.na(x)
+  if (!any(present)) return(out)
+
+  source_values <- x[present]
+  source_encoding <- Encoding(source_values)
+  converted <- rep(NA_character_, length(source_values))
+
+  latin1 <- source_encoding == "latin1"
+  if (any(latin1)) {
+    converted[latin1] <- iconv(
+      source_values[latin1],
+      from = "latin1",
+      to = "UTF-8",
+      sub = NA_character_,
+      mark = TRUE
+    )
+  }
+
+  utf8_bytes <- !latin1
+  if (any(utf8_bytes)) {
+    # Las cadenas UTF-8, bytes y unknown se validan por sus bytes. No se usa
+    # la locale del sistema para evitar resultados distintos entre macOS y CI.
+    converted[utf8_bytes] <- iconv(
+      source_values[utf8_bytes],
+      from = "UTF-8",
+      to = "UTF-8",
+      sub = NA_character_,
+      mark = TRUE
+    )
+  }
+
+  invalid <- is.na(converted)
+  if (any(invalid)) {
+    original_positions <- which(present)[which(invalid)]
+    preview <- paste(utils::head(original_positions, 8L), collapse = ", ")
+    if (length(original_positions) > 8L) preview <- paste0(preview, ", ...")
+    stop(
+      "Se detectó texto con codificación inválida en ", context,
+      " (posiciones: ", preview, "). Se esperaba UTF-8 o Latin-1 declarado.",
+      call. = FALSE
+    )
+  }
+
+  out[present] <- converted
+  out
+}
+
+rigi_utf8_data_frame <- function(data, context = "tabla") {
+  names(data) <- rigi_as_utf8(names(data), paste0(context, " / encabezados"))
+  character_columns <- names(data)[vapply(data, is.character, logical(1))]
+
+  for (column in character_columns) {
+    data[[column]] <- rigi_as_utf8(
+      data[[column]],
+      paste0(context, " / ", column)
+    )
+  }
+  data
+}
+
+rigi_sort_unique_text <- function(x, context = "valores de texto") {
+  values <- rigi_as_utf8(x, context)
+  values <- values[!is.na(values)]
+  sort(unique(values), method = "radix")
+}
+
 required_project_variables <- c(
   "vpu", "descripcion_proyecto", "peelp", "id_proyecto", "empresa",
   "titular_proyecto", "cuit", "sector", "subsector",
@@ -87,7 +165,8 @@ load_proyectos <- function(path = excel_path, sheet = sheet_proyectos) {
     path = path,
     sheet = sheet,
     guess_max = 10000
-  )
+  ) |>
+    rigi_utf8_data_frame(context = paste0("XLSX / ", sheet))
   validate_project_schema(data)
   data
 }
@@ -95,6 +174,7 @@ load_proyectos <- function(path = excel_path, sheet = sheet_proyectos) {
 load_diccionario <- function(path = excel_path, sheet = sheet_diccionario) {
   validate_workbook_structure(path)
   dictionary <- readxl::read_excel(path = path, sheet = sheet, guess_max = 1000) |>
+    rigi_utf8_data_frame(context = paste0("XLSX / ", sheet)) |>
     janitor::clean_names() |>
     dplyr::filter(!is.na(variable), trimws(as.character(variable)) != "") |>
     dplyr::mutate(variable = janitor::make_clean_names(variable))
@@ -126,6 +206,7 @@ load_diccionario <- function(path = excel_path, sheet = sheet_diccionario) {
 load_variable_mapping <- function(path = excel_path, sheet = sheet_variable_anterior) {
   validate_workbook_structure(path)
   mapping <- readxl::read_excel(path = path, sheet = sheet, guess_max = 1000) |>
+    rigi_utf8_data_frame(context = paste0("XLSX / ", sheet)) |>
     janitor::clean_names() |>
     dplyr::filter(!is.na(variable_recomendada), trimws(as.character(variable_recomendada)) != "") |>
     dplyr::mutate(variable_recomendada = janitor::make_clean_names(variable_recomendada))
@@ -186,6 +267,7 @@ load_fuentes_proyectos <- function(path = excel_path) {
     if (!has_source || !has_url || !has_project_key) return(NULL)
 
     readxl::read_excel(path, sheet = sheet, guess_max = 10000) |>
+      rigi_utf8_data_frame(context = paste0("XLSX / ", sheet)) |>
       dplyr::mutate(hoja_origen_fuentes = sheet)
   })
 

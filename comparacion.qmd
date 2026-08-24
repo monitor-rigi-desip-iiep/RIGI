@@ -14,8 +14,7 @@ Esta página permite comparar el universo relevado por estado administrativo, se
 
 ::: {.page-subnav role="navigation" aria-label="En esta sección"}
 - [Panorama](#panorama)
-- [Sectores](#sectores)
-- [Provincias](#provincias)
+- [Comparación sectorial y territorial](#comparacion-desagregada)
 - [Composición](#composicion)
 :::
 
@@ -26,33 +25,17 @@ make_kpi_cards_total(indicadores)
 ```
 
 ```{r}
-plot_compare_counts_montos(indicadores, title = NULL)
+make_comparison_overview(indicadores)
 ```
 
-## Comparación por sector {#sectores}
+## Comparación sectorial y territorial {#comparacion-desagregada}
 
 ```{r}
-plot_compare_aprobado_pendiente(
-  aprobado_tbl = tablas$sector_tbl_aprobados,
-  pendiente_tbl = tablas$sector_tbl_pendientes,
-  label_col = "sector_simplificado",
-  title = NULL
-)
-```
-
-## Comparación por provincia {#provincias}
-
-```{r}
-plot_compare_aprobado_pendiente(
-  aprobado_tbl = tablas$provincia_tbl_aprobados,
-  pendiente_tbl = tablas$provincia_tbl_pendientes,
-  label_col = "provincia_simplificada",
-  title = NULL
-)
+make_comparison_explorer(tablas)
 ```
 
 ## Composición del universo por estado administrativo {#composicion}
 
 ```{r}
-plot_estado(tablas$estado_tbl, title = NULL)
+make_state_composition(tablas$estado_tbl)
 ```

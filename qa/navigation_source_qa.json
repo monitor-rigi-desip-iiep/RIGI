@@ -41,10 +41,9 @@
       "panorama"
     ],
     "comparacion.qmd": [
+      "comparacion-desagregada",
       "composicion",
-      "panorama",
-      "provincias",
-      "sectores"
+      "panorama"
     ],
     "base-datos.qmd": [
       "descargas",

@@ -47,7 +47,7 @@ Para calcular los totales provinciales, el monto de inversión, los activos comp
 
 ## Diccionario de variables {#diccionario-variables}
 
-Las denominaciones, tipos, unidades y descripciones de las variables de origen se generan directamente desde la hoja `Diccionario` del XLSX vigente. Las variables calculadas por el sitio se presentan por separado.
+Las denominaciones, tipos, unidades y descripciones de las variables de origen se generan directamente desde la hoja `Diccionario` del XLSX vigente.
 
 ```{r}
 make_data_dictionary(diccionario)

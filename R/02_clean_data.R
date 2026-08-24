@@ -8,13 +8,14 @@ na_labels <- c(
 
 empty_to_na <- function(x) {
   if (!is.character(x)) return(x)
+  x <- rigi_as_utf8(x, "limpieza de valores vacíos")
   x <- stringr::str_squish(x)
   x[x %in% na_labels] <- NA_character_
   x
 }
 
 normalize_text <- function(x) {
-  x <- as.character(x)
+  x <- rigi_as_utf8(x, "normalización editorial")
   x <- stringr::str_squish(x)
   x <- stringr::str_to_lower(x)
   x <- iconv(x, from = "UTF-8", to = "ASCII//TRANSLIT")
@@ -776,7 +777,8 @@ clean_proyectos <- function(raw_data) {
       n_provincias = stringr::str_count(dplyr::coalesce(provincia_original, "No informado"), ";") + 1L,
       n_provincias = dplyr::if_else(is.na(n_provincias) | n_provincias < 1L, 1L, n_provincias),
       proyecto_multiprovincial = n_provincias > 1L
-    )
+    ) |>
+    rigi_utf8_data_frame(context = "modelo interno de proyectos")
 }
 
 expand_provincias <- function(data) {

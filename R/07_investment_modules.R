@@ -1,4 +1,4 @@
-# Módulos de inversión, cronogramas y diccionario ----------------------------
+# Módulos interactivos, cronogramas y diccionario ---------------------------
 
 dictionary_value <- function(dictionary, variable, column, fallback = NA_character_) {
   row <- dictionary |>
@@ -7,13 +7,108 @@ dictionary_value <- function(dictionary, variable, column, fallback = NA_charact
   if (nrow(row) == 0 || !column %in% names(row) || is.na(row[[column]][[1]])) {
     return(fallback)
   }
-  as.character(row[[column]][[1]])
+  rigi_as_utf8(row[[column]][[1]], paste0("Diccionario / ", variable, " / ", column))
+}
+
+rigi_metric_payload_rows <- function(view) {
+  lapply(seq_len(nrow(view)), function(index) {
+    list(
+      label = as.character(view$label[[index]]),
+      value = as.numeric(view$value[[index]]),
+      count = as.integer(view$count[[index]])
+    )
+  })
+}
+
+make_ranked_metric_module <- function(
+  views,
+  title,
+  description,
+  widget_id,
+  color,
+  universe_label,
+  value_type = c("currency", "employment")
+) {
+  value_type <- match.arg(value_type)
+  payload <- list(
+    title = title,
+    description = description,
+    universe = universe_label,
+    color = color,
+    valueType = value_type,
+    views = lapply(views, rigi_metric_payload_rows)
+  )
+  json <- jsonlite::toJSON(payload, auto_unbox = TRUE, na = "null", digits = 16)
+
+  htmltools::tags$section(
+    id = widget_id,
+    class = paste("rigi-investment-module rigi-ranked-module", paste0("rigi-ranked-module--", value_type)),
+    `data-ranked-module` = "true",
+    `data-investment-module` = if (identical(value_type, "currency")) "true" else NULL,
+    `aria-label` = paste0(title, " — ", universe_label),
+    htmltools::tags$div(
+      class = "rigi-investment-module__header",
+      htmltools::tags$p(class = "rigi-investment-module__description", description),
+      htmltools::tags$label(
+        class = "rigi-investment-module__limit",
+        `for` = paste0(widget_id, "-limit"),
+        htmltools::tags$span("Cantidad a mostrar"),
+        htmltools::tags$select(
+          id = paste0(widget_id, "-limit"),
+          `data-ranked-limit` = "true",
+          `data-investment-limit` = if (identical(value_type, "currency")) "true" else NULL,
+          htmltools::tags$option(value = "5", "5"),
+          htmltools::tags$option(value = "10", selected = TRUE, "10"),
+          htmltools::tags$option(value = "15", "15"),
+          htmltools::tags$option(value = "all", "Todos")
+        )
+      )
+    ),
+    htmltools::tags$div(
+      class = "rigi-investment-module__tabs",
+      role = "tablist",
+      `aria-label` = paste0("Desagregación de ", tolower(title)),
+      htmltools::tags$button(
+        type = "button", role = "tab", `aria-selected` = "true",
+        `data-ranked-view` = "project", `data-investment-view` = if (identical(value_type, "currency")) "project" else NULL,
+        "Por proyecto"
+      ),
+      htmltools::tags$button(
+        type = "button", role = "tab", `aria-selected` = "false", tabindex = "-1",
+        `data-ranked-view` = "sector", `data-investment-view` = if (identical(value_type, "currency")) "sector" else NULL,
+        "Por sector"
+      ),
+      htmltools::tags$button(
+        type = "button", role = "tab", `aria-selected` = "false", tabindex = "-1",
+        `data-ranked-view` = "province", `data-investment-view` = if (identical(value_type, "currency")) "province" else NULL,
+        "Por provincia"
+      )
+    ),
+    htmltools::tags$p(
+      class = "rigi-investment-module__view-note",
+      `data-ranked-note` = "true",
+      `data-investment-note` = if (identical(value_type, "currency")) "true" else NULL
+    ),
+    htmltools::tags$div(
+      class = "rigi-investment-module__chart",
+      `data-ranked-chart` = "true",
+      `data-investment-chart` = if (identical(value_type, "currency")) "true" else NULL,
+      role = "region",
+      `aria-live` = "polite"
+    ),
+    htmltools::tags$script(
+      type = "application/json",
+      `data-ranked-data` = "true",
+      `data-investment-data` = if (identical(value_type, "currency")) "true" else NULL,
+      htmltools::HTML(json)
+    )
+  )
 }
 
 investment_view_data <- function(data, data_prov, value_col, value_col_prov) {
   project <- data |>
     dplyr::transmute(
-      label = dplyr::coalesce(proyecto, "No informado"),
+      label = rigi_as_utf8(dplyr::coalesce(proyecto, "No informado"), "inversión por proyecto"),
       value = as.numeric(.data[[value_col]]),
       count = 1L
     ) |>
@@ -22,7 +117,10 @@ investment_view_data <- function(data, data_prov, value_col, value_col_prov) {
 
   sector <- data |>
     dplyr::filter(!is.na(.data[[value_col]]), is.finite(.data[[value_col]])) |>
-    dplyr::group_by(label = dplyr::coalesce(sector_simplificado, "No informado")) |>
+    dplyr::group_by(label = rigi_as_utf8(
+      dplyr::coalesce(sector_simplificado, "No informado"),
+      "inversión por sector"
+    )) |>
     dplyr::summarise(
       value = sum_or_na(.data[[value_col]]),
       count = dplyr::n_distinct(row_id),
@@ -32,7 +130,10 @@ investment_view_data <- function(data, data_prov, value_col, value_col_prov) {
 
   province <- data_prov |>
     dplyr::filter(!is.na(.data[[value_col_prov]]), is.finite(.data[[value_col_prov]])) |>
-    dplyr::group_by(label = dplyr::coalesce(provincia_simplificada, "No informado")) |>
+    dplyr::group_by(label = rigi_as_utf8(
+      dplyr::coalesce(provincia_simplificada, "No informado"),
+      "inversión por provincia"
+    )) |>
     dplyr::summarise(
       value = sum_or_na(.data[[value_col_prov]]),
       count = dplyr::n_distinct(row_id),
@@ -56,52 +157,279 @@ make_investment_explorer <- function(
   if (!value_col %in% names(data) || !value_col_prov %in% names(data_prov)) {
     return(empty_plot_message("La variable requerida no está disponible en la base."))
   }
-
-  views <- investment_view_data(data, data_prov, value_col, value_col_prov)
-  title <- dictionary_value(dictionary, value_col, "nombre_visible", value_col)
-  description <- dictionary_value(
-    dictionary,
-    value_col,
-    "descripcion_breve",
-    "Monto informado para los proyectos del universo seleccionado."
-  )
-  unit <- dictionary_value(dictionary, value_col, "unidad", "Millones de USD")
-  widget_id <- paste0("rigi-investment-", gsub("[^A-Za-z0-9_-]+", "-", widget_key))
-
-  payload <- list(
-    title = title,
-    description = description,
-    unit = unit,
-    universe = universe_label,
+  make_ranked_metric_module(
+    views = investment_view_data(data, data_prov, value_col, value_col_prov),
+    title = dictionary_value(dictionary, value_col, "nombre_visible", value_col),
+    description = dictionary_value(
+      dictionary,
+      value_col,
+      "descripcion_breve",
+      "Monto informado para los proyectos del universo seleccionado."
+    ),
+    widget_id = paste0("rigi-investment-", gsub("[^A-Za-z0-9_-]+", "-", widget_key)),
     color = color,
-    views = lapply(views, function(view) {
-      lapply(seq_len(nrow(view)), function(index) {
-        list(
-          label = as.character(view$label[[index]]),
-          value = as.numeric(view$value[[index]]),
-          count = as.integer(view$count[[index]])
-        )
-      })
-    })
+    universe_label = universe_label,
+    value_type = "currency"
   )
+}
 
+employment_view_data <- function(data, data_prov) {
+  project <- data |>
+    dplyr::transmute(
+      label = rigi_as_utf8(dplyr::coalesce(proyecto, "No informado"), "empleo por proyecto"),
+      value = as.numeric(empleos_directos_indirectos),
+      count = 1L
+    ) |>
+    dplyr::filter(!is.na(value), is.finite(value)) |>
+    dplyr::arrange(dplyr::desc(value), label)
+
+  sector <- data |>
+    dplyr::filter(!is.na(empleos_directos_indirectos), is.finite(empleos_directos_indirectos)) |>
+    dplyr::group_by(label = rigi_as_utf8(
+      dplyr::coalesce(sector_simplificado, "No informado"),
+      "empleo por sector"
+    )) |>
+    dplyr::summarise(
+      value = sum_or_na(empleos_directos_indirectos),
+      count = dplyr::n_distinct(row_id),
+      .groups = "drop"
+    ) |>
+    dplyr::arrange(dplyr::desc(value), label)
+
+  province <- data_prov |>
+    dplyr::filter(
+      !is.na(empleos_directos_indirectos_asignado_prop),
+      is.finite(empleos_directos_indirectos_asignado_prop)
+    ) |>
+    dplyr::group_by(label = rigi_as_utf8(
+      dplyr::coalesce(provincia_simplificada, "No informado"),
+      "empleo por provincia"
+    )) |>
+    dplyr::summarise(
+      value = sum_or_na(empleos_directos_indirectos_asignado_prop),
+      count = dplyr::n_distinct(row_id),
+      .groups = "drop"
+    ) |>
+    dplyr::arrange(dplyr::desc(value), label)
+
+  list(project = project, sector = sector, province = province)
+}
+
+make_employment_explorer <- function(data, data_prov, dictionary, widget_key = "approved-employment") {
+  make_ranked_metric_module(
+    views = employment_view_data(data, data_prov),
+    title = dictionary_value(
+      dictionary,
+      "empleos_directos_indirectos_informados",
+      "nombre_visible",
+      "Empleo informado"
+    ),
+    description = dictionary_value(
+      dictionary,
+      "empleos_directos_indirectos_informados",
+      "descripcion_breve",
+      "Cantidad de empleos directos e indirectos informados para el proyecto."
+    ),
+    widget_id = paste0("rigi-employment-", gsub("[^A-Za-z0-9_-]+", "-", widget_key)),
+    color = bar_color_employment,
+    universe_label = "proyectos aprobados con empleo informado",
+    value_type = "employment"
+  )
+}
+
+schedule_view_data <- function(data, type = c("commitment", "deadline")) {
+  type <- match.arg(type)
+  approved <- data |> dplyr::filter(aprobado)
+
+  if (identical(type, "commitment")) {
+    eligible <- approved |>
+      dplyr::filter(!is.na(fecha_adhesion_rigi)) |>
+      dplyr::transmute(
+        label = rigi_as_utf8(proyecto, "cronograma de compromiso"),
+        start = as.Date(fecha_adhesion_rigi),
+        end = as.Date(lubridate::add_with_rollback(fecha_adhesion_rigi, lubridate::years(2))),
+        amount = as.numeric(compromiso_activos_2_anios_usd_mill)
+      ) |>
+      dplyr::arrange(start, label)
+    excluded_missing <- nrow(approved) - nrow(eligible)
+    invalid <- 0L
+  } else {
+    complete <- approved |>
+      dplyr::filter(
+        !is.na(fecha_adhesion_rigi),
+        !is.na(fecha_limite_inversion_minima_activos_computables)
+      ) |>
+      dplyr::transmute(
+        label = rigi_as_utf8(proyecto, "cronograma de fecha límite"),
+        start = as.Date(fecha_adhesion_rigi),
+        end = as.Date(fecha_limite_inversion_minima_activos_computables),
+        amount = as.numeric(activos_computables_usd_mill)
+      )
+    invalid <- sum(complete$end < complete$start, na.rm = TRUE)
+    eligible <- complete |>
+      dplyr::filter(end >= start) |>
+      dplyr::arrange(start, label)
+    excluded_missing <- nrow(approved) - nrow(complete)
+  }
+
+  rows <- lapply(seq_len(nrow(eligible)), function(index) {
+    list(
+      label = as.character(eligible$label[[index]]),
+      start = format(eligible$start[[index]], "%Y-%m-%d"),
+      end = format(eligible$end[[index]], "%Y-%m-%d"),
+      amount = as.numeric(eligible$amount[[index]])
+    )
+  })
+  list(rows = rows, included = nrow(eligible), excludedMissing = excluded_missing, invalid = invalid)
+}
+
+make_commitment_schedule_module <- function(data) {
+  payload <- list(
+    views = list(
+      commitment = schedule_view_data(data, "commitment"),
+      deadline = schedule_view_data(data, "deadline")
+    )
+  )
   json <- jsonlite::toJSON(payload, auto_unbox = TRUE, na = "null", digits = 16)
+  widget_id <- "rigi-commitment-schedule"
+
+  htmltools::tagList(
+    htmltools::tags$section(
+      id = widget_id,
+      class = "rigi-schedule-module",
+      `data-schedule-module` = "true",
+      `aria-label` = "Compromisos y plazos de inversión",
+      htmltools::tags$div(
+        class = "rigi-schedule-module__header",
+        htmltools::tags$p(
+          "Las barras representan períodos de tiempo. El monto se informa a la derecha y no determina la longitud de la barra."
+        ),
+        htmltools::tags$label(
+          class = "rigi-investment-module__limit",
+          `for` = paste0(widget_id, "-limit"),
+          htmltools::tags$span("Cantidad a mostrar"),
+          htmltools::tags$select(
+            id = paste0(widget_id, "-limit"),
+            `data-schedule-limit` = "true",
+            htmltools::tags$option(value = "5", "5"),
+            htmltools::tags$option(value = "10", selected = TRUE, "10"),
+            htmltools::tags$option(value = "15", "15"),
+            htmltools::tags$option(value = "all", "Todos")
+          )
+        )
+      ),
+      htmltools::tags$div(
+        class = "rigi-investment-module__tabs rigi-schedule-module__tabs",
+        role = "tablist",
+        `aria-label` = "Tipo de plazo de inversión",
+        htmltools::tags$button(
+          type = "button", role = "tab", `aria-selected` = "true",
+          `data-schedule-view` = "commitment",
+          "Compromiso de inversión de los primeros dos años"
+        ),
+        htmltools::tags$button(
+          type = "button", role = "tab", `aria-selected` = "false", tabindex = "-1",
+          `data-schedule-view` = "deadline",
+          "Fecha límite para alcanzar la inversión mínima"
+        )
+      ),
+      htmltools::tags$p(
+        class = "rigi-investment-module__view-note",
+        `data-schedule-note` = "true"
+      ),
+      htmltools::tags$p(class = "rigi-schedule-module__status", `data-schedule-status` = "true"),
+      htmltools::tags$div(
+        class = "rigi-schedule-module__chart",
+        `data-schedule-chart` = "true",
+        role = "region",
+        `aria-live` = "polite"
+      ),
+      htmltools::tags$script(
+        type = "application/json",
+        `data-schedule-data` = "true",
+        htmltools::HTML(json)
+      )
+    ),
+    htmltools::tags$div(
+      class = "note-box rigi-schedule-note",
+      htmltools::tags$strong("Nota: "),
+      "La fecha de adhesión se utiliza como referencia común. El plazo legal de los dos primeros años se computa desde la notificación de la aprobación, mientras que la fecha límite para alcanzar el monto mínimo de activos computables es específica de cada proyecto y surge de su resolución."
+    )
+  )
+}
+
+comparison_view_data <- function(approved, evaluation, label_col) {
+  approved_data <- approved |>
+    dplyr::transmute(
+      label = rigi_as_utf8(.data[[label_col]], paste0("comparación aprobada por ", label_col)),
+      approved = as.numeric(monto_usd_mill),
+      approved_present = TRUE
+    )
+  evaluation_data <- evaluation |>
+    dplyr::transmute(
+      label = rigi_as_utf8(.data[[label_col]], paste0("comparación en evaluación por ", label_col)),
+      evaluation = as.numeric(monto_usd_mill),
+      evaluation_present = TRUE
+    )
+
+  dplyr::full_join(approved_data, evaluation_data, by = "label") |>
+    dplyr::mutate(
+      approved = dplyr::if_else(is.na(approved_present), 0, approved),
+      evaluation = dplyr::if_else(is.na(evaluation_present), 0, evaluation),
+      total = dplyr::coalesce(approved, 0) + dplyr::coalesce(evaluation, 0)
+    ) |>
+    dplyr::select(label, approved, evaluation, total) |>
+    dplyr::arrange(dplyr::desc(total), label)
+}
+
+comparison_payload_rows <- function(view) {
+  lapply(seq_len(nrow(view)), function(index) {
+    list(
+      label = as.character(view$label[[index]]),
+      approved = as.numeric(view$approved[[index]]),
+      evaluation = as.numeric(view$evaluation[[index]])
+    )
+  })
+}
+
+make_comparison_explorer <- function(tables) {
+  views <- list(
+    sector = comparison_view_data(
+      tables$sector_tbl_aprobados,
+      tables$sector_tbl_pendientes,
+      "sector_simplificado"
+    ),
+    province = comparison_view_data(
+      tables$provincia_tbl_aprobados,
+      tables$provincia_tbl_pendientes,
+      "provincia_simplificada"
+    )
+  )
+  payload <- list(
+    colors = list(approved = bar_color_compare_approved, evaluation = bar_color_compare_pending),
+    views = lapply(views, comparison_payload_rows)
+  )
+  json <- jsonlite::toJSON(payload, auto_unbox = TRUE, na = "null", digits = 16)
+  widget_id <- "rigi-comparison-territorial-sectoral"
 
   htmltools::tags$section(
     id = widget_id,
-    class = "rigi-investment-module",
-    `data-investment-module` = "true",
-    `aria-label` = paste0(title, " — ", universe_label),
+    class = "rigi-investment-module rigi-comparison-module",
+    `data-comparison-module` = "true",
+    `aria-label` = "Comparación sectorial y territorial por estado",
     htmltools::tags$div(
       class = "rigi-investment-module__header",
-      htmltools::tags$p(class = "rigi-investment-module__description", description),
+      htmltools::tags$p(
+        class = "rigi-investment-module__description",
+        "Cada participación se calcula dentro del monto total informado de su propio estado administrativo."
+      ),
       htmltools::tags$label(
         class = "rigi-investment-module__limit",
         `for` = paste0(widget_id, "-limit"),
         htmltools::tags$span("Cantidad a mostrar"),
         htmltools::tags$select(
           id = paste0(widget_id, "-limit"),
-          `data-investment-limit` = "true",
+          `data-comparison-limit` = "true",
           htmltools::tags$option(value = "5", "5"),
           htmltools::tags$option(value = "10", selected = TRUE, "10"),
           htmltools::tags$option(value = "15", "15"),
@@ -112,222 +440,132 @@ make_investment_explorer <- function(
     htmltools::tags$div(
       class = "rigi-investment-module__tabs",
       role = "tablist",
-      `aria-label` = paste0("Desagregación de ", tolower(title)),
+      `aria-label` = "Desagregación de la comparación",
       htmltools::tags$button(
         type = "button", role = "tab", `aria-selected` = "true",
-        `data-investment-view` = "project", "Por proyecto"
+        `data-comparison-view` = "sector", "Por sector"
       ),
       htmltools::tags$button(
         type = "button", role = "tab", `aria-selected` = "false", tabindex = "-1",
-        `data-investment-view` = "sector", "Por sector"
-      ),
-      htmltools::tags$button(
-        type = "button", role = "tab", `aria-selected` = "false", tabindex = "-1",
-        `data-investment-view` = "province", "Por provincia"
+        `data-comparison-view` = "province", "Por provincia"
       )
     ),
-    htmltools::tags$p(class = "rigi-investment-module__view-note", `data-investment-note` = "true"),
+    htmltools::tags$p(
+      class = "rigi-investment-module__view-note",
+      `data-comparison-note` = "true"
+    ),
     htmltools::tags$div(
-      class = "rigi-investment-module__chart",
-      `data-investment-chart` = "true",
+      class = "rigi-comparison-module__legend",
+      htmltools::tags$span(class = "is-approved", "Aprobados"),
+      htmltools::tags$span(class = "is-evaluation", "En evaluación")
+    ),
+    htmltools::tags$div(
+      class = "rigi-comparison-module__chart",
+      `data-comparison-chart` = "true",
       role = "region",
       `aria-live` = "polite"
     ),
     htmltools::tags$script(
       type = "application/json",
-      `data-investment-data` = "true",
+      `data-comparison-data` = "true",
       htmltools::HTML(json)
     )
   )
 }
 
-schedule_tooltip <- function(data, type) {
-  if (type == "commitment") {
-    paste0(
-      data$proyecto,
-      "<br>Fecha de adhesión: ", fmt_date(data$start),
-      "<br>Fin del horizonte de 24 meses: ", fmt_date(data$end),
-      "<br>Inversión comprometida en activos computables — primeros 2 años: ",
-      fmt_currency_mill(data$amount, accuracy = 0.1)
-    )
-  } else {
-    paste0(
-      data$proyecto,
-      "<br>Fecha de adhesión: ", fmt_date(data$start),
-      "<br>Fecha límite: ", fmt_date(data$end),
-      "<br>Inversión en activos computables: ",
-      fmt_currency_mill(data$amount, accuracy = 0.1)
-    )
-  }
+make_comparison_overview <- function(indicators) {
+  values <- c(as.numeric(indicators$monto_aprobado), as.numeric(indicators$monto_pendiente))
+  maximum <- if (any(is.finite(values))) max(values, na.rm = TRUE) else NA_real_
+  total <- sum(values, na.rm = TRUE)
+  rows <- tibble::tibble(
+    label = c("Aprobados", "En evaluación"),
+    value = values,
+    count = c(as.numeric(indicators$n_aprobados), as.numeric(indicators$n_pendientes)),
+    color = c(bar_color_compare_approved, bar_color_compare_pending)
+  )
+
+  htmltools::tags$section(
+    class = "rigi-status-overview",
+    `aria-label` = "Comparación del monto informado por estado",
+    lapply(seq_len(nrow(rows)), function(index) {
+      share <- ratio_or_na(rows$value[[index]], total)
+      width <- if (is.finite(maximum) && maximum > 0) 100 * rows$value[[index]] / maximum else 0
+      accessible <- paste0(
+        rows$label[[index]], ": ", fmt_currency_mill(rows$value[[index]], accuracy = 1),
+        ", ", fmt_pct(share), ", ", fmt_integer(rows$count[[index]]), " proyectos"
+      )
+      htmltools::tags$div(
+        class = "rigi-status-overview__row",
+        tabindex = "0",
+        `aria-label` = accessible,
+        title = accessible,
+        htmltools::tags$strong(rows$label[[index]]),
+        htmltools::tags$div(
+          class = "rigi-status-overview__track",
+          htmltools::tags$span(style = sprintf("width: %.4f%%; background: %s;", width, rows$color[[index]]))
+        ),
+        htmltools::tags$span(
+          class = "rigi-status-overview__value",
+          paste0(fmt_currency_mill(rows$value[[index]], accuracy = 1), " · ", fmt_pct(share))
+        )
+      )
+    })
+  )
 }
 
-build_schedule_plot <- function(data, type = c("commitment", "deadline")) {
-  type <- match.arg(type)
-  approved <- data |>
-    dplyr::filter(aprobado)
-
-  if (type == "commitment") {
-    eligible <- approved |>
-      dplyr::filter(!is.na(fecha_adhesion_rigi)) |>
-      dplyr::transmute(
-        proyecto,
-        start = as.Date(fecha_adhesion_rigi),
-        end = as.Date(lubridate::add_with_rollback(fecha_adhesion_rigi, lubridate::years(2))),
-        amount = compromiso_activos_2_anios_usd_mill
-      )
-    excluded_missing <- nrow(approved) - nrow(eligible)
-    invalid_count <- 0L
-    color <- "#2563EB"
-    axis_title <- "Horizonte de 24 meses desde la adhesión"
-  } else {
-    complete <- approved |>
-      dplyr::filter(
-        !is.na(fecha_adhesion_rigi),
-        !is.na(fecha_limite_inversion_minima_activos_computables)
-      ) |>
-      dplyr::transmute(
-        proyecto,
-        start = as.Date(fecha_adhesion_rigi),
-        end = as.Date(fecha_limite_inversion_minima_activos_computables),
-        amount = activos_computables_usd_mill
-      )
-    invalid_count <- sum(complete$end < complete$start, na.rm = TRUE)
-    eligible <- complete |>
-      dplyr::filter(end >= start)
-    excluded_missing <- nrow(approved) - nrow(complete)
-    color <- "#0F766E"
-    axis_title <- "Desde la adhesión hasta la fecha límite"
-  }
-
-  if (nrow(eligible) == 0) {
-    return(list(
-      widget = empty_plot_message("No hay fechas completas y válidas para construir este cronograma."),
-      included = 0L,
-      excluded_missing = excluded_missing,
-      invalid = invalid_count
-    ))
-  }
-
-  eligible <- eligible |>
-    dplyr::arrange(start, proyecto) |>
+make_state_composition <- function(data) {
+  total <- sum(data$n_proyectos, na.rm = TRUE)
+  maximum <- max(data$n_proyectos, na.rm = TRUE)
+  colors <- c(
+    "Aprobado" = bar_color_compare_approved,
+    "En evaluación" = bar_color_compare_pending,
+    "Rechazado" = bar_color_neutral
+  )
+  data <- data |>
     dplyr::mutate(
-      label_original = proyecto,
-      label = factor(
-        wrap_axis_label(proyecto, width = 34),
-        levels = rev(unique(wrap_axis_label(proyecto, width = 34)))
+      state_order = match(estado_simplificado, c("Aprobado", "En evaluación", "Rechazado"))
+    ) |>
+    dplyr::arrange(state_order)
+
+  htmltools::tags$section(
+    class = "rigi-status-composition",
+    `aria-label` = "Composición por estado administrativo",
+    lapply(seq_len(nrow(data)), function(index) {
+      state <- as.character(data$estado_simplificado[[index]])
+      value <- as.numeric(data$n_proyectos[[index]])
+      share <- ratio_or_na(value, total)
+      width <- if (is.finite(maximum) && maximum > 0) 100 * value / maximum else 0
+      color <- unname(colors[[state]])
+      if (is.null(color) || is.na(color)) color <- bar_color_neutral
+      accessible <- paste0(state, ": ", fmt_integer(value), " proyectos, ", fmt_pct(share))
+      htmltools::tags$div(
+        class = "rigi-status-composition__row",
+        tabindex = "0",
+        `aria-label` = accessible,
+        title = paste0(accessible, ". Monto: ", fmt_currency_mill(data$monto_usd_mill[[index]], accuracy = 1)),
+        htmltools::tags$strong(state),
+        htmltools::tags$div(
+          class = "rigi-status-composition__track",
+          htmltools::tags$span(style = sprintf("width: %.4f%%; background: %s;", width, color))
+        ),
+        htmltools::tags$span(
+          class = "rigi-status-composition__value",
+          paste0(fmt_integer(value), " · ", fmt_pct(share))
+        )
       )
-    )
-  eligible$tooltip <- schedule_tooltip(eligible, type)
-
-  p <- ggplot2::ggplot(
-    eligible,
-    ggplot2::aes(y = label, text = tooltip)
-  ) +
-    ggplot2::geom_segment(
-      ggplot2::aes(x = start, xend = end, yend = label),
-      linewidth = 7,
-      lineend = "round",
-      color = color,
-      alpha = 0.82
-    ) +
-    ggplot2::geom_point(ggplot2::aes(x = end), color = color, size = 3) +
-    ggplot2::scale_x_date(
-      date_breaks = "6 months",
-      date_labels = "%m/%Y",
-      expand = ggplot2::expansion(mult = c(0.01, 0.04))
-    ) +
-    ggplot2::labs(x = axis_title, y = NULL) +
-    theme_rigi_chart() +
-    ggplot2::theme(legend.position = "none")
-
-  widget <- style_plotly(
-    p,
-    margin_left = smart_left_margin(eligible$label_original, min_margin = 165, max_margin = 290),
-    margin_right = 35,
-    margin_bottom = 70,
-    margin_top = 25,
-    height = smart_height(nrow(eligible), min_height = 420, per_row = 34, max_height = 900),
-    mobile_min_width = 680,
-    vertical_scroll = TRUE,
-    hide_text_on_mobile = TRUE
-  )
-
-  list(
-    widget = widget,
-    included = nrow(eligible),
-    excluded_missing = excluded_missing,
-    invalid = invalid_count
-  )
-}
-
-schedule_status_note <- function(result) {
-  parts <- c(paste0(fmt_integer(result$included), " proyectos incluidos"))
-  if (result$excluded_missing > 0) {
-    parts <- c(parts, paste0(fmt_integer(result$excluded_missing), " excluidos por fechas faltantes"))
-  }
-  if (result$invalid > 0) {
-    parts <- c(parts, paste0(fmt_integer(result$invalid), " excluidos por una fecha límite anterior a la adhesión"))
-  }
-  paste(parts, collapse = " · ")
-}
-
-make_commitment_schedule_module <- function(data) {
-  commitment <- build_schedule_plot(data, "commitment")
-  deadline <- build_schedule_plot(data, "deadline")
-
-  htmltools::tagList(
-    htmltools::tags$section(
-      class = "rigi-schedule-block",
-      htmltools::tags$h3("Compromiso de inversión de los primeros 2 años"),
-      htmltools::tags$p(
-        class = "rigi-schedule-block__description",
-        "Cada barra representa el horizonte temporal de 24 meses desde la fecha de adhesión. El monto comprometido se consulta al tocar o pasar el cursor; la longitud representa tiempo, no inversión ejecutada."
-      ),
-      htmltools::tags$p(class = "rigi-schedule-block__status", schedule_status_note(commitment)),
-      commitment$widget
-    ),
-    htmltools::tags$section(
-      class = "rigi-schedule-block",
-      htmltools::tags$h3("Fecha límite para alcanzar la inversión mínima"),
-      htmltools::tags$p(
-        class = "rigi-schedule-block__description",
-        "Cada barra se extiende desde la fecha de adhesión hasta la fecha límite específica establecida para el proyecto."
-      ),
-      htmltools::tags$p(class = "rigi-schedule-block__status", schedule_status_note(deadline)),
-      deadline$widget
-    ),
-    htmltools::tags$div(
-      class = "note-box rigi-schedule-note",
-      htmltools::tags$strong("Nota: "),
-      "La fecha de adhesión se utiliza como referencia común. El plazo legal de los dos primeros años se computa desde la notificación de la aprobación, mientras que la fecha límite para alcanzar el monto mínimo de activos computables es específica de cada proyecto y surge de su resolución."
-    )
+    })
   )
 }
 
 make_data_dictionary <- function(dictionary) {
-  source_rows <- dictionary |>
-    dplyr::select(variable, nombre_visible, tipo, unidad, descripcion_breve)
-
-  derived_rows <- tibble::tribble(
-    ~variable, ~nombre_visible, ~tipo, ~unidad, ~descripcion_breve,
-    "row_id", "Identificador interno de fila", "Entera", "—", "Secuencia interna estable usada para evitar duplicaciones durante expansiones y agregaciones.",
-    "estado_simplificado", "Estado simplificado", "Categórica", "—", "Clasificación editorial derivada de estado_administrativo: Aprobado, En evaluación, Rechazado u Otros.",
-    "aprobado", "Indicador de proyecto aprobado", "Lógica", "Sí / No", "Vale verdadero cuando el estado administrativo normalizado corresponde a Aprobado.",
-    "pendiente_aprobacion", "Indicador de proyecto en evaluación", "Lógica", "Sí / No", "Vale verdadero cuando el estado administrativo normalizado corresponde a En evaluación.",
-    "fecha_aprobacion", "Fecha operacional de aprobación", "Fecha", "Fecha", "Prioriza la publicación en el Boletín Oficial y utiliza la fecha de adhesión como respaldo cuando corresponde.",
-    "monto_usd_mill", "Inversión total (alias interno)", "Numérica", "Millones de USD", "Alias interno directo de inversion_total_mill_usd utilizado por componentes heredados del Monitor.",
-    "activos_computables_usd_mill", "Inversión en activos computables (alias interno)", "Numérica", "Millones de USD", "Alias interno directo de inversion_activos_computables_mill_usd.",
-    "compromiso_activos_2_anios_usd_mill", "Inversión comprometida — primeros 2 años (alias interno)", "Numérica", "Millones de USD", "Alias interno directo de inversion_activos_computables_comprometida_2_anios_mill_usd.",
-    "empleos_directos_indirectos", "Empleo informado (alias interno)", "Numérica", "Personas", "Alias interno directo de empleos_directos_indirectos_informados.",
-    "sector_simplificado", "Sector simplificado", "Categórica", "—", "Sector de origen con los faltantes rotulados como No informado.",
-    "provincia_expandida", "Provincia expandida", "Categórica", "—", "Una fila por provincia para proyectos multiprovinciales.",
-    "n_provincias_expandida", "Cantidad de provincias del proyecto", "Entera", "Provincias", "Número de provincias obtenido al separar la lista provincial del proyecto.",
-    "proyecto_multiprovincial", "Indicador de proyecto multiprovincial", "Lógica", "Sí / No", "Vale verdadero cuando el proyecto involucra más de una provincia.",
-    "monto_usd_mill_asignado_prop", "Inversión total asignada a la provincia", "Numérica", "Millones de USD", "Inversión total dividida en partes iguales entre las provincias del proyecto.",
-    "activos_computables_usd_mill_asignado_prop", "Inversión en activos computables asignada a la provincia", "Numérica", "Millones de USD", "Inversión en activos computables dividida en partes iguales entre las provincias del proyecto.",
-    "compromiso_activos_2_anios_usd_mill_asignado_prop", "Inversión comprometida en los primeros 2 años asignada a la provincia", "Numérica", "Millones de USD", "Compromiso de los primeros dos años dividido en partes iguales entre las provincias del proyecto.",
-    "empleos_directos_indirectos_asignado_prop", "Empleo informado asignado a la provincia", "Numérica", "Personas", "Empleo informado dividido en partes iguales entre las provincias del proyecto."
+  excluded <- c(
+    "justificacion_preexistencia_boletin_oficial",
+    "clasificacion_preexistencia_boletin_oficial"
   )
+  source_rows <- dictionary |>
+    dplyr::filter(!variable %in% excluded) |>
+    dplyr::select(variable, nombre_visible, tipo, unidad, descripcion_breve) |>
+    rigi_utf8_data_frame(context = "diccionario metodológico")
 
   build_rows <- function(rows) {
     lapply(seq_len(nrow(rows)), function(index) {
@@ -341,31 +579,23 @@ make_data_dictionary <- function(dictionary) {
     })
   }
 
-  dictionary_table <- function(rows, caption) {
-    htmltools::tags$div(
-      class = "rigi-dictionary-scroll",
-      tabindex = "0",
-      `aria-label` = caption,
-      htmltools::tags$table(
-        class = "rigi-dictionary-table",
-        htmltools::tags$caption(caption),
-        htmltools::tags$thead(
-          htmltools::tags$tr(
-            htmltools::tags$th(scope = "col", "Nombre técnico"),
-            htmltools::tags$th(scope = "col", "Nombre visible"),
-            htmltools::tags$th(scope = "col", "Tipo"),
-            htmltools::tags$th(scope = "col", "Unidad"),
-            htmltools::tags$th(scope = "col", "Descripción breve")
-          )
-        ),
-        htmltools::tags$tbody(build_rows(rows))
-      )
+  htmltools::tags$div(
+    class = "rigi-dictionary-scroll",
+    tabindex = "0",
+    `aria-label` = "Variables de origen",
+    htmltools::tags$table(
+      class = "rigi-dictionary-table",
+      htmltools::tags$caption("Variables de origen"),
+      htmltools::tags$thead(
+        htmltools::tags$tr(
+          htmltools::tags$th(scope = "col", "Nombre técnico"),
+          htmltools::tags$th(scope = "col", "Nombre visible"),
+          htmltools::tags$th(scope = "col", "Tipo"),
+          htmltools::tags$th(scope = "col", "Unidad"),
+          htmltools::tags$th(scope = "col", "Descripción breve")
+        )
+      ),
+      htmltools::tags$tbody(build_rows(source_rows))
     )
-  }
-
-  htmltools::tagList(
-    dictionary_table(source_rows, "Variables de origen"),
-    htmltools::tags$h3("Variables derivadas del Monitor"),
-    dictionary_table(derived_rows, "Variables derivadas del Monitor")
   )
 }

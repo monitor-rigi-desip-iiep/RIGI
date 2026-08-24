@@ -1,0 +1,49 @@
+{
+  "checks": {
+    "source_xlsx_unchanged": true,
+    "approved_total_summary_label": true,
+    "surveyed_total_scope_note": true,
+    "hero_meta_removed_from_index": true,
+    "single_card_metric": true,
+    "card_assets_metric_removed": true,
+    "card_commitment_metric_removed": true,
+    "assets_metric_preserved_elsewhere": true,
+    "commitment_metric_preserved_elsewhere": true,
+    "schedule_tabs_present": true,
+    "employment_interactive_module": true,
+    "comparison_interactive_module": true,
+    "derived_dictionary_section_absent": true,
+    "public_dictionary_exclusions": true,
+    "utf8_helpers_preserved": true,
+    "encoding_test_preserved": true,
+    "pending_approval_absent": true,
+    "author_footer_preserved": true,
+    "shared_javascript_loaded_once": true,
+    "shared_component_initializers": true,
+    "workflow_runs_final_ui_qa": true,
+    "javascript_syntax_importaciones": true,
+    "javascript_syntax_investment_modules": true,
+    "javascript_syntax_planes_inversion": true,
+    "javascript_syntax_rigi-responsive": true
+  },
+  "xlsx_sha256": "82d3d74fe58f6b747269bd72058397bd369ee4810b765e1d18bbf438e28cc974",
+  "javascript": {
+    "assets/importaciones.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/investment_modules.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/planes_inversion.js": {
+      "ok": true,
+      "stderr": ""
+    },
+    "assets/rigi-responsive.js": {
+      "ok": true,
+      "stderr": ""
+    }
+  },
+  "failed": []
+}

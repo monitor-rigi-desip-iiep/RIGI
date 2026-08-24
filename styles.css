@@ -5955,3 +5955,385 @@ main.content {
     transition: none;
   }
 }
+
+/* Ajustes visuales finales ------------------------------------------------ */
+.hero-grid {
+  display: block;
+}
+
+.hero-copy {
+  max-width: 72rem;
+}
+
+.rigi-project-card__header {
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
+}
+
+.rigi-project-card__metrics {
+  display: block;
+  min-width: 12rem;
+  max-width: 16rem;
+}
+
+.rigi-project-card__metric span {
+  min-height: 0;
+}
+
+.rigi-ranked-module--employment .rigi-investment-row__track {
+  height: 1rem;
+}
+
+.rigi-schedule-module {
+  margin: 0.9rem 0 1rem;
+  overflow: hidden;
+  background: #FFFFFF;
+  border: 1px solid #D9E3F0;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(11, 45, 92, 0.045);
+}
+
+.rigi-schedule-module__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem 0.75rem;
+}
+
+.rigi-schedule-module__header p {
+  max-width: 72ch;
+  margin: 0;
+  color: #52637A;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.rigi-schedule-module__tabs button {
+  max-width: 28rem;
+  white-space: normal;
+  text-align: left;
+}
+
+.rigi-schedule-module__status {
+  margin: 0;
+  padding: 0.7rem 1.1rem 0;
+  color: #52637A;
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.rigi-schedule-module__status.has-data-error {
+  color: #9A3412;
+}
+
+.rigi-schedule-module__chart {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.rigi-schedule-row {
+  display: grid;
+  grid-template-columns: minmax(11rem, 16rem) minmax(14rem, 1fr) minmax(10.5rem, auto);
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.rigi-schedule-row__label {
+  min-width: 0;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+.rigi-schedule-row__timeline {
+  display: grid;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.rigi-schedule-row__track {
+  position: relative;
+  height: 10px;
+  background: #EDF2F7;
+  border-radius: 999px;
+}
+
+.rigi-schedule-row__bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 2px;
+  background: #2563EB;
+  border-radius: 999px;
+}
+
+.rigi-schedule-row__bar.is-deadline {
+  background: #0F766E;
+}
+
+.rigi-schedule-row__bar.is-deadline::after {
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  background: #0F766E;
+  border: 2px solid #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #0F766E;
+  content: "";
+  transform: translateY(-50%);
+}
+
+.rigi-schedule-row__dates {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #64748B;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.rigi-schedule-row__value {
+  color: #164E9B;
+  font-size: 0.79rem;
+  font-weight: 820;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rigi-schedule-row:focus-visible,
+.rigi-comparison-row:focus-visible,
+.rigi-status-overview__row:focus-visible,
+.rigi-status-composition__row:focus-visible {
+  outline: 3px solid rgba(37, 106, 168, 0.22);
+  outline-offset: 3px;
+  border-radius: 7px;
+}
+
+.rigi-comparison-module__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem 0;
+  color: #52637A;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.rigi-comparison-module__legend span::before {
+  display: inline-block;
+  width: 0.72rem;
+  height: 0.72rem;
+  margin-right: 0.38rem;
+  border-radius: 3px;
+  content: "";
+  vertical-align: -0.08rem;
+}
+
+.rigi-comparison-module__legend .is-approved::before { background: #2563EB; }
+.rigi-comparison-module__legend .is-evaluation::before { background: #C96A24; }
+
+.rigi-comparison-module__chart {
+  display: grid;
+  gap: 1.05rem;
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.rigi-comparison-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.rigi-comparison-row__label {
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+
+.rigi-comparison-row__series {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.rigi-comparison-series {
+  display: grid;
+  grid-template-columns: 6.7rem minmax(7rem, 1fr) minmax(10.5rem, auto);
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.rigi-comparison-series__name {
+  color: #64748B;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.rigi-comparison-series__track,
+.rigi-status-overview__track,
+.rigi-status-composition__track {
+  display: block;
+  height: 0.72rem;
+  overflow: hidden;
+  background: #EDF2F7;
+  border-radius: 999px;
+}
+
+.rigi-comparison-series__bar,
+.rigi-status-overview__track span,
+.rigi-status-composition__track span {
+  display: block;
+  min-width: 2px;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.rigi-comparison-series__value,
+.rigi-status-overview__value,
+.rigi-status-composition__value {
+  color: #164E9B;
+  font-size: 0.76rem;
+  font-weight: 820;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rigi-status-overview,
+.rigi-status-composition {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1rem 0 2rem;
+  padding: 1.1rem;
+  background: #FFFFFF;
+  border: 1px solid #D9E3F0;
+  border-radius: 14px;
+}
+
+.rigi-status-overview__row,
+.rigi-status-composition__row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(10rem, 1fr) minmax(11rem, auto);
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.rigi-status-overview__row strong,
+.rigi-status-composition__row strong {
+  color: #334155;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 900px) {
+  .rigi-project-card__header {
+    grid-template-columns: minmax(0, 1fr) minmax(11rem, auto);
+  }
+
+  .rigi-schedule-row {
+    grid-template-columns: minmax(9rem, 12rem) minmax(10rem, 1fr);
+  }
+
+  .rigi-schedule-row__value {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .rigi-comparison-series {
+    grid-template-columns: 5.8rem minmax(6rem, 1fr);
+  }
+
+  .rigi-comparison-series__value {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .rigi-project-card__header {
+    grid-template-columns: 1fr;
+  }
+
+  .rigi-project-card__metrics {
+    width: 100%;
+    max-width: none;
+  }
+
+  .rigi-schedule-module__header {
+    display: grid;
+  }
+
+  .rigi-schedule-module__tabs {
+    display: grid;
+    overflow: visible;
+  }
+
+  .rigi-schedule-module__tabs button {
+    width: 100%;
+    max-width: none;
+  }
+
+  .rigi-schedule-row,
+  .rigi-comparison-row,
+  .rigi-status-overview__row,
+  .rigi-status-composition__row {
+    grid-template-columns: 1fr;
+    gap: 0.38rem;
+  }
+
+  .rigi-schedule-row__timeline,
+  .rigi-schedule-row__value,
+  .rigi-comparison-row__series,
+  .rigi-status-overview__track,
+  .rigi-status-overview__value,
+  .rigi-status-composition__track,
+  .rigi-status-composition__value {
+    grid-column: 1;
+  }
+
+  .rigi-schedule-row__value,
+  .rigi-status-overview__value,
+  .rigi-status-composition__value {
+    text-align: left;
+  }
+
+  .rigi-comparison-series {
+    grid-template-columns: 5.7rem minmax(0, 1fr);
+  }
+
+  .rigi-comparison-series__value {
+    grid-column: 1 / -1;
+    padding-left: 6.25rem;
+    text-align: left;
+  }
+
+  .rigi-schedule-row__track {
+    height: 8px;
+  }
+
+  .rigi-schedule-row__dates {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .rigi-schedule-row__dates {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rigi-comparison-series {
+    grid-template-columns: 1fr;
+  }
+
+  .rigi-comparison-series__value {
+    grid-column: 1;
+    padding-left: 0;
+  }
+}

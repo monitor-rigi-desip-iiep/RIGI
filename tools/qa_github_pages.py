@@ -44,6 +44,8 @@ def main() -> int:
     bootstrap_text = read(bootstrap_partial)
     plans_js = read("assets/planes_inversion.js")
     imports_js = read("assets/importaciones.js")
+    encoding_helpers = read("R/01_load_data.R") + read("R/04_plots.R")
+    encoding_test = read("tools/qa_encoding.R")
     modules_source = read("R/05_planes_inversion.R") + read("R/06_importaciones.R")
 
     git_check = subprocess.run(
@@ -107,6 +109,41 @@ def main() -> int:
         "ci_removes_generated_state": all(
             token in workflow_text
             for token in ["rm -rf .quarto _freeze _site", "-name '*_cache'", "quarto render"]
+        ),
+        "utf8_helpers_are_centralized": all(
+            token in encoding_helpers
+            for token in [
+                "rigi_as_utf8 <- function",
+                "rigi_utf8_data_frame <- function",
+                "rigi_sort_unique_text <- function",
+                'rigi_sort_unique_text(values, "ordenamiento de filtros de proyectos")',
+            ]
+        ),
+        "encoding_regression_test_present": all(
+            token in encoding_test
+            for token in [
+                'Encoding(result) <- "unknown"',
+                '"En evaluación"',
+                "rigi_filter_values(split_provinces, split = TRUE)",
+                "htmltools::renderTags(widget)$html",
+            ]
+        ),
+        "ci_runs_encoding_regression": "Rscript tools/qa_encoding.R" in workflow_text,
+        "ci_checks_investment_javascript": (
+            "node --check assets/investment_modules.js" in workflow_text
+        ),
+        "ci_verifies_new_rendered_modules": all(
+            token in workflow_text
+            for token in [
+                "assets/investment_modules.js",
+                "rigi-investment-approved-total-investment",
+                "rigi-investment-approved-computable-assets",
+                "rigi-investment-approved-two-year-commitment",
+                "rigi-investment-evaluation-total-investment",
+                "rigi-employment-approved-employment",
+                "rigi-commitment-schedule",
+                "rigi-comparison-territorial-sectoral",
+            ]
         ),
         "quarto_cache_and_freeze_disabled": (
             quarto["execute"]["cache"] is False and quarto["execute"]["freeze"] is False

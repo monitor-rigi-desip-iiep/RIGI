@@ -68,9 +68,15 @@ jobs:
           git ls-files --error-unmatch _partials/setup-core.qmd >/dev/null
           grep -Fq '<script src="assets/rigi-responsive.js" defer></script>' _partials/setup-core.qmd
           node --check assets/rigi-responsive.js
+          node --check assets/investment_modules.js
           node --check assets/planes_inversion.js
           node --check assets/importaciones.js
           python3 tools/qa_mobile_layout.py
+
+      - name: Validate R text encoding and project cards
+        run: |
+          Rscript tools/qa_encoding.R
+          python3 tools/qa_final_ui_refinements.py
 
       - name: Remove generated state from previous renders
         shell: bash
@@ -90,14 +96,37 @@ jobs:
 
           for asset in \
             assets/rigi-responsive.js \
+            assets/investment_modules.js \
             assets/planes_inversion.js \
             assets/importaciones.js; do
             test -s "_site/$asset"
           done
 
           grep -Fq 'site_libs/plotly-main-' "$page"
+          grep -Fq 'assets/investment_modules.js' "$page"
           grep -Fq 'assets/planes_inversion.js' "$page"
           grep -Fq 'assets/importaciones.js' "$page"
+
+          evaluation_page="_site/evaluacion.html"
+          database_page="_site/base-datos.html"
+          comparison_page="_site/comparacion.html"
+          test -s "$evaluation_page"
+          test -s "$database_page"
+          test -s "$comparison_page"
+          grep -Fq 'En evaluación' "$evaluation_page"
+          grep -Fq 'En evaluación' "$database_page"
+
+          for module_id in \
+            rigi-investment-approved-total-investment \
+            rigi-investment-approved-computable-assets \
+            rigi-investment-approved-two-year-commitment; do
+            grep -Fq "$module_id" "$page"
+          done
+
+          grep -Fq 'rigi-investment-evaluation-total-investment' "$evaluation_page"
+          grep -Fq 'rigi-employment-approved-employment' "$page"
+          grep -Fq 'rigi-commitment-schedule' "$page"
+          grep -Fq 'rigi-comparison-territorial-sectoral' "$comparison_page"
 
           responsive_count="$(grep -Fo 'assets/rigi-responsive.js' "$page" | wc -l | tr -d ' ')"
           test "$responsive_count" -eq 1

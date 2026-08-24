@@ -42,7 +42,8 @@ load_importaciones_rigi <- function(path = importaciones_path) {
       primer_periodo = readr::col_integer(),
       ultimo_periodo = readr::col_integer()
     )
-  )
+  ) |>
+    rigi_utf8_data_frame(context = "CSV / importaciones")
 
   missing_cols <- setdiff(importaciones_required_columns, names(data))
   if (length(missing_cols) > 0) {
@@ -188,7 +189,7 @@ make_importaciones_checkbox <- function(name, value, label, class_name) {
 }
 
 importaciones_project_colors <- function(projects) {
-  projects <- sort(unique(as.character(projects)))
+  projects <- rigi_sort_unique_text(projects, "proyectos de importaciones")
   palette <- c(
     "#2563EB", "#7C3AED", "#0F766E", "#F97316", "#BE123C",
     "#0284C7", "#4F46E5", "#15803D", "#C2410C", "#0E7490",
@@ -251,7 +252,9 @@ build_importaciones_project_metadata <- function(projects, project_data) {
       adhesion = adhesion_mini
     )
 
-  metadata <- tibble::tibble(project = sort(unique(projects))) |>
+  metadata <- tibble::tibble(
+    project = rigi_sort_unique_text(projects, "metadata de proyectos de importaciones")
+  ) |>
     dplyr::left_join(lookup, by = "project") |>
     dplyr::mutate(
       estado = dplyr::coalesce(.data$estado, "No informado"),
@@ -296,8 +299,8 @@ make_importaciones_module <- function(data, project_data) {
 
   min_month <- min(prepared$fecha_mes, na.rm = TRUE)
   max_month <- max(prepared$fecha_mes, na.rm = TRUE)
-  sectors <- sort(unique(data_client$sector))
-  projects <- sort(unique(data_client$proyecto))
+  sectors <- rigi_sort_unique_text(data_client$sector, "sectores de importaciones")
+  projects <- rigi_sort_unique_text(data_client$proyecto, "proyectos de importaciones")
   sector_colors <- importaciones_sector_colors(sectors)
   project_colors <- importaciones_project_colors(projects)
   project_metadata <- build_importaciones_project_metadata(projects, project_data)

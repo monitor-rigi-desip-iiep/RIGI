@@ -587,7 +587,7 @@ make_summary_dashboard <- function(ind, tables) {
     htmltools::tags$div(
       class = "summary-metrics-grid",
       summary_metric_card(
-        "Monto de proyectos aprobados",
+        "Inversión total de proyectos aprobados",
         fmt_currency_mill(ind$monto_aprobado, accuracy = 1),
         paste0(
           "Representa el ",
@@ -599,7 +599,7 @@ make_summary_dashboard <- function(ind, tables) {
       summary_metric_card(
         "Inversión total relevada",
         fmt_currency_mill(ind$monto_total, accuracy = 1),
-        "Suma de la inversión total para los proyectos con información disponible",
+        "Incluye proyectos aprobados y en evaluación con información disponible.",
         "investment-total"
       ),
       summary_metric_card(
@@ -1935,12 +1935,15 @@ render_project_sources_html <- function(sources) {
 }
 
 rigi_filter_values <- function(x, split = FALSE) {
-  values <- as.character(x)
-  values <- values[!is.na(values) & trimws(values) != ""]
+  values <- rigi_as_utf8(x, "valores de filtros de proyectos")
+  values <- trimws(values)
+  values <- values[!is.na(values) & values != ""]
   if (split && length(values) > 0) {
     values <- unlist(strsplit(values, ";", fixed = TRUE), use.names = FALSE)
   }
-  sort(unique(trimws(values)), method = "radix")
+  values <- rigi_as_utf8(trimws(values), "valores separados de filtros de proyectos")
+  values <- values[!is.na(values) & values != ""]
+  rigi_sort_unique_text(values, "ordenamiento de filtros de proyectos")
 }
 
 rigi_filter_select <- function(id, label, values, data_filter) {
@@ -2064,14 +2067,6 @@ make_rigi_project_card <- function(row, table_type, index) {
       rigi_card_amount(value("monto_usd_mill"))
     ),
     rigi_card_field(
-      "Inversión en activos computables",
-      rigi_card_amount(value("activos_computables_usd_mill"))
-    ),
-    rigi_card_field(
-      "Inversión comprometida en activos computables — primeros 2 años",
-      rigi_card_amount(value("compromiso_activos_2_anios_usd_mill"))
-    ),
-    rigi_card_field(
       "Empleos directos e indirectos",
       rigi_card_integer(value("empleos_directos_indirectos"))
     ),
@@ -2117,16 +2112,6 @@ make_rigi_project_card <- function(row, table_type, index) {
           class = "rigi-project-card__metric rigi-project-card__metric--primary",
           htmltools::tags$span("Inversión total"),
           htmltools::tags$strong(rigi_card_amount(value("monto_usd_mill")))
-        ),
-        if (approved) htmltools::tags$div(
-          class = "rigi-project-card__metric",
-          htmltools::tags$span("Inversión en activos computables"),
-          htmltools::tags$strong(rigi_card_amount(value("activos_computables_usd_mill")))
-        ),
-        if (approved) htmltools::tags$div(
-          class = "rigi-project-card__metric",
-          htmltools::tags$span("Inversión comprometida en activos computables — primeros 2 años"),
-          htmltools::tags$strong(rigi_card_amount(value("compromiso_activos_2_anios_usd_mill")))
         )
       )
     ),

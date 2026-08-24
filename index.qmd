@@ -26,29 +26,6 @@ El **Monitor de Proyectos RIGI** reúne, sistematiza y actualiza información p�
 [`r indicadores$fecha_actualizacion_fmt`]{.hero-update__value}
 :::
 :::
-
-::: hero-meta-grid
-::: hero-meta-item
-[Proyectos relevados]{.meta-label}
-[`r fmt_integer(indicadores$n_total)`]{.meta-value}
-:::
-
-::: hero-meta-item
-[Proyectos aprobados]{.meta-label}
-[`r fmt_integer(indicadores$n_aprobados)`]{.meta-value}
-:::
-
-::: hero-meta-item
-[Monto de proyectos aprobados]{.meta-label}
-[`r fmt_currency_mill(indicadores$monto_aprobado, accuracy = 1)`]{.meta-value}
-:::
-
-::: hero-meta-item
-[Proyectos en evaluación]{.meta-label}
-[`r fmt_integer(indicadores$n_pendientes)`]{.meta-value}
-:::
-
-:::
 :::
 :::
 

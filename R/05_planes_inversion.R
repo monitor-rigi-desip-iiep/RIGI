@@ -46,6 +46,7 @@ load_planes_inversion <- function(path = planes_inversion_path) {
   }
 
   data <- readxl::read_excel(path, sheet = planes_inversion_sheet) |>
+    rigi_utf8_data_frame(context = paste0("XLSX / ", planes_inversion_sheet)) |>
     janitor::clean_names()
 
   missing_cols <- setdiff(planes_required_columns, names(data))
@@ -244,8 +245,8 @@ make_planes_inversion_module <- function(data) {
   default_year_end <- eligible_end_years[
     which.min(abs(eligible_end_years - 2034L))
   ]
-  sectors <- sort(unique(data_client$sector))
-  subsectors <- sort(unique(data_client$subsector))
+  sectors <- rigi_sort_unique_text(data_client$sector, "sectores de planes de inversión")
+  subsectors <- rigi_sort_unique_text(data_client$subsector, "subsectores de planes de inversión")
   sector_colors <- planes_sector_colors(sectors)
 
   data_json <- jsonlite::toJSON(
