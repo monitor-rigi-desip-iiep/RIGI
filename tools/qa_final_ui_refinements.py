@@ -30,6 +30,12 @@ workflow = read(".github/workflows/render.yml")
 card_start = plots.index("make_rigi_project_card <- function")
 card_end = plots.index("make_rigi_project_cards <- function")
 card_source = plots[card_start:card_end]
+detail_start = card_source.index("detail_fields <-")
+detail_end = card_source.index("htmltools::tags$article(", detail_start)
+detail_source = card_source[detail_start:detail_end]
+header_start = card_source.index('class = "rigi-project-card__header"')
+header_end = card_source.index('class = "rigi-project-card__summary-grid"', header_start)
+header_source = card_source[header_start:header_end]
 
 public_sources = "\n".join(
     read(path)
@@ -57,11 +63,18 @@ checks = {
         "Incluye proyectos aprobados y en evaluación con información disponible." in plots
     ),
     "hero_meta_removed_from_index": "hero-meta-grid" not in index,
-    "single_card_metric": card_source.count('htmltools::tags$span("Inversión total")') == 1,
-    "card_assets_metric_removed": "Inversión en activos computables" not in card_source,
-    "card_commitment_metric_removed": (
-        "Inversión comprometida en activos computables" not in card_source
+    "single_card_header_metric": header_source.count('htmltools::tags$span("Inversión total")') == 1,
+    "card_assets_metric_absent_from_header": "Inversión en activos computables" not in header_source,
+    "card_commitment_metric_absent_from_header": (
+        "Inversión comprometida en activos computables" not in header_source
     ),
+    "card_assets_metric_present_in_details": (
+        detail_source.count('"Inversión en activos computables"') == 1
+    ),
+    "card_commitment_metric_present_in_details": (
+        detail_source.count('"Inversión comprometida en activos computables — primeros 2 años"') == 1
+    ),
+    "card_missing_amounts_are_not_zero_filled": 'return("No informado")' in plots,
     "assets_metric_preserved_elsewhere": "Inversión en activos computables" in approved,
     "commitment_metric_preserved_elsewhere": (
         "Inversión comprometida en activos computables" in approved
@@ -84,6 +97,16 @@ checks = {
         "make_comparison_explorer(tablas)" in comparison
         and "data-comparison-module" in modules
         and "data-comparison-limit" in modules
+    ),
+    "peelp_share_module": (
+        "make_peelp_share_module(indicadores)" in approved
+        and "data-peelp-share-module" in modules
+        and "plot_peelp_share(indicadores)" not in approved
+    ),
+    "peelp_ranking_module": (
+        "make_peelp_ranking_module(" in approved
+        and 'widget_id = "rigi-peelp-ranking"' in modules
+        and "plot_top_proyectos_monto(" not in approved[approved.index("{#peelp}"):]
     ),
     "derived_dictionary_section_absent": (
         "Variables derivadas del Monitor" not in methodology

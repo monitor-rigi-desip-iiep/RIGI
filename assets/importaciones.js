@@ -3,10 +3,30 @@
 
   const INIT_RETRY_DELAY_MS = 100;
   const INIT_MAX_ATTEMPTS = 100;
+  const INIT_ERROR_MESSAGE = "No se pudo cargar el componente gráfico.";
+  const INIT_ERROR_MESSAGE_ID = "importaciones-initialization-message";
   const RESPONSIVE_SCRIPT_URL = new URL("assets/rigi-responsive.js", document.baseURI).href;
   let initAttempts = 0;
   let initRetryTimer = null;
   let initErrorReported = false;
+
+  function clearInitializationMessage(root) {
+    const message = document.getElementById(INIT_ERROR_MESSAGE_ID);
+    if (message && root.contains(message)) message.remove();
+  }
+
+  function showInitializationMessage(root) {
+    let message = document.getElementById(INIT_ERROR_MESSAGE_ID);
+    if (!message) {
+      message = document.createElement("p");
+      message.id = INIT_ERROR_MESSAGE_ID;
+      message.className = "rigi-chart-initialization-error";
+      message.setAttribute("role", "alert");
+      message.setAttribute("aria-live", "assertive");
+      root.insertBefore(message, root.firstChild);
+    }
+    message.textContent = INIT_ERROR_MESSAGE;
+  }
 
   function missingDependencies() {
     const missing = [];
@@ -28,6 +48,7 @@
     }
 
     root.dataset.initializationError = missing.join(", ");
+    showInitializationMessage(root);
     if (!initErrorReported) {
       initErrorReported = true;
       console.error(
@@ -49,6 +70,7 @@
     }
 
     delete root.dataset.initializationError;
+    clearInitializationMessage(root);
     root.dataset.initialized = "true";
 
     const rawData = JSON.parse(document.getElementById("importaciones-data").textContent || "[]").map((d) => ({

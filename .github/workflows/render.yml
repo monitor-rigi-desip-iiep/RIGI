@@ -76,23 +76,39 @@ jobs:
       - name: Validate R text encoding and project cards
         run: |
           Rscript tools/qa_encoding.R
+          quarto --version
+          Rscript tools/diagnose_plotly_dependency.R
           python3 tools/qa_final_ui_refinements.py
+          python3 tools/qa_peelp_cards.py
 
       - name: Remove generated state from previous renders
         shell: bash
         run: |
           rm -rf .quarto _freeze _site
           find . -maxdepth 1 -type d -name '*_cache' -exec rm -rf {} +
+          find . -maxdepth 1 -type d -name '*_files' -exec rm -rf {} +
 
       - name: Render Quarto project
         run: quarto render
 
+      - name: Install browser for rendered-module QA
+        run: |
+          python3 -m pip install --disable-pip-version-check "playwright>=1.45,<2"
+          python3 -m playwright install --with-deps chromium
+
       - name: Verify rendered interactive modules
+        env:
+          RIGI_REQUIRE_BROWSER: "1"
         shell: bash
         run: |
           set -euo pipefail
           page="_site/aprobados.html"
           test -s "$page"
+          test -s _site/aprobados.html
+          test -s _site/assets/planes_inversion.js
+          test -s _site/assets/importaciones.js
+          grep -Fq 'planes-inversion-module' _site/aprobados.html
+          grep -Fq 'importaciones-module' _site/aprobados.html
 
           for asset in \
             assets/rigi-responsive.js \
@@ -103,6 +119,12 @@ jobs:
           done
 
           grep -Fq 'site_libs/plotly-main-' "$page"
+          mapfile -t plotly_refs < <(
+            grep -oE 'site_libs/plotly-main-[^"[:space:]]+/plotly-latest\.min\.js' "$page"
+          )
+          test "${#plotly_refs[@]}" -eq 1
+          test -s "_site/${plotly_refs[0]}"
+          find _site/site_libs -path '*plotly-main-*' -type f -name '*.js' -print
           grep -Fq 'assets/investment_modules.js' "$page"
           grep -Fq 'assets/planes_inversion.js' "$page"
           grep -Fq 'assets/importaciones.js' "$page"
@@ -126,6 +148,8 @@ jobs:
           grep -Fq 'rigi-investment-evaluation-total-investment' "$evaluation_page"
           grep -Fq 'rigi-employment-approved-employment' "$page"
           grep -Fq 'rigi-commitment-schedule' "$page"
+          grep -Fq 'rigi-peelp-share' "$page"
+          grep -Fq 'rigi-peelp-ranking' "$page"
           grep -Fq 'rigi-comparison-territorial-sectoral' "$comparison_page"
 
           responsive_count="$(grep -Fo 'assets/rigi-responsive.js' "$page" | wc -l | tr -d ' ')"
@@ -144,6 +168,9 @@ jobs:
             impo-project-cumulative-chart; do
             grep -Fq "$element_id" "$page"
           done
+
+          python3 tools/qa_plotly_modules.py
+          python3 tools/qa_ranked_modules.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

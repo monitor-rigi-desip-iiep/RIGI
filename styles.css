@@ -2105,6 +2105,36 @@ h3 {
   }
 }
 
+/* PEELP y detalle monetario de fichas ------------------------------------ */
+.rigi-peelp-share-module {
+  margin-top: 0.9rem;
+  margin-bottom: 1.8rem;
+}
+
+.rigi-peelp-share-module__row strong {
+  color: #0B2D5C;
+}
+
+#rigi-peelp-ranking .rigi-investment-row__track {
+  height: 1rem;
+  border-radius: 999px;
+}
+
+.rigi-project-card__details-grid .rigi-card-field:nth-child(-n+3) dd {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .rigi-peelp-share-module {
+    padding: 0.95rem;
+  }
+
+  .rigi-peelp-share-module__row {
+    gap: 0.32rem;
+  }
+}
+
 @media (max-width: 640px) {
   .hero-section {
     padding: 26px 20px;
@@ -2309,6 +2339,21 @@ h3 {
 
 .plans-module {
   margin: 0.35rem 0 1.75rem;
+}
+
+.rigi-chart-initialization-error {
+  margin: 0.85rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #F5C2C7;
+  border-left: 4px solid #B42318;
+  border-radius: 10px;
+  background: #FFF5F5;
+  color: #7A271A;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: left !important;
+  word-spacing: normal !important;
 }
 
 .plans-interaction-note {

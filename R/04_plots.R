@@ -1120,96 +1120,6 @@ plot_compare_counts_montos <- function(ind, title = NULL) {
   )
 }
 
-plot_peelp_share <- function(ind, title = NULL) {
-  peelp_amount <- as.numeric(ind$monto_aprobados_exportacion_largo_plazo)
-  approved_amount <- as.numeric(ind$monto_aprobado)
-
-  if (
-    length(peelp_amount) == 0 ||
-      length(approved_amount) == 0 ||
-      !is.finite(peelp_amount) ||
-      !is.finite(approved_amount) ||
-      approved_amount <= 0
-  ) {
-    return(empty_plot_message("No hay datos suficientes para calcular la participación PEELP."))
-  }
-
-  data_plot <- tibble::tibble(
-    clasificacion = c("PEELP", "No PEELP"),
-    monto_usd_mill = c(peelp_amount, max(approved_amount - peelp_amount, 0))
-  ) |>
-    dplyr::mutate(
-      participacion = monto_usd_mill / sum(monto_usd_mill),
-      etiqueta = paste0(clasificacion, "<br>", fmt_pct(participacion)),
-      tooltip = paste0(
-        "<b>", clasificacion, "</b>",
-        "<br>Monto: ", fmt_currency_mill(monto_usd_mill, accuracy = 1),
-        "<br>Participación en el monto de proyectos aprobados: ", fmt_pct(participacion)
-      )
-    )
-
-  circular_plot <- plotly::plot_ly(
-    data = data_plot,
-    labels = ~clasificacion,
-    values = ~monto_usd_mill,
-    type = "pie",
-    sort = FALSE,
-    direction = "clockwise",
-    rotation = 90,
-    text = ~etiqueta,
-    textinfo = "text",
-    textposition = "inside",
-    insidetextorientation = "horizontal",
-    insidetextfont = list(
-      family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      color = c("#FFFFFF", "#0F172A"),
-      size = 13
-    ),
-    hovertext = ~tooltip,
-    hoverinfo = "text",
-    marker = list(
-      colors = c(bar_color_peelp, "#94A3B8"),
-      line = list(color = "#FFFFFF", width = 2)
-    )
-  ) |>
-    plotly::layout(
-      title = if (is.null(title)) NULL else list(text = wrap_title(title)),
-      height = 330,
-      autosize = TRUE,
-      showlegend = TRUE,
-      dragmode = FALSE,
-      margin = list(
-        l = 16,
-        r = 16,
-        b = 70,
-        t = if (is.null(title)) 22 else 62
-      ),
-      paper_bgcolor = "rgba(0,0,0,0)",
-      plot_bgcolor = "rgba(0,0,0,0)",
-      font = list(
-        family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        color = "#334155",
-        size = 12
-      ),
-      legend = list(
-        orientation = "h",
-        x = 0.5,
-        xanchor = "center",
-        y = -0.04,
-        yanchor = "top",
-        font = list(size = 11)
-      ),
-      hoverlabel = list(
-        bgcolor = "#FFFFFF",
-        bordercolor = "#CBD5E1",
-        font = list(color = "#0F172A")
-      ),
-      uniformtext = list(mode = "hide", minsize = 11)
-    )
-
-  lock_plotly_interactions(circular_plot)
-}
-
 make_chart_context_note <- function(...) {
   htmltools::div(
     class = "chart-context-note",
@@ -2058,14 +1968,22 @@ make_rigi_project_card <- function(row, table_type, index) {
 
   detail_fields <- htmltools::tags$dl(
     class = "rigi-project-card__details-grid",
-    rigi_card_field("Empresa", company),
-    rigi_card_field("Titular / VPU", holder),
-    rigi_card_field("Subsector", value("subsector")),
-    rigi_card_field("Localidad / región", value("localidad_region")),
     rigi_card_field(
       "Inversión total",
       rigi_card_amount(value("monto_usd_mill"))
     ),
+    rigi_card_field(
+      "Inversión en activos computables",
+      rigi_card_amount(value("activos_computables_usd_mill"))
+    ),
+    rigi_card_field(
+      "Inversión comprometida en activos computables — primeros 2 años",
+      rigi_card_amount(value("compromiso_activos_2_anios_usd_mill"))
+    ),
+    rigi_card_field("Empresa", company),
+    rigi_card_field("Titular / VPU", holder),
+    rigi_card_field("Subsector", value("subsector")),
+    rigi_card_field("Localidad / región", value("localidad_region")),
     rigi_card_field(
       "Empleos directos e indirectos",
       rigi_card_integer(value("empleos_directos_indirectos"))

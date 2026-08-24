@@ -84,6 +84,10 @@ make_investment_explorer(
 
 Los planes de inversión presentan la distribución anual de los montos de inversión informados para los proyectos aprobados, desagregados por sector y subsector. La información se expresa en millones de dólares y permite analizar tanto el flujo anual previsto como su evolución acumulada a lo largo del tiempo.
 
+```{r plotly-dependency}
+rigi_plotly_dependency()
+```
+
 ```{r}
 make_planes_inversion_module(planes_inversion)
 ```
@@ -130,18 +134,15 @@ make_kpi_cards_exportacion_largo_plazo(indicadores)
 ### Participación en el monto de proyectos aprobados
 
 ```{r}
-plot_peelp_share(indicadores)
+make_peelp_share_module(indicadores)
 ```
 
 ### Principales proyectos PEELP por monto
 
 ```{r}
-plot_top_proyectos_monto(
-  tablas$aprobados_exportacion_largo_plazo,
-  title = NULL,
-  fill_color = bar_color_peelp,
-  total_value = indicadores$monto_aprobado,
-  share_reference = "del monto informado de proyectos aprobados"
+make_peelp_ranking_module(
+  data = tablas$aprobados_exportacion_largo_plazo,
+  approved_total = indicadores$monto_aprobado
 )
 ```
 

@@ -3,6 +3,93 @@
 # data/RIGI_planes_inversion.xlsx. Genera validaciones, descargas y un módulo
 # interactivo compatible con un sitio estático de Quarto/GitHub Pages.
 
+# Dependencia explícita de Plotly --------------------------------------------
+# Los módulos de Planes e Importaciones dibujan los gráficos directamente con
+# window.Plotly, sin crear un htmlwidget. Por eso la dependencia se adjunta a
+# una etiqueta mínima y no queda supeditada a la presencia incidental de otro
+# gráfico Plotly en la página.
+
+rigi_plotly_dependencies <- function() {
+  static_dependencies <- htmlwidgets::getDependency(
+    "plotly",
+    package = "plotly"
+  )
+
+  if (inherits(static_dependencies, "html_dependency")) {
+    static_dependencies <- list(static_dependencies)
+  }
+
+  # plotly-main y sus auxiliares se agregan dinámicamente al htmlwidget. El
+  # objeto mínimo se usa únicamente como fuente de metadatos de dependencias:
+  # no se imprime, no se adjunta y no genera un gráfico oculto en la página.
+  minimal_widget <- plotly::plot_ly(
+    x = 0,
+    y = 0,
+    type = "scatter",
+    mode = "markers"
+  )
+  dynamic_dependencies <- minimal_widget$dependencies
+
+  if (inherits(dynamic_dependencies, "html_dependency")) {
+    dynamic_dependencies <- list(dynamic_dependencies)
+  }
+
+  dependencies <- htmltools::resolveDependencies(
+    c(static_dependencies, dynamic_dependencies)
+  )
+
+  dependency_names <- vapply(
+    dependencies,
+    function(dependency) {
+      if (is.null(dependency$name)) "" else as.character(dependency$name)
+    },
+    character(1)
+  )
+
+  dependency_scripts <- unlist(
+    lapply(dependencies, function(dependency) dependency$script),
+    recursive = TRUE,
+    use.names = FALSE
+  )
+  dependency_scripts <- as.character(dependency_scripts)
+
+  has_plotly_main <-
+    any(startsWith(dependency_names, "plotly-main")) ||
+    any(grepl("(^|/)plotly-latest\\.min\\.js$", dependency_scripts))
+
+  if (length(dependencies) == 0L || !has_plotly_main) {
+    stop(
+      paste0(
+        "No se pudo resolver Plotly.js desde el paquete R plotly. ",
+        "Dependencias detectadas: ",
+        paste(dependency_names, collapse = ", "),
+        ". Scripts detectados: ",
+        paste(dependency_scripts, collapse = ", "),
+        "."
+      ),
+      call. = FALSE
+    )
+  }
+
+  dependencies
+}
+
+rigi_plotly_dependency <- function() {
+  dependencies <- rigi_plotly_dependencies()
+
+  htmltools::singleton(
+    htmltools::attachDependencies(
+      htmltools::tags$span(
+        class = "rigi-plotly-dependency",
+        hidden = "hidden",
+        `aria-hidden` = "true"
+      ),
+      dependencies,
+      append = TRUE
+    )
+  )
+}
+
 planes_inversion_path <- file.path("data", "RIGI_planes_inversion.xlsx")
 planes_inversion_sheet <- "Datos_long"
 

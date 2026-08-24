@@ -15,7 +15,11 @@
 
   function finiteNumber(value) {
     if (value === null || value === undefined || value === "") return null;
-    const parsed = Number(value);
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value !== "string") return null;
+    const normalized = value.trim();
+    if (!normalized) return null;
+    const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
   }
 
@@ -92,15 +96,25 @@
     const note = root.querySelector("[data-ranked-note]");
     const limit = root.querySelector("[data-ranked-limit]");
     const buttons = Array.from(root.querySelectorAll("[data-ranked-view]"));
-    if (!chart || !note || !limit || !buttons.length) return;
+    if (!chart || !note || !limit) return;
     const config = readJson(root, "[data-ranked-data]", chart);
     if (!config) return;
 
-    let activeView = "project";
+    let activeView = config.defaultView || Object.keys(config.views || {})[0] || "project";
+    if (config.defaultLimit && Array.from(limit.options).some(function (option) {
+      return option.value === config.defaultLimit;
+    })) {
+      limit.value = config.defaultLimit;
+    }
     const valueFormatter = config.valueType === "employment" ? formatEmployment : formatCurrency;
+    const noteOverride = typeof config.noteOverride === "string"
+      ? config.noteOverride.trim()
+      : "";
 
     function updateNote() {
-      if (activeView === "province") {
+      if (noteOverride) {
+        note.textContent = noteOverride;
+      } else if (activeView === "province") {
         note.textContent = config.valueType === "employment"
           ? "Los proyectos multiprovinciales se distribuyen en partes iguales entre sus provincias. Las fracciones se conservan y se muestran con hasta un decimal cuando es necesario."
           : "Los proyectos multiprovinciales se distribuyen en partes iguales entre sus provincias; la suma provincial reconcilia con el total del universo.";
@@ -122,10 +136,12 @@
         const value = finiteNumber(row.value);
         return value === null ? max : Math.max(max, value);
       }, 0);
-      const total = rows.reduce(function (sum, row) {
+      const calculatedTotal = rows.reduce(function (sum, row) {
         const value = finiteNumber(row.value);
         return value === null ? sum : sum + value;
       }, 0);
+      const configuredTotal = finiteNumber(config.shareTotal);
+      const total = configuredTotal !== null ? configuredTotal : calculatedTotal;
 
       chart.replaceChildren();
       updateNote();
@@ -185,7 +201,7 @@
       render();
     }
 
-    bindTabs(buttons, "rankedView", activate);
+    if (buttons.length) bindTabs(buttons, "rankedView", activate);
     limit.addEventListener("change", render);
     root.dataset.rankedReady = "true";
     render();

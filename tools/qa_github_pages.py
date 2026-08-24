@@ -44,6 +44,10 @@ def main() -> int:
     bootstrap_text = read(bootstrap_partial)
     plans_js = read("assets/planes_inversion.js")
     imports_js = read("assets/importaciones.js")
+    approved_qmd = read("aprobados.qmd")
+    plotly_dependency_source = read("R/05_planes_inversion.R")
+    ranked_module_source = read("R/07_investment_modules.R")
+    ranked_module_javascript = read("assets/investment_modules.js")
     encoding_helpers = read("R/01_load_data.R") + read("R/04_plots.R")
     encoding_test = read("tools/qa_encoding.R")
     modules_source = read("R/05_planes_inversion.R") + read("R/06_importaciones.R")
@@ -95,6 +99,30 @@ def main() -> int:
             and 'root.dataset.initialized = "true"' in source
             for source in [plans_js, imports_js]
         ),
+        "plotly_dependency_is_explicit": all(
+            token in plotly_dependency_source
+            for token in [
+                "rigi_plotly_dependency <- function",
+                "htmlwidgets::getDependency(",
+                'package = "plotly"',
+                "plotly::plot_ly(",
+                "minimal_widget$dependencies",
+                "htmltools::resolveDependencies(",
+                "htmltools::attachDependencies(",
+                'startsWith(dependency_names, "plotly-main")',
+            ]
+        ) and "plotly:::plotlyMainBundle" not in plotly_dependency_source,
+        "plotly_dependency_called_once_before_modules": (
+            approved_qmd.count("rigi_plotly_dependency()") == 1
+            and approved_qmd.index("rigi_plotly_dependency()")
+            < approved_qmd.index("make_planes_inversion_module(")
+        ),
+        "visible_accessible_initialization_failure": all(
+            'No se pudo cargar el componente gráfico.' in source
+            and 'className = "rigi-chart-initialization-error"' in source
+            and 'setAttribute("role", "alert")' in source
+            for source in [plans_js, imports_js]
+        ),
         "ci_trigger_coverage": all(
             path in push_paths
             for path in ["*.qmd", "_partials/**", "assets/**", "R/**", "data/**", "downloads/**"]
@@ -108,7 +136,12 @@ def main() -> int:
         ),
         "ci_removes_generated_state": all(
             token in workflow_text
-            for token in ["rm -rf .quarto _freeze _site", "-name '*_cache'", "quarto render"]
+            for token in [
+                "rm -rf .quarto _freeze _site",
+                "-name '*_cache'",
+                "-name '*_files'",
+                "quarto render",
+            ]
         ),
         "utf8_helpers_are_centralized": all(
             token in encoding_helpers
@@ -129,6 +162,13 @@ def main() -> int:
             ]
         ),
         "ci_runs_encoding_regression": "Rscript tools/qa_encoding.R" in workflow_text,
+        "ci_runs_plotly_dependency_diagnostic": all(
+            token in workflow_text
+            for token in [
+                "Rscript tools/diagnose_plotly_dependency.R",
+                "quarto --version",
+            ]
+        ),
         "ci_checks_investment_javascript": (
             "node --check assets/investment_modules.js" in workflow_text
         ),
@@ -142,7 +182,53 @@ def main() -> int:
                 "rigi-investment-evaluation-total-investment",
                 "rigi-employment-approved-employment",
                 "rigi-commitment-schedule",
+                "rigi-peelp-share",
+                "rigi-peelp-ranking",
                 "rigi-comparison-territorial-sectoral",
+            ]
+        ),
+        "ci_runs_peelp_cards_regression": "python3 tools/qa_peelp_cards.py" in workflow_text,
+        "ci_runs_plotly_modules_regression": (
+            "python3 tools/qa_plotly_modules.py" in workflow_text
+        ),
+        "ranked_modules_serialize_scalars_safely": all(
+            token in ranked_module_source
+            for token in [
+                ".data$variable == .env$variable_name",
+                'null = "null"',
+                "share_total_value <-",
+                "note_override_value <-",
+            ]
+        ) and all(
+            token in ranked_module_javascript
+            for token in [
+                'typeof value !== "string"',
+                'typeof config.noteOverride === "string"',
+            ]
+        ),
+        "ci_runs_ranked_modules_regression": (
+            "python3 tools/qa_ranked_modules.py" in workflow_text
+        ),
+        "ci_installs_browser_for_runtime_qa": all(
+            token in workflow_text
+            for token in [
+                "python3 -m pip install",
+                "python3 -m playwright install --with-deps chromium",
+                'RIGI_REQUIRE_BROWSER: "1"',
+            ]
+        ),
+        "ci_plotly_path_matches_generated_dependency": (
+            "site_libs/plotly-main-" in workflow_text
+            and 'startsWith(dependency_names, "plotly-main")' in plotly_dependency_source
+        ),
+        "ci_has_required_post_render_smoke_checks": all(
+            token in workflow_text
+            for token in [
+                "test -s _site/aprobados.html",
+                "test -s _site/assets/planes_inversion.js",
+                "test -s _site/assets/importaciones.js",
+                "grep -Fq 'planes-inversion-module' _site/aprobados.html",
+                "grep -Fq 'importaciones-module' _site/aprobados.html",
             ]
         ),
         "quarto_cache_and_freeze_disabled": (
