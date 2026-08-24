@@ -59,6 +59,10 @@ jobs:
             any::forcats
             any::writexl
             any::jsonlite
+            
+      - name: Install Python QA dependencies
+        run: |
+          python3 -m pip install --disable-pip-version-check "openpyxl>=3.1,<4"
 
       - name: Validate versioned frontend bootstrap
         shell: bash
