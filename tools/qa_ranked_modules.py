@@ -232,7 +232,7 @@ def browser_qa() -> Dict[str, Any]:
                           document.getElementById(id)?.dataset.rankedReady === "true"
                         )
                         """,
-                        module_ids,
+                         arg=module_ids,
                         timeout=30000,
                     )
                     state = page.evaluate(
