@@ -3,11 +3,12 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import subprocess
 import sys
 from pathlib import Path
+
+from qa_data_contract import validate_workbook
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,12 +53,17 @@ public_sources = "\n".join(
     )
 )
 
-expected_sha = "82d3d74fe58f6b747269bd72058397bd369ee4810b765e1d18bbf438e28cc974"
 source_xlsx = ROOT / "data/RIGI_tracker_data_final_con_proyectos_integrados.xlsx"
-actual_sha = hashlib.sha256(source_xlsx.read_bytes()).hexdigest()
+data_contract = validate_workbook(source_xlsx)
+contract_checks = {
+    name: passed
+    for name, passed in data_contract["checks"].items()
+    if passed is not None
+}
 
 checks = {
-    "source_xlsx_unchanged": actual_sha == expected_sha,
+    **contract_checks,
+    "source_xlsx_contract_valid": data_contract["valid"],
     "approved_total_summary_label": "Inversión total de proyectos aprobados" in plots,
     "surveyed_total_scope_note": (
         "Incluye proyectos aprobados y en evaluación con información disponible." in plots
@@ -156,7 +162,12 @@ for path in js_files:
 failed = sorted(name for name, passed in checks.items() if not passed)
 report = {
     "checks": checks,
-    "xlsx_sha256": actual_sha,
+    "xlsx_sha256": data_contract["sha256"],
+    "data_contract": {
+        "metrics": data_contract["metrics"],
+        "errors": data_contract["errors"],
+        "skipped": data_contract["skipped"],
+    },
     "javascript": javascript_results,
     "failed": failed,
 }

@@ -83,22 +83,63 @@ quarto render
 quarto preview
 ```
 
-## Cómo actualizar el informe
+## Cómo actualizar el Excel maestro
 
-1. Reemplazar el archivo Excel en `data/RIGI_tracker_data_final_con_proyectos_integrados.xlsx` cuando se actualice la base de proyectos.
-2. Reemplazar `data/RIGI_planes_inversion.xlsx` cuando se actualicen los planes de inversión y verificar que conserve la hoja `Datos_long`.
-3. Verificar que la base principal conserve la solapa `Proyectos`.
-4. Ejecutar:
+El archivo `data/RIGI_tracker_data_final_con_proyectos_integrados.xlsx` es una
+fuente de datos actualizable. Puede incorporar proyectos, cambios de estado,
+montos, fechas, empleo, fuentes y correcciones de texto sin modificar hashes ni
+archivos de código. Debe conservar el nombre, la ubicación, las hojas
+obligatorias (`Proyectos`, `Diccionario` y `Variable_Anterior`) y el contrato de
+columnas documentado por el proyecto.
+
+Después de reemplazar o editar el Excel, ejecutar desde la carpeta raíz:
 
 ```bash
+# Solo la primera vez, si openpyxl no está instalado.
+python3 -m pip install "openpyxl>=3.1,<4"
+
+# Contrato de datos y prueba de robustez ante futuras actualizaciones.
+python3 tools/qa_data_contract.py
+python3 tools/test_qa_data_contract.py
+
+# Controles de R y de la interfaz antes del render.
+Rscript tools/qa_encoding.R
+Rscript tools/diagnose_plotly_dependency.R
+python3 tools/qa_final_ui_refinements.py
+python3 tools/qa_peelp_cards.py
+
+# Render limpio; regenera indicadores, fichas, gráficos y descargas.
+rm -rf .quarto _freeze _site
+find . -maxdepth 1 -type d -name '*_cache' -exec rm -rf {} +
+find . -maxdepth 1 -type d -name '*_files' -exec rm -rf {} +
 quarto render
+
+# Controles sobre el sitio recién generado.
+python3 tools/qa_plotly_modules.py
+python3 tools/qa_ranked_modules.py
 quarto preview
 ```
 
-4. Si está correcto, subir cambios con GitHub Desktop:
-   - escribir un mensaje en `Summary`;
-   - tocar `Commit to main`;
-   - tocar `Push origin`.
+`tools/qa_data_contract.py` comprueba que el XLSX sea legible y conserve hojas,
+columnas, identificadores, estados, tipos de datos y reglas mínimas de
+consistencia. El SHA-256 se registra únicamente para trazabilidad: su cambio no
+detiene el workflow. `tools/test_qa_data_contract.py` demuestra en copias
+temporales que una modificación válida de contenido es aceptada y que la
+ausencia de una columna obligatoria es rechazada con un mensaje accionable.
+
+El render regenera automáticamente las descargas de aprobados, proyectos en
+evaluación y base completa a partir del Excel vigente. Antes de subir, revisar
+`git status` y `git diff`. Si todos los controles finalizaron correctamente:
+
+1. Abrir GitHub Desktop.
+2. Escribir el mensaje en `Summary`.
+3. Seleccionar `Commit to main`.
+4. Seleccionar `Push origin`.
+
+No es necesario calcular, copiar ni actualizar manualmente ningún SHA-256.
+
+Para actualizar `data/RIGI_planes_inversion.xlsx`, conservar además la hoja
+`Datos_long` y ejecutar la misma secuencia de render y controles.
 
 El sitio publicado debería actualizarse en:
 

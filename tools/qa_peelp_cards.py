@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import subprocess
@@ -13,10 +12,11 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
+from qa_data_contract import validate_workbook
+
 
 ROOT = Path(__file__).resolve().parents[1]
 XLSX = ROOT / "data/RIGI_tracker_data_final_con_proyectos_integrados.xlsx"
-EXPECTED_SHA = "82d3d74fe58f6b747269bd72058397bd369ee4810b765e1d18bbf438e28cc974"
 
 
 def read(relative: str) -> str:
@@ -41,6 +41,20 @@ def as_number(value: object) -> float | None:
         return None
     return parsed if math.isfinite(parsed) else None
 
+
+data_contract = validate_workbook(XLSX)
+if not data_contract["valid"]:
+    report = {
+        "source_sha256": data_contract["sha256"],
+        "checks": {"source_xlsx_contract_valid": False},
+        "data_contract": data_contract,
+        "failed": ["source_xlsx_contract_valid"],
+    }
+    (ROOT / "qa").mkdir(exist_ok=True)
+    serialized = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    (ROOT / "qa/peelp_cards_source_qa.json").write_text(serialized, encoding="utf-8")
+    print(serialized, end="")
+    raise SystemExit(1)
 
 workbook = load_workbook(XLSX, read_only=True, data_only=True)
 projects_sheet = workbook["Proyectos"]
@@ -71,7 +85,7 @@ peelp_total = sum(peelp_amounts)
 non_peelp_total = approved_total - peelp_total
 share_sum = (
     peelp_total / approved_total + non_peelp_total / approved_total
-    if approved_total > 0 else float("nan")
+    if approved_total > 0 else 0.0
 )
 
 approved_qmd = read("aprobados.qmd")
@@ -99,15 +113,13 @@ detail_labels = [
 detail_positions = [details_source.find(f'"{label}"') for label in detail_labels]
 
 checks = {
-    "source_xlsx_unchanged": hashlib.sha256(XLSX.read_bytes()).hexdigest() == EXPECTED_SHA,
-    "source_sheets_present": all(
-        sheet in workbook.sheetnames for sheet in ("Proyectos", "Diccionario", "Variable_Anterior")
-    ),
-    "peelp_universe_is_approved_only": bool(peelp) and all(row in approved for row in peelp),
+    "source_xlsx_contract_valid": data_contract["valid"],
+    "peelp_universe_is_approved_only": all(row in approved for row in peelp),
     "peelp_and_non_peelp_reconcile": math.isclose(
         peelp_total + non_peelp_total, approved_total, rel_tol=0, abs_tol=1e-9
     ),
-    "peelp_shares_sum_to_one": math.isclose(share_sum, 1.0, rel_tol=0, abs_tol=1e-12),
+    "peelp_shares_sum_to_one": approved_total <= 0
+    or math.isclose(share_sum, 1.0, rel_tol=0, abs_tol=1e-12),
     "peelp_ranking_descends_by_amount": peelp_amounts == sorted(peelp_amounts, reverse=True)
     or "dplyr::arrange(dplyr::desc(value), label)" in modules,
     "peelp_share_module_used": "make_peelp_share_module(indicadores)" in approved_qmd,
@@ -182,7 +194,11 @@ for path in sorted((ROOT / "assets").glob("*.js")):
 
 failed = sorted(name for name, passed in checks.items() if not passed)
 report = {
-    "source_sha256": hashlib.sha256(XLSX.read_bytes()).hexdigest(),
+    "source_sha256": data_contract["sha256"],
+    "data_contract": {
+        "metrics": data_contract["metrics"],
+        "errors": data_contract["errors"],
+    },
     "projects": len(records),
     "approved_projects": len(approved),
     "peelp_projects": len(peelp),

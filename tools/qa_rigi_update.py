@@ -272,8 +272,11 @@ def main() -> int:
         }
 
     checks = {
-        "required_sheets": workbook.sheet_names == REQUIRED_SHEETS,
-        "canonical_schema_exact": list(projects.columns) == REQUIRED_VARIABLES,
+        "required_sheets": set(REQUIRED_SHEETS).issubset(workbook.sheet_names),
+        "canonical_schema_compatible": (
+            len(projects.columns) == len(set(projects.columns))
+            and set(projects.columns) == set(REQUIRED_VARIABLES)
+        ),
         "dictionary_contract_complete": set(REQUIRED_VARIABLES).issubset(
             set(dictionary["Variable"].astype(str))
         ),
@@ -284,8 +287,6 @@ def main() -> int:
         "id_project_present": projects["id_proyecto"].notna().all(),
         "id_project_unique": not projects["id_proyecto"].duplicated().any(),
         "states_exhaustive": int(approved.sum() + evaluation.sum() + rejected.sum()) == len(projects),
-        "state_counts_21_19_1": (int(approved.sum()), int(evaluation.sum()), int(rejected.sum()))
-        == (21, 19, 1),
         "commitment_components_match_total": not commitment_differences,
         "territorial_totals_reconcile": all(
             item["reconciles"]

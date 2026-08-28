@@ -10,7 +10,6 @@ post-render check used by CI.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import re
@@ -24,12 +23,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
+from qa_data_contract import validate_workbook
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "_site"
 PAGE = SITE / "aprobados.html"
 MAIN_XLSX = ROOT / "data" / "RIGI_tracker_data_final_con_proyectos_integrados.xlsx"
-EXPECTED_XLSX_SHA256 = "82d3d74fe58f6b747269bd72058397bd369ee4810b765e1d18bbf438e28cc974"
 
 MODULE_SCRIPTS = [
     ROOT / "assets" / "planes_inversion.js",
@@ -85,14 +85,6 @@ class AprobadosParser(HTMLParser):
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, _format: str, *args: object) -> None:
         return
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def source_texts() -> dict[str, str]:
@@ -278,10 +270,10 @@ def main() -> int:
 
     checks: dict[str, bool] = {}
     details: dict[str, Any] = {}
-    checks["main_xlsx_exists"] = MAIN_XLSX.is_file()
-    actual_checksum = sha256(MAIN_XLSX) if MAIN_XLSX.is_file() else None
-    checks["main_xlsx_checksum"] = actual_checksum == EXPECTED_XLSX_SHA256
-    details["main_xlsx_sha256"] = actual_checksum
+    data_contract = validate_workbook(MAIN_XLSX)
+    checks["main_xlsx_contract_valid"] = data_contract["valid"]
+    details["main_xlsx_sha256"] = data_contract["sha256"]
+    details["main_xlsx_contract_errors"] = data_contract["errors"]
 
     javascript: dict[str, Any] = {}
     for path in MODULE_SCRIPTS:

@@ -9,7 +9,6 @@ available, exercises every view and row limit at the supported widths.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import os
@@ -23,11 +22,12 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from qa_data_contract import validate_workbook
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "_site"
 MAIN_XLSX = ROOT / "data" / "RIGI_tracker_data_final_con_proyectos_integrados.xlsx"
-EXPECTED_XLSX_SHA256 = "82d3d74fe58f6b747269bd72058397bd369ee4810b765e1d18bbf438e28cc974"
 R_SOURCE = ROOT / "R" / "07_investment_modules.R"
 JS_SOURCE = ROOT / "assets" / "investment_modules.js"
 WORKFLOW = ROOT / ".github" / "workflows" / "render.yml"
@@ -101,14 +101,6 @@ class RankedPageParser(HTMLParser):
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, _format: str, *args: object) -> None:
         return
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def is_number(value: Any) -> bool:
@@ -370,9 +362,10 @@ def main() -> int:
     approved = (ROOT / "aprobados.qmd").read_text(encoding="utf-8")
     evaluation = (ROOT / "evaluacion.qmd").read_text(encoding="utf-8")
 
-    actual_checksum = sha256(MAIN_XLSX) if MAIN_XLSX.is_file() else None
-    checks["main_xlsx_checksum"] = actual_checksum == EXPECTED_XLSX_SHA256
-    details["main_xlsx_sha256"] = actual_checksum
+    data_contract = validate_workbook(MAIN_XLSX)
+    checks["main_xlsx_contract_valid"] = data_contract["valid"]
+    details["main_xlsx_sha256"] = data_contract["sha256"]
+    details["main_xlsx_contract_errors"] = data_contract["errors"]
     checks["ranked_sources_exist"] = R_SOURCE.is_file() and JS_SOURCE.is_file()
 
     try:

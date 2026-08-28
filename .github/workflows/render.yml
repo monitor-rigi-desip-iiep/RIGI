@@ -77,8 +77,10 @@ jobs:
           node --check assets/importaciones.js
           python3 tools/qa_mobile_layout.py
 
-      - name: Validate R text encoding and project cards
+      - name: Validate Excel data contract, R text encoding and project cards
         run: |
+          python3 tools/qa_data_contract.py
+          python3 tools/test_qa_data_contract.py
           Rscript tools/qa_encoding.R
           quarto --version
           Rscript tools/diagnose_plotly_dependency.R

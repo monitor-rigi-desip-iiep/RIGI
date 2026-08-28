@@ -162,6 +162,17 @@ def main() -> int:
             ]
         ),
         "ci_runs_encoding_regression": "Rscript tools/qa_encoding.R" in workflow_text,
+        "data_contract_qa_present": (ROOT / "tools/qa_data_contract.py").is_file(),
+        "data_contract_self_test_present": (
+            ROOT / "tools/test_qa_data_contract.py"
+        ).is_file(),
+        "ci_runs_data_contract_qa": all(
+            token in workflow_text
+            for token in [
+                "python3 tools/qa_data_contract.py",
+                "python3 tools/test_qa_data_contract.py",
+            ]
+        ),
         "ci_runs_plotly_dependency_diagnostic": all(
             token in workflow_text
             for token in [
