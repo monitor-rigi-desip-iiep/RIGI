@@ -22,6 +22,17 @@ website:
   title: "Monitor de Proyectos RIGI"
   site-url: "https://monitor-rigi-desip-iiep.github.io/RIGI/"
   repo-url: "https://github.com/monitor-rigi-desip-iiep/RIGI"
+
+  google-analytics:
+    tracking-id: "G-BDY467TS43"
+    anonymize-ip: true
+
+  cookie-consent:
+    type: express
+    style: simple
+    palette: light
+    language: es
+
   page-footer:
     left: "DESIP · IIEP"
     right: "Monitor de Proyectos RIGI · Por [@_LucasOrdoñez](https://x.com/_LucasOrdonez)"
