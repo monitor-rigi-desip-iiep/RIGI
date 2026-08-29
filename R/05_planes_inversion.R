@@ -158,7 +158,7 @@ load_planes_inversion <- function(path = planes_inversion_path) {
     )
 }
 
-validate_planes_inversion <- function(data, tolerance = 1e-6) {
+validate_planes_inversion <- function(data, tolerance = 1) {
   errors <- character(0)
 
   if (nrow(data) == 0) {

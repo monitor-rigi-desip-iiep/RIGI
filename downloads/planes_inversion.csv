@@ -1,44 +1,44 @@
 anio,sector,subsector,monto_mill_usd,sector_total_mill_usd,total_anual_mill_usd,fuente
-2024,Energía Eléctrica,Energía Eléctrica,37,37,595,https://www.argentina.gob.ar/economia/rigi
-2024,Infraestructura,Puerto,0,0,595,https://www.argentina.gob.ar/economia/rigi
-2024,Minería,Cobre,109,527,595,https://www.argentina.gob.ar/economia/rigi
-2024,Minería,Litio,374,527,595,https://www.argentina.gob.ar/economia/rigi
-2024,Minería,Oro y Plata,44,527,595,https://www.argentina.gob.ar/economia/rigi
-2024,Petróleo y Gas,Midstream,17,31,595,https://www.argentina.gob.ar/economia/rigi
-2024,Petróleo y Gas,Upstream,14,31,595,https://www.argentina.gob.ar/economia/rigi
-2024,Siderurgia,Siderurgia,0,0,595,https://www.argentina.gob.ar/economia/rigi
-2025,Energía Eléctrica,Energía Eléctrica,252,252,3691,https://www.argentina.gob.ar/economia/rigi
-2025,Infraestructura,Puerto,92,92,3691,https://www.argentina.gob.ar/economia/rigi
-2025,Minería,Cobre,419,1472,3691,https://www.argentina.gob.ar/economia/rigi
-2025,Minería,Litio,948,1472,3691,https://www.argentina.gob.ar/economia/rigi
-2025,Minería,Oro y Plata,105,1472,3691,https://www.argentina.gob.ar/economia/rigi
-2025,Petróleo y Gas,Midstream,1565,1793,3691,https://www.argentina.gob.ar/economia/rigi
-2025,Petróleo y Gas,Upstream,228,1793,3691,https://www.argentina.gob.ar/economia/rigi
-2025,Siderurgia,Siderurgia,82,82,3691,https://www.argentina.gob.ar/economia/rigi
-2026,Energía Eléctrica,Energía Eléctrica,162,162,5598,https://www.argentina.gob.ar/economia/rigi
-2026,Infraestructura,Puerto,74,74,5598,https://www.argentina.gob.ar/economia/rigi
-2026,Minería,Cobre,962,2579,5598,https://www.argentina.gob.ar/economia/rigi
-2026,Minería,Litio,1358,2579,5598,https://www.argentina.gob.ar/economia/rigi
-2026,Minería,Oro y Plata,259,2579,5598,https://www.argentina.gob.ar/economia/rigi
-2026,Petróleo y Gas,Midstream,2277,2653,5598,https://www.argentina.gob.ar/economia/rigi
-2026,Petróleo y Gas,Upstream,376,2653,5598,https://www.argentina.gob.ar/economia/rigi
-2026,Siderurgia,Siderurgia,130,130,5598,https://www.argentina.gob.ar/economia/rigi
-2027,Energía Eléctrica,Energía Eléctrica,36,36,5542,https://www.argentina.gob.ar/economia/rigi
-2027,Infraestructura,Puerto,64,64,5542,https://www.argentina.gob.ar/economia/rigi
-2027,Minería,Cobre,2362,3875,5542,https://www.argentina.gob.ar/economia/rigi
-2027,Minería,Litio,1141,3875,5542,https://www.argentina.gob.ar/economia/rigi
-2027,Minería,Oro y Plata,372,3875,5542,https://www.argentina.gob.ar/economia/rigi
-2027,Petróleo y Gas,Midstream,959,1501,5542,https://www.argentina.gob.ar/economia/rigi
-2027,Petróleo y Gas,Upstream,542,1501,5542,https://www.argentina.gob.ar/economia/rigi
-2027,Siderurgia,Siderurgia,66,66,5542,https://www.argentina.gob.ar/economia/rigi
-2028,Energía Eléctrica,Energía Eléctrica,0,0,5331,https://www.argentina.gob.ar/economia/rigi
-2028,Infraestructura,Puerto,24,24,5331,https://www.argentina.gob.ar/economia/rigi
-2028,Minería,Cobre,2999,4128,5331,https://www.argentina.gob.ar/economia/rigi
-2028,Minería,Litio,749,4128,5331,https://www.argentina.gob.ar/economia/rigi
-2028,Minería,Oro y Plata,380,4128,5331,https://www.argentina.gob.ar/economia/rigi
-2028,Petróleo y Gas,Midstream,680,1171,5331,https://www.argentina.gob.ar/economia/rigi
-2028,Petróleo y Gas,Upstream,491,1171,5331,https://www.argentina.gob.ar/economia/rigi
-2028,Siderurgia,Siderurgia,8,8,5331,https://www.argentina.gob.ar/economia/rigi
+2024,Energía Eléctrica,Energía Eléctrica,37,37,612,https://www.argentina.gob.ar/economia/rigi
+2024,Infraestructura,Puerto,0,0,612,https://www.argentina.gob.ar/economia/rigi
+2024,Minería,Cobre,109,527,612,https://www.argentina.gob.ar/economia/rigi
+2024,Minería,Litio,374,527,612,https://www.argentina.gob.ar/economia/rigi
+2024,Minería,Oro y Plata,44,527,612,https://www.argentina.gob.ar/economia/rigi
+2024,Petróleo y Gas,Midstream,34,48,612,https://www.argentina.gob.ar/economia/rigi
+2024,Petróleo y Gas,Upstream,14,48,612,https://www.argentina.gob.ar/economia/rigi
+2024,Siderurgia,Siderurgia,0,0,612,https://www.argentina.gob.ar/economia/rigi
+2025,Energía Eléctrica,Energía Eléctrica,252,252,3701,https://www.argentina.gob.ar/economia/rigi
+2025,Infraestructura,Puerto,92,92,3701,https://www.argentina.gob.ar/economia/rigi
+2025,Minería,Cobre,419,1473,3701,https://www.argentina.gob.ar/economia/rigi
+2025,Minería,Litio,948,1473,3701,https://www.argentina.gob.ar/economia/rigi
+2025,Minería,Oro y Plata,105,1473,3701,https://www.argentina.gob.ar/economia/rigi
+2025,Petróleo y Gas,Midstream,1574,1802,3701,https://www.argentina.gob.ar/economia/rigi
+2025,Petróleo y Gas,Upstream,228,1802,3701,https://www.argentina.gob.ar/economia/rigi
+2025,Siderurgia,Siderurgia,82,82,3701,https://www.argentina.gob.ar/economia/rigi
+2026,Energía Eléctrica,Energía Eléctrica,162,162,5669,https://www.argentina.gob.ar/economia/rigi
+2026,Infraestructura,Puerto,74,74,5669,https://www.argentina.gob.ar/economia/rigi
+2026,Minería,Cobre,962,2579,5669,https://www.argentina.gob.ar/economia/rigi
+2026,Minería,Litio,1358,2579,5669,https://www.argentina.gob.ar/economia/rigi
+2026,Minería,Oro y Plata,259,2579,5669,https://www.argentina.gob.ar/economia/rigi
+2026,Petróleo y Gas,Midstream,2348,2724,5669,https://www.argentina.gob.ar/economia/rigi
+2026,Petróleo y Gas,Upstream,376,2724,5669,https://www.argentina.gob.ar/economia/rigi
+2026,Siderurgia,Siderurgia,130,130,5669,https://www.argentina.gob.ar/economia/rigi
+2027,Energía Eléctrica,Energía Eléctrica,36,36,5673,https://www.argentina.gob.ar/economia/rigi
+2027,Infraestructura,Puerto,64,64,5673,https://www.argentina.gob.ar/economia/rigi
+2027,Minería,Cobre,2362,3875,5673,https://www.argentina.gob.ar/economia/rigi
+2027,Minería,Litio,1141,3875,5673,https://www.argentina.gob.ar/economia/rigi
+2027,Minería,Oro y Plata,372,3875,5673,https://www.argentina.gob.ar/economia/rigi
+2027,Petróleo y Gas,Midstream,1090,1632,5673,https://www.argentina.gob.ar/economia/rigi
+2027,Petróleo y Gas,Upstream,542,1632,5673,https://www.argentina.gob.ar/economia/rigi
+2027,Siderurgia,Siderurgia,66,66,5673,https://www.argentina.gob.ar/economia/rigi
+2028,Energía Eléctrica,Energía Eléctrica,0,0,5469,https://www.argentina.gob.ar/economia/rigi
+2028,Infraestructura,Puerto,24,24,5469,https://www.argentina.gob.ar/economia/rigi
+2028,Minería,Cobre,2999,4128,5469,https://www.argentina.gob.ar/economia/rigi
+2028,Minería,Litio,749,4128,5469,https://www.argentina.gob.ar/economia/rigi
+2028,Minería,Oro y Plata,380,4128,5469,https://www.argentina.gob.ar/economia/rigi
+2028,Petróleo y Gas,Midstream,818,1309,5469,https://www.argentina.gob.ar/economia/rigi
+2028,Petróleo y Gas,Upstream,491,1309,5469,https://www.argentina.gob.ar/economia/rigi
+2028,Siderurgia,Siderurgia,8,8,5469,https://www.argentina.gob.ar/economia/rigi
 2029,Energía Eléctrica,Energía Eléctrica,0,0,4252,https://www.argentina.gob.ar/economia/rigi
 2029,Infraestructura,Puerto,21,21,4252,https://www.argentina.gob.ar/economia/rigi
 2029,Minería,Cobre,2843,3278,4252,https://www.argentina.gob.ar/economia/rigi
