@@ -45,7 +45,20 @@ def main() -> int:
         "plans_reset_uses_defaults": "yearStart.value = String(defaultStartYear)" in plans_js and "yearEnd.value = String(defaultEndYear)" in plans_js,
         "timeline_has_no_amount_annotations": "timeline_annotations" not in timeline_r and "monto_label" not in timeline_r,
         "timeline_keeps_amount_tooltip": '"<br>Monto: ", fmt_currency_mill(monto_usd_mill' in timeline_r,
-        "timeline_help_updated": "El tamaño de la burbuja representa el monto informado" in evaluation,
+        "timeline_help_updated": all(token in evaluation for token in [
+            "Los proyectos se ordenan desde la presentación más reciente.",
+            "Cada entrada muestra la fecha de presentación relevada, el sector y el monto informado.",
+        ]),
+        "timeline_uses_single_vertical_component": (
+            "rigi-timeline-desktop" not in evaluation
+            and "plot_timeline(" not in evaluation
+            and evaluation.count("make_mobile_timeline(") == 1
+        ),
+        "timeline_vertical_component_is_universal": (
+            ".rigi-timeline-mobile {\n  display: block;" in styles
+            and "max-width: 900px;" in styles
+            and "@media (max-width: 719px) {\n  .rigi-timeline-desktop" not in styles
+        ),
         "hero_publication_label_removed": "PUBLICACIÓN ESTADÍSTICA" not in index,
         "imports_dropdown_markup": all(token in imports_r for token in [
             "impo-project-details", "impo-project-summary", "impo-project-search",

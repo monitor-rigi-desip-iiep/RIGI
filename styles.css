@@ -5364,7 +5364,10 @@ main.content {
 }
 
 .rigi-timeline-mobile {
-  display: none;
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin-right: auto;
 }
 
 .rigi-mobile-timeline {
@@ -5508,14 +5511,6 @@ main.content {
 }
 
 @media (max-width: 719px) {
-  .rigi-timeline-desktop {
-    display: none;
-  }
-
-  .rigi-timeline-mobile {
-    display: block;
-  }
-
   .summary-project-item--ranked {
     grid-template-columns: 1.7rem minmax(0, 1fr);
     column-gap: 0.62rem;

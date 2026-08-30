@@ -44,29 +44,10 @@ make_investment_explorer(
 
 ## Cronología de presentaciones {#cronologia}
 
-:::: {.rigi-timeline-desktop}
-```{r}
-make_chart_context_note(
-  "Cada fila representa un proyecto, ordenado por fecha de presentación. ",
-  "El tamaño de la burbuja representa el monto informado. Tocá o pasá el cursor para consultar el monto y los demás datos del proyecto."
-)
-```
-
-::: {.rigi-timeline-chart}
-```{r}
-plot_timeline(
-  tablas$timeline_pendientes_tbl,
-  date_col = "fecha_presentacion",
-  title = NULL
-)
-```
-:::
-::::
-
 ::: {.rigi-timeline-mobile}
 ```{r}
 make_chart_context_note(
-  "La vista móvil ordena los proyectos desde la presentación más reciente. ",
+  "Los proyectos se ordenan desde la presentación más reciente. ",
   "Cada entrada muestra la fecha de presentación relevada, el sector y el monto informado. Desplegá la lista para consultar los proyectos anteriores."
 )
 ```
