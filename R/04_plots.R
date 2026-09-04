@@ -1746,6 +1746,21 @@ rigi_card_amount <- function(x) {
   paste0("USD ", fmt_number(x, accuracy = accuracy), " millones")
 }
 
+# Formato exclusivo para celdas monetarias de las tablas. Las fichas y el
+# resto de los componentes conservan la unidad junto al valor.
+rigi_table_amount <- function(x) {
+  if (length(x) == 0 || is.na(x) || is.nan(x)) return("No informado")
+  accuracy <- if (abs(x - round(x)) < 1e-9) 1 else 0.1
+  fmt_number(x, accuracy = accuracy)
+}
+
+rigi_table_amount_heading <- function(label) {
+  htmltools::tagList(
+    htmltools::tags$span(class = "rigi-project-table__heading-label", label),
+    htmltools::tags$span(class = "rigi-project-table__heading-unit", "MILLONES DE USD")
+  )
+}
+
 rigi_card_integer <- function(x) {
   if (length(x) == 0 || is.na(x) || is.nan(x)) return("No informado")
   fmt_integer(x)
@@ -2167,20 +2182,26 @@ make_rigi_project_table_row <- function(row, table_type, index) {
     htmltools::tags$td(province),
     if (identical(table_type, "aprobados")) {
       htmltools::tagList(
-        htmltools::tags$td(class = "rigi-project-table__amount", rigi_card_amount(amount_value)),
         htmltools::tags$td(
           class = "rigi-project-table__amount",
-          rigi_card_amount(value("activos_computables_usd_mill"))
+          rigi_table_amount(amount_value)
         ),
         htmltools::tags$td(
           class = "rigi-project-table__amount",
-          rigi_card_amount(value("compromiso_activos_2_anios_usd_mill"))
+          rigi_table_amount(value("activos_computables_usd_mill"))
+        ),
+        htmltools::tags$td(
+          class = "rigi-project-table__amount",
+          rigi_table_amount(value("compromiso_activos_2_anios_usd_mill"))
         ),
         htmltools::tags$td(class = "rigi-project-table__date", rigi_card_date(key_date))
       )
     } else {
       htmltools::tagList(
-        htmltools::tags$td(class = "rigi-project-table__amount", rigi_card_amount(amount_value)),
+        htmltools::tags$td(
+          class = "rigi-project-table__amount",
+          rigi_table_amount(amount_value)
+        ),
         htmltools::tags$td(class = "rigi-project-table__date", rigi_card_date(key_date))
       )
     }
@@ -2495,7 +2516,7 @@ make_rigi_project_cards <- function(
         tabindex = "0",
         `aria-label` = "Tabla desplazable de proyectos",
         htmltools::tags$table(
-          class = "rigi-project-table",
+          class = paste("rigi-project-table", paste0("rigi-project-table--", table_type)),
           htmltools::tags$caption(class = "visually-hidden", caption),
           htmltools::tags$thead(
             htmltools::tags$tr(
@@ -2505,14 +2526,30 @@ make_rigi_project_cards <- function(
               htmltools::tags$th(scope = "col", "Provincia"),
               if (identical(table_type, "aprobados")) {
                 htmltools::tagList(
-                  htmltools::tags$th(scope = "col", "Inversión total"),
-                  htmltools::tags$th(scope = "col", "Inversión en activos computables"),
-                  htmltools::tags$th(scope = "col", "Inversión comprometida en activos computables — primeros 2 años"),
+                  htmltools::tags$th(
+                    scope = "col",
+                    class = "rigi-project-table__amount-heading",
+                    rigi_table_amount_heading("Inversión total")
+                  ),
+                  htmltools::tags$th(
+                    scope = "col",
+                    class = "rigi-project-table__amount-heading",
+                    rigi_table_amount_heading("Inversión en activos computables")
+                  ),
+                  htmltools::tags$th(
+                    scope = "col",
+                    class = "rigi-project-table__amount-heading rigi-project-table__amount-heading--long",
+                    rigi_table_amount_heading("Inversión comprometida en activos computables — primeros 2 años")
+                  ),
                   htmltools::tags$th(scope = "col", date_heading)
                 )
               } else {
                 htmltools::tagList(
-                  htmltools::tags$th(scope = "col", "Inversión total"),
+                  htmltools::tags$th(
+                    scope = "col",
+                    class = "rigi-project-table__amount-heading",
+                    rigi_table_amount_heading("Inversión total")
+                  ),
                   htmltools::tags$th(scope = "col", date_heading)
                 )
               }
